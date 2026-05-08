@@ -79,7 +79,7 @@ onUnmounted(() => {
 }
 
 .navbar.scrolled {
-  background: rgba(15, 23, 42, 0.95);
+  background: rgba(255, 252, 248, 0.95);
   box-shadow: var(--shadow-md);
 }
 
@@ -141,9 +141,9 @@ onUnmounted(() => {
 
 .admin-link {
   padding: var(--spacing-xs) var(--spacing-md);
-  background: rgba(99, 102, 241, 0.2);
+  background: rgba(255, 255, 255, 0.5);
   border-radius: var(--border-radius-sm);
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  border: 1px solid rgba(150, 164, 138, 0.2);
 }
 
 .admin-link::after {
@@ -151,8 +151,9 @@ onUnmounted(() => {
 }
 
 .admin-link:hover {
-  background: rgba(99, 102, 241, 0.3);
-  color: var(--color-primary-light);
+  background: rgba(150, 164, 138, 0.1);
+  border-color: rgba(150, 164, 138, 0.4);
+  color: var(--color-primary-dark);
 }
 
 .menu-toggle {
@@ -214,7 +215,7 @@ onUnmounted(() => {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(15, 23, 42, 0.98);
+    background: rgba(255, 252, 248, 0.98);
     backdrop-filter: blur(20px);
     flex-direction: column;
     justify-content: flex-start;

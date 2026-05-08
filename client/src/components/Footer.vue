@@ -71,8 +71,11 @@ const currentYear = new Date().getFullYear()
 }
 
 .link-group h4 {
-  color: var(--text-primary);
-  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   margin-bottom: var(--spacing-md);
 }
 
@@ -85,7 +88,7 @@ const currentYear = new Date().getFullYear()
 }
 
 .link-group a:hover {
-  color: var(--color-primary-light);
+  color: var(--color-primary-dark);
 }
 
 .footer-bottom {
@@ -96,7 +99,7 @@ const currentYear = new Date().getFullYear()
 }
 
 .footer-bottom p {
-  color: var(--text-muted);
+  color: var(--text-disabled);
   font-size: 0.85rem;
 }
 

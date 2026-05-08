@@ -165,13 +165,13 @@ function handleLogout() {
 }
 
 .menu-item:hover {
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(150, 164, 138, 0.1);
   color: var(--text-primary);
 }
 
 .menu-item.active {
-  background: rgba(99, 102, 241, 0.2);
-  color: var(--color-primary-light);
+  background: rgba(150, 164, 138, 0.15);
+  color: var(--color-primary-dark);
 }
 
 .menu-icon {

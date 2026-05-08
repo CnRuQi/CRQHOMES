@@ -24,13 +24,13 @@ body {
 }
 
 a {
-  color: var(--color-primary);
+  color: var(--color-primary-dark);
   text-decoration: none;
   transition: color var(--transition-fast);
 }
 
 a:hover {
-  color: var(--color-primary-dark);
+  color: var(--color-primary);
 }
 
 img {

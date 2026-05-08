@@ -163,7 +163,7 @@ onMounted(() => {
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa);
+  background: linear-gradient(135deg, #7B8B6F, #D4B0B5, #96A48B);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

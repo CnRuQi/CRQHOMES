@@ -161,7 +161,7 @@
 }
 
 .hover-glow:hover {
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 20px rgba(150, 164, 138, 0.3);
 }
 
 /* 页面过渡 */

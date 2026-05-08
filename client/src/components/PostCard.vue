@@ -67,8 +67,8 @@ defineProps({
 
 .post-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 12px 40px rgba(99, 102, 241, 0.2);
-  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 20px 40px rgba(150, 164, 138, 0.12);
+  border-color: rgba(150, 164, 138, 0.3);
 }
 
 .card-link {
@@ -100,7 +100,7 @@ defineProps({
   background: linear-gradient(
     to bottom,
     transparent 50%,
-    rgba(15, 23, 42, 0.8)
+    rgba(61, 64, 53, 0.6)
   );
 }
 
@@ -110,8 +110,8 @@ defineProps({
   justify-content: center;
   background: linear-gradient(
     135deg,
-    rgba(99, 102, 241, 0.3),
-    rgba(139, 92, 246, 0.3)
+    rgba(150, 164, 138, 0.2),
+    rgba(212, 176, 181, 0.2)
   );
 }
 
@@ -135,17 +135,17 @@ defineProps({
 
 .card-category {
   padding: 2px 10px;
-  background: rgba(99, 102, 241, 0.2);
+  background: rgba(150, 164, 138, 0.15);
   border-radius: 20px;
-  color: var(--color-primary-light);
+  color: var(--color-primary-dark);
   font-weight: 500;
 }
 
 .card-top {
   padding: 2px 10px;
-  background: rgba(239, 68, 68, 0.2);
+  background: rgba(196, 151, 153, 0.2);
   border-radius: 20px;
-  color: #ef4444;
+  color: #C49799;
   font-weight: 500;
 }
 

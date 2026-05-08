@@ -27,7 +27,7 @@
 .error-code {
   font-size: 8rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #96A48B, #D4B0B5);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

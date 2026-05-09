@@ -12,30 +12,30 @@
       <nav class="sidebar-menu">
         <router-link to="/admin" class="menu-item" exact-active-class="active">
           <Icon name="dashboard" :size="20" />
-          <span class="menu-text" v-show="!isCollapsed">仪表盘</span>
+          <span class="menu-text" :class="{ hidden: isCollapsed }">仪表盘</span>
         </router-link>
         <router-link to="/admin/posts" class="menu-item" active-class="active">
           <Icon name="article" :size="20" />
-          <span class="menu-text" v-show="!isCollapsed">文章管理</span>
+          <span class="menu-text" :class="{ hidden: isCollapsed }">文章管理</span>
         </router-link>
         <router-link to="/admin/posts/create" class="menu-item" active-class="active">
           <Icon name="edit" :size="20" />
-          <span class="menu-text" v-show="!isCollapsed">写文章</span>
+          <span class="menu-text" :class="{ hidden: isCollapsed }">写文章</span>
         </router-link>
         <router-link to="/admin/categories" class="menu-item" active-class="active">
           <Icon name="category" :size="20" />
-          <span class="menu-text" v-show="!isCollapsed">分类管理</span>
+          <span class="menu-text" :class="{ hidden: isCollapsed }">分类管理</span>
         </router-link>
       </nav>
 
       <div class="sidebar-footer">
         <router-link to="/" class="menu-item">
           <Icon name="external" :size="20" />
-          <span class="menu-text" v-show="!isCollapsed">访问前台</span>
+          <span class="menu-text" :class="{ hidden: isCollapsed }">访问前台</span>
         </router-link>
         <button class="menu-item" @click="handleLogout">
           <Icon name="logout" :size="20" />
-          <span class="menu-text" v-show="!isCollapsed">退出登录</span>
+          <span class="menu-text" :class="{ hidden: isCollapsed }">退出登录</span>
         </button>
       </div>
     </aside>
@@ -112,7 +112,8 @@ function handleLogout() {
   display: flex;
   flex-direction: column;
   z-index: 100;
-  transition: width var(--transition-normal);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 
 .sidebar.collapsed {
@@ -125,6 +126,7 @@ function handleLogout() {
   align-items: center;
   padding: 0 var(--spacing-md);
   border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
 }
 
 .sidebar-logo {
@@ -134,6 +136,7 @@ function handleLogout() {
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .sidebar-menu {
@@ -151,7 +154,7 @@ function handleLogout() {
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--border-radius-sm);
   color: var(--text-secondary);
-  transition: all var(--transition-fast);
+  transition: background 0.2s ease, color 0.2s ease;
   text-decoration: none;
   cursor: pointer;
   background: none;
@@ -168,6 +171,17 @@ function handleLogout() {
 .menu-item.active {
   background: rgba(163, 166, 156, 0.15);
   color: var(--color-primary-dark);
+}
+
+.menu-text {
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 0.2s ease 0.15s;
+}
+
+.menu-text.hidden {
+  opacity: 0;
+  transition: opacity 0.1s ease;
 }
 
 .sidebar-footer {

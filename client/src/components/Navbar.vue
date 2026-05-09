@@ -75,12 +75,16 @@ onUnmounted(() => {
   right: 0;
   height: var(--header-height);
   z-index: 1000;
-  transition: all var(--transition-normal);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .navbar.scrolled {
-  background: rgba(255, 252, 248, 0.95);
-  box-shadow: var(--shadow-md);
+  background: rgba(252, 251, 249, 0.92);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 
+    0 1px 3px rgba(150, 164, 138, 0.06),
+    0 4px 20px rgba(150, 164, 138, 0.04);
 }
 
 .navbar-content {
@@ -94,72 +98,74 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--text-primary);
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  transition: transform 0.3s ease;
+}
+
+.navbar-logo:hover {
+  transform: scale(1.05);
 }
 
 .logo-icon {
   color: var(--color-primary);
-  font-size: 1.8rem;
+  font-size: 1.6rem;
+  transition: transform 0.3s ease;
+}
+
+.navbar-logo:hover .logo-icon {
+  transform: rotate(15deg);
 }
 
 .navbar-menu {
   display: flex;
   align-items: center;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-xs);
 }
 
 .nav-link {
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-weight: 500;
-  padding: var(--spacing-xs) 0;
+  padding: 8px 16px;
   position: relative;
-  transition: color var(--transition-fast);
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  font-size: 0.95rem;
 }
 
-.nav-link::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--color-primary);
-  transition: width var(--transition-fast);
-}
-
-.nav-link:hover,
-.nav-link.router-link-active {
+.nav-link:hover {
   color: var(--text-primary);
+  background: rgba(150, 164, 138, 0.08);
 }
 
-.nav-link:hover::after,
-.nav-link.router-link-active::after {
-  width: 100%;
+.nav-link.router-link-active {
+  color: var(--color-primary-dark);
+  background: rgba(150, 164, 138, 0.12);
 }
 
 .admin-link {
-  padding: var(--spacing-xs) var(--spacing-md);
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: var(--border-radius-sm);
-  border: 1px solid rgba(150, 164, 138, 0.2);
-}
-
-.admin-link::after {
-  display: none;
+  padding: 8px 18px;
+  background: rgba(150, 164, 138, 0.08);
+  border: 1px solid rgba(150, 164, 138, 0.15);
+  border-radius: 10px;
+  margin-left: var(--spacing-sm);
+  transition: all 0.3s ease;
 }
 
 .admin-link:hover {
-  background: rgba(150, 164, 138, 0.1);
-  border-color: rgba(150, 164, 138, 0.4);
-  color: var(--color-primary-dark);
+  background: rgba(150, 164, 138, 0.15);
+  border-color: rgba(150, 164, 138, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(150, 164, 138, 0.1);
 }
 
 .menu-toggle {
   display: none;
-  width: 30px;
-  height: 24px;
+  width: 28px;
+  height: 20px;
   position: relative;
   cursor: pointer;
 }
@@ -172,7 +178,8 @@ onUnmounted(() => {
   height: 2px;
   background: var(--text-primary);
   position: absolute;
-  transition: all var(--transition-fast);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 2px;
 }
 
 .menu-toggle span {
@@ -182,12 +189,12 @@ onUnmounted(() => {
 
 .menu-toggle span::before {
   content: '';
-  top: -8px;
+  top: -7px;
 }
 
 .menu-toggle span::after {
   content: '';
-  bottom: -8px;
+  bottom: -7px;
 }
 
 .menu-toggle span.active {
@@ -215,14 +222,14 @@ onUnmounted(() => {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 252, 248, 0.98);
-    backdrop-filter: blur(20px);
+    background: rgba(252, 251, 249, 0.98);
+    backdrop-filter: blur(30px);
     flex-direction: column;
     justify-content: flex-start;
     padding-top: var(--spacing-2xl);
-    gap: var(--spacing-xl);
+    gap: var(--spacing-md);
     transform: translateX(100%);
-    transition: transform var(--transition-normal);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .navbar-menu.active {
@@ -230,7 +237,10 @@ onUnmounted(() => {
   }
 
   .nav-link {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+    padding: 12px 24px;
+    width: 90%;
+    text-align: center;
   }
 }
 </style>

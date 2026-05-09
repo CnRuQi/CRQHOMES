@@ -6,10 +6,20 @@
       <div class="container">
         <!-- Hero 区域 -->
         <section class="hero" data-aos="fade-down">
+          <div class="hero-decoration">
+            <span class="deco-line"></span>
+            <span class="deco-dot"></span>
+            <span class="deco-line"></span>
+          </div>
           <h1 class="hero-title">
             <span class="gradient-text">Blog</span>
           </h1>
           <p class="hero-subtitle">记录生活，分享技术</p>
+          <div class="hero-decoration">
+            <span class="deco-line"></span>
+            <span class="deco-dot"></span>
+            <span class="deco-line"></span>
+          </div>
         </section>
 
         <!-- 文章列表 -->
@@ -152,26 +162,66 @@ onMounted(() => {
 
 .hero {
   text-align: center;
-  padding: var(--spacing-2xl) 0;
-  margin-bottom: var(--spacing-2xl);
+  padding: var(--spacing-3xl, 64px) 0 var(--spacing-2xl);
+  margin-bottom: var(--spacing-xl);
+  position: relative;
+}
+
+.hero-decoration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: var(--spacing-lg) 0;
+}
+
+.deco-line {
+  width: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(150, 164, 138, 0.4), transparent);
+}
+
+.deco-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  opacity: 0.6;
 }
 
 .hero-title {
-  font-size: 3.5rem;
+  font-size: 4.5rem;
   font-weight: 800;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  font-family: var(--font-display);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #7B8B6F, #D4B0B5, #96A48B);
+  background: linear-gradient(135deg, #7B8B6F 0%, #96A48B 30%, #D4B0B5 70%, #E2C4C6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 .hero-subtitle {
-  color: var(--text-secondary);
-  font-size: 1.2rem;
+  color: var(--text-muted);
+  font-size: 1.15rem;
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  font-family: var(--font-sans);
 }
 
 .posts-grid {

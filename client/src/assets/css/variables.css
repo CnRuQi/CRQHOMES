@@ -49,9 +49,10 @@
   --spacing-xl: 32px;
   --spacing-2xl: 48px;
 
-  /* 字体 */
-  --font-sans: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont,
+  /* 字体 - 更有特色的组合 */
+  --font-sans: 'Source Sans 3', 'Noto Sans SC', -apple-system, BlinkMacSystemFont,
                'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-display: 'Playfair Display', 'Noto Serif SC', Georgia, serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 
   /* 布局 */

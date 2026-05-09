@@ -62,19 +62,41 @@ defineProps({
 <style scoped>
 .post-card {
   overflow: hidden;
-  transition: all var(--transition-normal);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.post-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(150, 164, 138, 0.1), 
+    rgba(212, 176, 181, 0.1)
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 0;
+  border-radius: inherit;
 }
 
 .post-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(150, 164, 138, 0.12);
-  border-color: rgba(150, 164, 138, 0.3);
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: 
+    0 25px 50px rgba(150, 164, 138, 0.15),
+    0 0 0 1px rgba(150, 164, 138, 0.2);
+}
+
+.post-card:hover::before {
+  opacity: 1;
 }
 
 .card-link {
   display: block;
   color: inherit;
   text-decoration: none;
+  position: relative;
+  z-index: 1;
 }
 
 .card-cover {
@@ -87,21 +109,22 @@ defineProps({
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform var(--transition-normal);
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .post-card:hover .card-cover img {
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
 .cover-overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(
-    to bottom,
-    transparent 50%,
-    rgba(61, 64, 53, 0.6)
+    180deg,
+    transparent 40%,
+    rgba(61, 64, 53, 0.5) 100%
   );
+  transition: opacity 0.4s ease;
 }
 
 .card-cover.placeholder {
@@ -110,52 +133,60 @@ defineProps({
   justify-content: center;
   background: linear-gradient(
     135deg,
-    rgba(150, 164, 138, 0.2),
-    rgba(212, 176, 181, 0.2)
+    rgba(150, 164, 138, 0.15),
+    rgba(212, 176, 181, 0.15)
   );
 }
 
 .placeholder-icon {
   font-size: 3rem;
-  color: rgba(255, 255, 255, 0.5);
-  animation: float 3s ease-in-out infinite;
+  opacity: 0.4;
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 .card-body {
   padding: var(--spacing-lg);
+  position: relative;
 }
 
 .card-meta {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-sm);
-  font-size: 0.85rem;
+  margin-bottom: var(--spacing-md);
+  font-size: 0.8rem;
 }
 
 .card-category {
-  padding: 2px 10px;
-  background: rgba(150, 164, 138, 0.15);
+  padding: 3px 12px;
+  background: rgba(150, 164, 138, 0.12);
   border-radius: 20px;
   color: var(--color-primary-dark);
   font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 .card-top {
-  padding: 2px 10px;
-  background: rgba(196, 151, 153, 0.2);
+  padding: 3px 12px;
+  background: rgba(196, 151, 153, 0.15);
   border-radius: 20px;
   color: #C49799;
   font-weight: 500;
 }
 
 .card-date {
-  color: var(--text-muted);
+  color: var(--text-disabled);
   margin-left: auto;
+  font-size: 0.8rem;
 }
 
 .card-title {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: var(--spacing-sm);
@@ -164,24 +195,32 @@ defineProps({
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  transition: color 0.3s ease;
+  font-family: var(--font-display);
+}
+
+.post-card:hover .card-title {
+  color: var(--color-primary-dark);
 }
 
 .card-summary {
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-size: 0.9rem;
-  line-height: 1.6;
-  margin-bottom: var(--spacing-md);
+  line-height: 1.7;
+  margin-bottom: var(--spacing-lg);
 }
 
 .card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding-top: var(--spacing-md);
+  border-top: 1px solid rgba(150, 164, 138, 0.1);
 }
 
 .card-tags {
   display: flex;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-sm);
   flex-wrap: wrap;
 }
 
@@ -189,12 +228,13 @@ defineProps({
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
-  color: var(--text-muted);
-  font-size: 0.85rem;
+  color: var(--text-disabled);
+  font-size: 0.8rem;
 }
 
 .views-icon {
-  font-size: 1rem;
+  font-size: 0.9rem;
+  opacity: 0.7;
 }
 
 @media (max-width: 768px) {

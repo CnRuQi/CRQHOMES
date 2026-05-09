@@ -239,8 +239,8 @@ onMounted(() => {
   justify-content: space-between;
   padding: var(--spacing-lg);
   margin-bottom: var(--spacing-lg);
-  background: rgba(255, 252, 248, 0.85);
-  border: 1px solid rgba(150, 164, 138, 0.12);
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(163, 166, 156, 0.12);
   border-radius: 14px;
 }
 
@@ -253,15 +253,15 @@ onMounted(() => {
 .filter-left .form-input {
   width: auto;
   min-width: 150px;
-  background: white;
-  border: 1px solid rgba(150, 164, 138, 0.2);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(163, 166, 156, 0.2);
   border-radius: 10px;
 }
 
 .posts-table {
   overflow-x: auto;
-  background: rgba(255, 252, 248, 0.85);
-  border: 1px solid rgba(150, 164, 138, 0.12);
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(163, 166, 156, 0.12);
   border-radius: 14px;
   padding: var(--spacing-sm);
 }
@@ -285,7 +285,7 @@ th {
 td {
   padding: var(--spacing-md) var(--spacing-lg);
   text-align: left;
-  background: rgba(240, 235, 229, 0.4);
+  background: rgba(235, 235, 232, 0.3);
 }
 
 tr td:first-child {
@@ -297,7 +297,7 @@ tr td:last-child {
 }
 
 tr:hover td {
-  background: rgba(150, 164, 138, 0.08);
+  background: rgba(163, 166, 156, 0.08);
 }
 
 .post-title {
@@ -312,7 +312,7 @@ tr:hover td {
 
 .category-tag {
   padding: 3px 12px;
-  background: rgba(150, 164, 138, 0.12);
+  background: rgba(163, 166, 156, 0.1);
   border-radius: 20px;
   font-size: 0.8rem;
   color: var(--color-primary-dark);
@@ -327,13 +327,13 @@ tr:hover td {
 }
 
 .status-tag.published {
-  background: rgba(169, 186, 157, 0.2);
-  color: #7B8B6F;
+  background: rgba(155, 163, 142, 0.15);
+  color: #7B8370;
 }
 
 .status-tag.draft {
-  background: rgba(216, 192, 106, 0.2);
-  color: #B8A04A;
+  background: rgba(199, 179, 141, 0.15);
+  color: #A69570;
 }
 
 .top-btn {

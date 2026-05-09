@@ -79,12 +79,10 @@ onUnmounted(() => {
 }
 
 .navbar.scrolled {
-  background: rgba(252, 251, 249, 0.92);
+  background: rgba(245, 245, 243, 0.92);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  box-shadow: 
-    0 1px 3px rgba(150, 164, 138, 0.06),
-    0 4px 20px rgba(150, 164, 138, 0.04);
+  box-shadow: 0 1px 3px rgba(56, 57, 54, 0.06);
 }
 
 .navbar-content {
@@ -138,28 +136,28 @@ onUnmounted(() => {
 
 .nav-link:hover {
   color: var(--text-primary);
-  background: rgba(150, 164, 138, 0.08);
+  background: rgba(163, 166, 156, 0.08);
 }
 
 .nav-link.router-link-active {
   color: var(--color-primary-dark);
-  background: rgba(150, 164, 138, 0.12);
+  background: rgba(163, 166, 156, 0.12);
 }
 
 .admin-link {
   padding: 8px 18px;
-  background: rgba(150, 164, 138, 0.08);
-  border: 1px solid rgba(150, 164, 138, 0.15);
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(163, 166, 156, 0.2);
   border-radius: 10px;
   margin-left: var(--spacing-sm);
   transition: all 0.3s ease;
 }
 
 .admin-link:hover {
-  background: rgba(150, 164, 138, 0.15);
-  border-color: rgba(150, 164, 138, 0.3);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(150, 164, 138, 0.1);
+  background: rgba(163, 166, 156, 0.1);
+  border-color: rgba(163, 166, 156, 0.35);
+  transform: translateY(1px);
+  box-shadow: var(--shadow-sm);
 }
 
 .menu-toggle {

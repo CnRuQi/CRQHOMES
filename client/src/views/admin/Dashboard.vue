@@ -170,8 +170,8 @@ onMounted(async () => {
 /* 最近文章卡片 */
 .recent-posts {
   border-radius: 16px;
-  background: rgba(255, 252, 248, 0.85);
-  border: 1px solid rgba(150, 164, 138, 0.12);
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(163, 166, 156, 0.12);
   padding: var(--spacing-xl);
   overflow: hidden;
 }
@@ -179,8 +179,8 @@ onMounted(async () => {
 /* 快捷操作卡片 */
 .quick-actions {
   border-radius: 16px;
-  background: rgba(255, 252, 248, 0.85);
-  border: 1px solid rgba(150, 164, 138, 0.12);
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(163, 166, 156, 0.12);
   padding: var(--spacing-xl);
   overflow: hidden;
 }
@@ -190,14 +190,13 @@ onMounted(async () => {
   font-weight: 600;
   margin-bottom: var(--spacing-lg);
   padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid rgba(150, 164, 138, 0.15);
+  border-bottom: 1px solid rgba(163, 166, 156, 0.15);
   color: var(--text-primary);
 }
 
 .posts-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
 }
 
 .post-item {
@@ -205,24 +204,17 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-md) var(--spacing-lg);
-  background: rgba(240, 235, 229, 0.5);
+  background: transparent;
   transition: all 0.2s ease;
-}
-
-.post-item:first-child {
-  border-radius: 10px 10px 0 0;
+  border-bottom: 1px solid rgba(163, 166, 156, 0.08);
 }
 
 .post-item:last-child {
-  border-radius: 0 0 10px 10px;
-}
-
-.post-item:only-child {
-  border-radius: 10px;
+  border-bottom: none;
 }
 
 .post-item:hover {
-  background: rgba(150, 164, 138, 0.1);
+  background: rgba(163, 166, 156, 0.06);
 }
 
 .post-info {
@@ -254,13 +246,13 @@ onMounted(async () => {
 }
 
 .status-tag.published {
-  background: rgba(169, 186, 157, 0.2);
-  color: #7B8B6F;
+  background: rgba(155, 163, 142, 0.15);
+  color: #7B8370;
 }
 
 .status-tag.draft {
-  background: rgba(216, 192, 106, 0.2);
-  color: #B8A04A;
+  background: rgba(199, 179, 141, 0.15);
+  color: #A69570;
 }
 
 .empty-state {
@@ -283,7 +275,7 @@ onMounted(async () => {
   color: var(--text-primary);
   transition: all 0.2s ease;
   text-decoration: none;
-  border-bottom: 1px solid rgba(150, 164, 138, 0.1);
+  border-bottom: 1px solid rgba(163, 166, 156, 0.1);
 }
 
 .action-item:last-child {
@@ -291,7 +283,7 @@ onMounted(async () => {
 }
 
 .action-item:hover {
-  background: rgba(150, 164, 138, 0.06);
+  background: rgba(163, 166, 156, 0.06);
   transform: translateX(4px);
 }
 

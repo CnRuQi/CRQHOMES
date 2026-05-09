@@ -96,9 +96,6 @@ async function handleLogin() {
   align-items: center;
   justify-content: center;
   background: var(--bg-primary);
-  background-image:
-    radial-gradient(at 20% 80%, rgba(150, 164, 138, 0.12) 0%, transparent 50%),
-    radial-gradient(at 80% 20%, rgba(212, 176, 181, 0.12) 0%, transparent 50%);
 }
 
 .login-container {
@@ -144,10 +141,10 @@ async function handleLogin() {
 
 .error-message {
   padding: var(--spacing-sm) var(--spacing-md);
-  background: rgba(196, 151, 153, 0.15);
-  border: 1px solid rgba(196, 151, 153, 0.3);
+  background: rgba(179, 143, 143, 0.1);
+  border: 1px solid rgba(179, 143, 143, 0.2);
   border-radius: var(--border-radius-sm);
-  color: #C49799;
+  color: #9A7272;
   font-size: 0.9rem;
 }
 

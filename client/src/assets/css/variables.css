@@ -1,45 +1,44 @@
 :root {
-  /* 主色 - 莫兰迪豆沙绿与干枯玫瑰 */
-  --color-primary: #96A48B;
-  --color-primary-light: #B5C4B1;
-  --color-primary-dark: #7B8B6F;
-  --color-accent: #D4B0B5;
-  --color-accent-light: #E2C4C6;
+  /* 主色调 - 枯木冷茶 */
+  --color-primary: #A3A69C;
+  --color-primary-light: #C4C6BF;
+  --color-primary-dark: #82857C;
+  --color-accent: #DEDFD9;
 
-  /* 功能色 - 莫兰迪低饱和度 */
-  --color-success: #A9BA9D;
-  --color-warning: #D8C06A;
-  --color-danger: #C49799;
-  --color-info: #98A9BD;
+  /* 功能色 - 同步降噪处理 */
+  --color-success: #9BA38E;
+  --color-warning: #C7B38D;
+  --color-danger: #B38F8F;
+  --color-info: #8FA1B3;
 
-  /* 背景色 - 温暖燕麦色系 */
-  --bg-primary: #FCFBF9;
-  --bg-secondary: #F0EBE5;
-  --bg-tertiary: #E0E5DF;
-  --bg-card: rgba(255, 252, 248, 0.8);
-  --bg-card-hover: rgba(255, 255, 255, 0.95);
-  --bg-glass: rgba(255, 252, 248, 0.65);
-  --bg-glass-hover: rgba(255, 255, 255, 0.85);
+  /* 背景色 - 宣纸/洗砚 */
+  --bg-primary: #F5F5F3;
+  --bg-secondary: #EBEBE8;
+  --bg-tertiary: #E0E0DD;
+  --bg-card: rgba(255, 255, 255, 0.65);
+  --bg-card-hover: rgba(255, 255, 255, 0.9);
+  --bg-glass: rgba(255, 255, 255, 0.6);
+  --bg-glass-hover: rgba(245, 245, 243, 0.8);
 
-  /* 文字颜色 - 深茶褐/灰褐 */
-  --text-primary: #3D4035;
-  --text-secondary: #5C6055;
-  --text-muted: #8D948D;
-  --text-disabled: #B2BEB5;
+  /* 文字颜色 - 墨色系 */
+  --text-primary: #383936;
+  --text-secondary: #575954;
+  --text-muted: #888A83;
+  --text-disabled: #B5B7B0;
 
-  /* 边框 - 带豆沙绿氛围 */
-  --border-color: rgba(150, 164, 138, 0.15);
-  --border-hover: rgba(150, 164, 138, 0.3);
-  --border-active: rgba(150, 164, 138, 0.6);
+  /* 边框 - 枯叶茶氛围 */
+  --border-color: rgba(163, 166, 156, 0.2);
+  --border-hover: rgba(163, 166, 156, 0.4);
+  --border-active: rgba(163, 166, 156, 0.6);
   --border-radius: 12px;
   --border-radius-lg: 16px;
   --border-radius-sm: 8px;
 
-  /* 阴影 - 偏暖色调 */
-  --shadow-sm: 0 1px 3px rgba(100, 105, 90, 0.05);
-  --shadow-md: 0 4px 12px rgba(100, 105, 90, 0.06);
-  --shadow-lg: 0 8px 24px rgba(100, 105, 90, 0.08);
-  --shadow-glow: 0 0 20px rgba(150, 164, 138, 0.15);
+  /* 阴影 - 实体投影，摒弃发光 */
+  --shadow-sm: 0 1px 2px rgba(56, 57, 54, 0.06);
+  --shadow-md: 0 2px 8px rgba(56, 57, 54, 0.08);
+  --shadow-lg: 0 4px 16px rgba(56, 57, 54, 0.1);
+  --shadow-btn: 0 2px 0 rgba(130, 133, 124, 0.2);
 
   /* 间距 */
   --spacing-xs: 4px;
@@ -49,10 +48,10 @@
   --spacing-xl: 32px;
   --spacing-2xl: 48px;
 
-  /* 字体 - 更有特色的组合 */
+  /* 字体 - 宋体 + 黑体组合 */
   --font-sans: 'Source Sans 3', 'Noto Sans SC', -apple-system, BlinkMacSystemFont,
                'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-  --font-display: 'Playfair Display', 'Noto Serif SC', Georgia, serif;
+  --font-display: 'Playfair Display', 'Noto Serif SC', 'Songti SC', Georgia, serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 
   /* 布局 */

@@ -62,46 +62,24 @@ defineProps({
 <style scoped>
 .post-card {
   overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   position: relative;
   border-radius: 16px;
-  background: rgba(255, 252, 248, 0.8);
-  border: 1px solid rgba(150, 164, 138, 0.15);
-  box-shadow: 0 2px 8px rgba(150, 164, 138, 0.04);
-}
-
-.post-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, 
-    rgba(150, 164, 138, 0.08), 
-    rgba(212, 176, 181, 0.08)
-  );
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  z-index: 0;
-  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(163, 166, 156, 0.15);
+  box-shadow: var(--shadow-sm);
 }
 
 .post-card:hover {
-  transform: translateY(-12px) scale(1.02);
-  box-shadow: 
-    0 25px 50px rgba(150, 164, 138, 0.15),
-    0 0 0 1px rgba(150, 164, 138, 0.2);
-  border-color: rgba(150, 164, 138, 0.3);
-}
-
-.post-card:hover::before {
-  opacity: 1;
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(163, 166, 156, 0.3);
 }
 
 .card-link {
   display: block;
   color: inherit;
   text-decoration: none;
-  position: relative;
-  z-index: 1;
 }
 
 .card-cover {
@@ -114,11 +92,13 @@ defineProps({
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.5s ease;
+  filter: grayscale(10%);
 }
 
 .post-card:hover .card-cover img {
-  transform: scale(1.08);
+  transform: scale(1.05);
+  filter: grayscale(0%);
 }
 
 .cover-overlay {
@@ -126,10 +106,9 @@ defineProps({
   inset: 0;
   background: linear-gradient(
     180deg,
-    transparent 40%,
-    rgba(61, 64, 53, 0.5) 100%
+    transparent 50%,
+    rgba(56, 57, 54, 0.4) 100%
   );
-  transition: opacity 0.4s ease;
 }
 
 .card-cover.placeholder {
@@ -138,25 +117,24 @@ defineProps({
   justify-content: center;
   background: linear-gradient(
     135deg,
-    rgba(150, 164, 138, 0.15),
-    rgba(212, 176, 181, 0.15)
+    rgba(163, 166, 156, 0.12),
+    rgba(222, 223, 217, 0.12)
   );
 }
 
 .placeholder-icon {
   font-size: 3rem;
-  opacity: 0.4;
+  opacity: 0.3;
   animation: float 4s ease-in-out infinite;
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
 }
 
 .card-body {
   padding: var(--spacing-lg);
-  position: relative;
 }
 
 .card-meta {
@@ -169,16 +147,15 @@ defineProps({
 
 .card-category {
   padding: 3px 12px;
-  background: rgba(150, 164, 138, 0.12);
+  background: rgba(163, 166, 156, 0.12);
   border-radius: 20px;
   color: var(--color-primary-dark);
   font-weight: 500;
-  letter-spacing: 0.02em;
 }
 
 .card-top {
   padding: 3px 12px;
-  background: rgba(196, 151, 153, 0.15);
+  background: rgba(179, 143, 143, 0.12);
   border-radius: 20px;
   color: #C49799;
   font-weight: 500;

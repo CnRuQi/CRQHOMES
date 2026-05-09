@@ -178,7 +178,7 @@ onMounted(() => {
 .deco-line {
   width: 60px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(150, 164, 138, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(163, 166, 156, 0.4), transparent);
 }
 
 .deco-dot {
@@ -186,7 +186,7 @@ onMounted(() => {
   height: 6px;
   border-radius: 50%;
   background: var(--color-primary);
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 .hero-title {
@@ -199,12 +199,12 @@ onMounted(() => {
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #7B8B6F 0%, #96A48B 30%, #D4B0B5 70%, #E2C4C6 100%);
+  background: linear-gradient(135deg, #82857C 0%, #A3A69C 40%, #C4C6BF 70%, #DEDFD9 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   background-size: 200% 200%;
-  animation: gradient-shift 8s ease infinite;
+  animation: gradient-shift 10s ease infinite;
 }
 
 @keyframes gradient-shift {

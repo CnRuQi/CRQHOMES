@@ -4,7 +4,7 @@
   padding: 0 var(--spacing-lg);
 }
 
-/* 按钮 */
+/* 按钮 - 枯木冷茶风格 */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -13,63 +13,42 @@
   padding: 10px 20px;
   border-radius: 10px;
   font-weight: 500;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   white-space: nowrap;
-  position: relative;
-  overflow: hidden;
-}
-
-.btn::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.btn:hover::after {
-  opacity: 1;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #96A48B, #7B8B6F);
+  background: var(--color-primary);
   color: white;
-  box-shadow: 0 2px 8px rgba(150, 164, 138, 0.25);
+  border: 1px solid var(--color-primary-dark);
+  box-shadow: var(--shadow-btn);
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(150, 164, 138, 0.35);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(150, 164, 138, 0.25);
+  background: var(--color-primary-dark);
+  transform: translateY(1px);
+  box-shadow: none;
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.5);
   color: var(--text-secondary);
-  border: 1px solid rgba(150, 164, 138, 0.2);
-  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-color);
 }
 
 .btn-secondary:hover {
-  background: rgba(150, 164, 138, 0.1);
-  border-color: rgba(150, 164, 138, 0.35);
-  transform: translateY(-1px);
+  background: rgba(163, 166, 156, 0.08);
+  border-color: var(--border-hover);
 }
 
 .btn-danger {
-  background: rgba(196, 151, 153, 0.1);
-  color: #B8797B;
-  border: 1px solid rgba(196, 151, 153, 0.2);
+  background: rgba(179, 143, 143, 0.1);
+  color: #9A7272;
+  border: 1px solid rgba(179, 143, 143, 0.2);
 }
 
 .btn-danger:hover {
-  background: rgba(196, 151, 153, 0.18);
-  border-color: rgba(196, 151, 153, 0.35);
+  background: rgba(179, 143, 143, 0.18);
 }
 
 .btn-sm {
@@ -101,7 +80,7 @@
 .form-select {
   width: 100%;
   padding: var(--spacing-sm) var(--spacing-md);
-  background: white;
+  background: rgba(255, 255, 255, 0.8);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   color: var(--text-primary);
@@ -112,7 +91,7 @@
 .form-textarea:focus,
 .form-select:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(150, 164, 138, 0.15);
+  box-shadow: 0 0 0 3px rgba(163, 166, 156, 0.1);
 }
 
 .form-input::placeholder,
@@ -130,8 +109,8 @@
   display: inline-flex;
   align-items: center;
   padding: 3px 10px;
-  background: rgba(150, 164, 138, 0.1);
-  border: 1px solid rgba(150, 164, 138, 0.2);
+  background: rgba(163, 166, 156, 0.1);
+  border: 1px solid rgba(163, 166, 156, 0.2);
   border-radius: 20px;
   font-size: 0.8rem;
   color: var(--color-primary-dark);
@@ -139,8 +118,8 @@
 }
 
 .tag:hover {
-  background: rgba(150, 164, 138, 0.2);
-  border-color: rgba(150, 164, 138, 0.35);
+  background: rgba(163, 166, 156, 0.18);
+  border-color: rgba(163, 166, 156, 0.35);
 }
 
 /* 分页 */
@@ -161,7 +140,7 @@
 }
 
 .pagination-btn:hover:not(:disabled) {
-  background: rgba(150, 164, 138, 0.1);
+  background: rgba(163, 166, 156, 0.1);
   border-color: var(--border-hover);
   color: var(--text-primary);
 }
@@ -204,15 +183,15 @@
 .empty {
   text-align: center;
   padding: 80px 40px;
-  background: rgba(150, 164, 138, 0.03);
-  border: 1px dashed rgba(150, 164, 138, 0.2);
+  background: rgba(163, 166, 156, 0.04);
+  border: 1px dashed rgba(163, 166, 156, 0.25);
   border-radius: 20px;
 }
 
 .empty-icon {
   font-size: 4rem;
   margin-bottom: var(--spacing-lg);
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 .empty p {

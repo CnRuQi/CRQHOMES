@@ -272,7 +272,6 @@ onMounted(async () => {
 .actions-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
 }
 
 .action-item {
@@ -280,22 +279,19 @@ onMounted(async () => {
   align-items: center;
   gap: var(--spacing-md);
   padding: var(--spacing-md) var(--spacing-lg);
-  background: rgba(240, 235, 229, 0.5);
+  background: transparent;
   color: var(--text-primary);
   transition: all 0.2s ease;
   text-decoration: none;
-}
-
-.action-item:first-child {
-  border-radius: 10px 10px 0 0;
+  border-bottom: 1px solid rgba(150, 164, 138, 0.1);
 }
 
 .action-item:last-child {
-  border-radius: 0 0 10px 10px;
+  border-bottom: none;
 }
 
 .action-item:hover {
-  background: rgba(150, 164, 138, 0.12);
+  background: rgba(150, 164, 138, 0.06);
   transform: translateX(4px);
 }
 

@@ -81,7 +81,7 @@
                   class="cover-preview"
                 />
                 <div v-else class="cover-placeholder">
-                  <span>📷</span>
+                  <Icon name="camera" :size="32" />
                   <span>点击上传</span>
                 </div>
                 <input
@@ -116,6 +116,7 @@ import { createPost, updatePost, getPost } from '@/api/post'
 import { getCategories } from '@/api/category'
 import { uploadImage } from '@/api/upload'
 import MarkdownEditor from '@/components/MarkdownEditor.vue'
+import Icon from '@/components/Icon.vue'
 
 const route = useRoute()
 const router = useRouter()

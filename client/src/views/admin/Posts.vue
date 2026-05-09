@@ -3,7 +3,7 @@
     <div class="page-header">
       <h2>文章管理</h2>
       <router-link to="/admin/posts/create" class="btn btn-primary">
-        ✏️ 写文章
+        <Icon name="edit" :size="18" /> 写文章
       </router-link>
     </div>
 
@@ -66,7 +66,7 @@
                   :class="{ active: post.is_top }"
                   @click="handleToggleTop(post)"
                 >
-                  {{ post.is_top ? '📌' : '📍' }}
+                  <Icon :name="post.is_top ? 'pinyes' : 'pinno'" :size="18" />
                 </button>
               </td>
               <td>{{ post.views }}</td>
@@ -132,6 +132,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { getAllPosts, deletePost, toggleTop } from '@/api/post'
 import { formatDate, debounce } from '@/assets/js/utils'
+import Icon from '@/components/Icon.vue'
 
 const loading = ref(false)
 const posts = ref([])

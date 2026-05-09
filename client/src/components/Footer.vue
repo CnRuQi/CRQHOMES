@@ -3,10 +3,10 @@
     <div class="container footer-content">
       <div class="footer-info">
         <div class="footer-logo">
-          <span class="logo-icon">✦</span>
-          <span class="logo-text">Blog</span>
+          <Icon name="logo" :size="24" />
+          <span class="logo-text">披花沐雪</span>
         </div>
-        <p class="footer-desc">记录生活，分享技术</p>
+        <p class="footer-desc">One Last Kiss for the Beautiful World</p>
       </div>
 
       <div class="footer-links">
@@ -29,6 +29,7 @@
 </template>
 
 <script setup>
+import Icon from '@/components/Icon.vue'
 const currentYear = new Date().getFullYear()
 </script>
 
@@ -54,10 +55,6 @@ const currentYear = new Date().getFullYear()
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: var(--spacing-sm);
-}
-
-.footer-logo .logo-icon {
-  color: var(--color-primary);
 }
 
 .footer-desc {

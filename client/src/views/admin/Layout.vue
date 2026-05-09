@@ -4,37 +4,37 @@
     <aside class="sidebar glass-sidebar" :class="{ collapsed: isCollapsed }">
       <div class="sidebar-header">
         <router-link to="/admin" class="sidebar-logo">
-          <span class="logo-icon">✦</span>
-          <span class="logo-text" v-show="!isCollapsed">Blog</span>
+          <Icon name="logo" :size="24" />
+          <span class="logo-text" v-show="!isCollapsed">披花沐雪</span>
         </router-link>
       </div>
 
       <nav class="sidebar-menu">
         <router-link to="/admin" class="menu-item" exact-active-class="active">
-          <span class="menu-icon">📊</span>
+          <Icon name="dashboard" :size="20" />
           <span class="menu-text" v-show="!isCollapsed">仪表盘</span>
         </router-link>
         <router-link to="/admin/posts" class="menu-item" active-class="active">
-          <span class="menu-icon">📝</span>
+          <Icon name="article" :size="20" />
           <span class="menu-text" v-show="!isCollapsed">文章管理</span>
         </router-link>
         <router-link to="/admin/posts/create" class="menu-item" active-class="active">
-          <span class="menu-icon">✏️</span>
+          <Icon name="edit" :size="20" />
           <span class="menu-text" v-show="!isCollapsed">写文章</span>
         </router-link>
         <router-link to="/admin/categories" class="menu-item" active-class="active">
-          <span class="menu-icon">📁</span>
+          <Icon name="category" :size="20" />
           <span class="menu-text" v-show="!isCollapsed">分类管理</span>
         </router-link>
       </nav>
 
       <div class="sidebar-footer">
         <router-link to="/" class="menu-item">
-          <span class="menu-icon">🌐</span>
+          <Icon name="external" :size="20" />
           <span class="menu-text" v-show="!isCollapsed">访问前台</span>
         </router-link>
         <button class="menu-item" @click="handleLogout">
-          <span class="menu-icon">🚪</span>
+          <Icon name="logout" :size="20" />
           <span class="menu-text" v-show="!isCollapsed">退出登录</span>
         </button>
       </div>
@@ -53,7 +53,7 @@
 
         <div class="topbar-right">
           <span class="user-info">
-            <span class="user-avatar">👤</span>
+            <Icon name="user" :size="20" />
             <span class="user-name">{{ authStore.user?.nickname || authStore.user?.username }}</span>
           </span>
         </div>
@@ -75,6 +75,7 @@
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import Icon from '@/components/Icon.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -135,11 +136,6 @@ function handleLogout() {
   color: var(--text-primary);
 }
 
-.logo-icon {
-  color: var(--color-primary);
-  font-size: 1.5rem;
-}
-
 .sidebar-menu {
   flex: 1;
   padding: var(--spacing-md) var(--spacing-sm);
@@ -165,19 +161,13 @@ function handleLogout() {
 }
 
 .menu-item:hover {
-  background: rgba(150, 164, 138, 0.1);
+  background: rgba(163, 166, 156, 0.1);
   color: var(--text-primary);
 }
 
 .menu-item.active {
-  background: rgba(150, 164, 138, 0.15);
+  background: rgba(163, 166, 156, 0.15);
   color: var(--color-primary-dark);
-}
-
-.menu-icon {
-  font-size: 1.2rem;
-  min-width: 24px;
-  text-align: center;
 }
 
 .sidebar-footer {
@@ -247,10 +237,6 @@ function handleLogout() {
   align-items: center;
   gap: var(--spacing-sm);
   color: var(--text-secondary);
-}
-
-.user-avatar {
-  font-size: 1.2rem;
 }
 
 .admin-content {

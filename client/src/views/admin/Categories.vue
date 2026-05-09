@@ -3,7 +3,7 @@
     <div class="page-header">
       <h2>分类管理</h2>
       <button class="btn btn-primary" @click="showModal = true">
-        ➕ 新建分类
+        <Icon name="add" :size="18" /> 新建分类
       </button>
     </div>
 
@@ -41,7 +41,7 @@
       </div>
 
       <div v-if="!categories.length" class="empty-state glass-card">
-        <div class="empty-icon">📁</div>
+        <Icon name="folder" :size="48" class="empty-icon" />
         <p>暂无分类</p>
         <button class="btn btn-primary mt-md" @click="showModal = true">
           创建第一个分类
@@ -119,6 +119,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getCategories, createCategory, updateCategory, deleteCategory } from '@/api/category'
+import Icon from '@/components/Icon.vue'
 
 const loading = ref(false)
 const categories = ref([])

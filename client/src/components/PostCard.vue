@@ -35,7 +35,7 @@
             </span>
           </div>
           <div class="card-views">
-            <span class="views-icon">👁</span>
+            <Icon name="views" :size="16" />
             <span>{{ formatNumber(post.views) }}</span>
           </div>
         </div>
@@ -46,6 +46,7 @@
 
 <script setup>
 import { fromNow, truncate, formatNumber } from '@/assets/js/utils'
+import Icon from '@/components/Icon.vue'
 
 defineProps({
   post: {
@@ -212,11 +213,6 @@ defineProps({
   gap: var(--spacing-xs);
   color: var(--text-disabled);
   font-size: 0.8rem;
-}
-
-.views-icon {
-  font-size: 0.9rem;
-  opacity: 0.7;
 }
 
 @media (max-width: 768px) {

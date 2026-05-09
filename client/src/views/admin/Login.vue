@@ -4,8 +4,8 @@
       <div class="login-card glass-card">
         <div class="login-header">
           <h1 class="login-title">
-            <span class="logo-icon">✦</span>
-            Blog
+            <Icon name="logo" :size="40" />
+            披花沐雪
           </h1>
           <p class="login-subtitle">管理后台登录</p>
         </div>
@@ -60,6 +60,7 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import Icon from '@/components/Icon.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -121,11 +122,6 @@ async function handleLogin() {
   align-items: center;
   justify-content: center;
   gap: var(--spacing-sm);
-}
-
-.logo-icon {
-  color: var(--color-primary);
-  font-size: 2.5rem;
 }
 
 .login-subtitle {

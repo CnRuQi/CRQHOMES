@@ -2,8 +2,8 @@
   <header class="navbar glass-header" :class="{ scrolled: isScrolled }">
     <div class="container navbar-content">
       <router-link to="/" class="navbar-logo">
-        <span class="logo-icon">✦</span>
-        <span class="logo-text">Blog</span>
+        <Icon name="logo" :size="28" />
+        <span class="logo-text">披花沐雪</span>
       </router-link>
 
       <nav class="navbar-menu" :class="{ active: isMenuOpen }">
@@ -37,6 +37,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { usePostStore } from '@/stores/post'
+import Icon from '@/components/Icon.vue'
 
 const postStore = usePostStore()
 const categories = ref([])
@@ -106,16 +107,6 @@ onUnmounted(() => {
 
 .navbar-logo:hover {
   transform: scale(1.05);
-}
-
-.logo-icon {
-  color: var(--color-primary);
-  font-size: 1.6rem;
-  transition: transform 0.3s ease;
-}
-
-.navbar-logo:hover .logo-icon {
-  transform: rotate(15deg);
 }
 
 .navbar-menu {

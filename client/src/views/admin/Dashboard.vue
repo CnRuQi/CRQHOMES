@@ -2,7 +2,9 @@
   <div class="dashboard">
     <div class="stats-grid">
       <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="0">
-        <div class="stat-icon">📝</div>
+        <div class="stat-icon">
+          <Icon name="article" :size="32" />
+        </div>
         <div class="stat-info">
           <div class="stat-value">{{ stats.totalPosts }}</div>
           <div class="stat-label">文章总数</div>
@@ -10,7 +12,9 @@
       </div>
 
       <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="100">
-        <div class="stat-icon">📁</div>
+        <div class="stat-icon">
+          <Icon name="category" :size="32" />
+        </div>
         <div class="stat-info">
           <div class="stat-value">{{ stats.totalCategories }}</div>
           <div class="stat-label">分类数量</div>
@@ -18,7 +22,9 @@
       </div>
 
       <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="200">
-        <div class="stat-icon">👁</div>
+        <div class="stat-icon">
+          <Icon name="views" :size="32" />
+        </div>
         <div class="stat-info">
           <div class="stat-value">{{ stats.totalViews }}</div>
           <div class="stat-label">总阅读量</div>
@@ -26,7 +32,9 @@
       </div>
 
       <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="300">
-        <div class="stat-icon">📌</div>
+        <div class="stat-icon">
+          <Icon name="pinyes" :size="32" />
+        </div>
         <div class="stat-info">
           <div class="stat-value">{{ stats.topPosts }}</div>
           <div class="stat-label">置顶文章</div>
@@ -69,19 +77,19 @@
         <h3 class="section-title">快捷操作</h3>
         <div class="actions-list">
           <router-link to="/admin/posts/create" class="action-item">
-            <span class="action-icon">✏️</span>
+            <Icon name="edit" :size="20" />
             <span class="action-text">写新文章</span>
           </router-link>
           <router-link to="/admin/posts" class="action-item">
-            <span class="action-icon">📋</span>
+            <Icon name="list" :size="20" />
             <span class="action-text">管理文章</span>
           </router-link>
           <router-link to="/admin/categories" class="action-item">
-            <span class="action-icon">📂</span>
+            <Icon name="folder" :size="20" />
             <span class="action-text">管理分类</span>
           </router-link>
           <router-link to="/" class="action-item">
-            <span class="action-icon">🌐</span>
+            <Icon name="external" :size="20" />
             <span class="action-text">访问前台</span>
           </router-link>
         </div>
@@ -95,6 +103,7 @@ import { ref, onMounted } from 'vue'
 import { getAllPosts } from '@/api/post'
 import { getCategories } from '@/api/category'
 import { formatDate } from '@/assets/js/utils'
+import Icon from '@/components/Icon.vue'
 
 const stats = ref({
   totalPosts: 0,
@@ -148,7 +157,12 @@ onMounted(async () => {
 }
 
 .stat-icon {
-  font-size: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  opacity: 0.7;
 }
 
 .stat-value {
@@ -288,10 +302,6 @@ onMounted(async () => {
 .action-item:hover {
   background: rgba(163, 166, 156, 0.06);
   transform: translateX(4px);
-}
-
-.action-icon {
-  font-size: 1.2rem;
 }
 
 .action-text {

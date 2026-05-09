@@ -12,9 +12,9 @@
             <span class="deco-line"></span>
           </div>
           <h1 class="hero-title">
-            <span class="gradient-text">Blog</span>
+            <span class="gradient-text">披花沐雪</span>
           </h1>
-          <p class="hero-subtitle">记录生活，分享技术</p>
+          <p class="hero-subtitle">One Last Kiss for the Beautiful World</p>
           <div class="hero-decoration">
             <span class="deco-line"></span>
             <span class="deco-dot"></span>
@@ -39,7 +39,7 @@
             </div>
 
             <div v-else class="empty">
-              <div class="empty-icon">📝</div>
+              <Icon name="article" :size="48" class="empty-icon" />
               <p>暂无文章</p>
             </div>
 
@@ -85,6 +85,7 @@ import { usePostStore } from '@/stores/post'
 import Navbar from '@/components/Navbar.vue'
 import PostCard from '@/components/PostCard.vue'
 import Footer from '@/components/Footer.vue'
+import Icon from '@/components/Icon.vue'
 
 const route = useRoute()
 const postStore = usePostStore()

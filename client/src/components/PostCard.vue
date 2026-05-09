@@ -19,7 +19,7 @@
             {{ post.category_name }}
           </span>
           <span v-if="post.is_top" class="card-top">置顶</span>
-          <span class="card-date">{{ fromNow(post.created_at) }}</span>
+          <span class="card-date">{{ fromNow(post.published_at || post.created_at) }}</span>
         </div>
 
         <h3 class="card-title">{{ post.title }}</h3>

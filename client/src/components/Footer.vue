@@ -22,7 +22,7 @@
       </div>
 
       <div class="footer-bottom">
-        <p>&copy; {{ currentYear }} Blog. All rights reserved.</p>
+        <p>&copy; {{ currentYear }} 披花沐雪 <span class="footer-separator">|</span> cnruqi.site. All rights reserved.</p>
       </div>
     </div>
   </footer>
@@ -98,6 +98,11 @@ const currentYear = new Date().getFullYear()
 .footer-bottom p {
   color: var(--text-disabled);
   font-size: 0.85rem;
+}
+
+.footer-separator {
+  margin: 0 var(--spacing-sm);
+  opacity: 0.5;
 }
 
 @media (max-width: 768px) {

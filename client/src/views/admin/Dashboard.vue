@@ -55,7 +55,7 @@
               <router-link :to="`/admin/posts/${post.id}/edit`" class="post-title">
                 {{ post.title }}
               </router-link>
-              <span class="post-date">{{ formatDate(post.created_at) }}</span>
+              <span class="post-date">{{ formatDate(post.published_at || post.created_at) }}</span>
             </div>
             <div class="post-status">
               <span :class="['status-tag', post.status ? 'published' : 'draft']">

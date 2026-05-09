@@ -30,7 +30,7 @@
                   :to="`/post/${post.id}`"
                   class="archive-item"
                 >
-                  <span class="item-date">{{ formatDate(post.created_at, 'MM-DD') }}</span>
+                  <span class="item-date">{{ formatDate(post.published_at || post.created_at, 'MM-DD') }}</span>
                   <span class="item-title">{{ post.title }}</span>
                 </router-link>
               </div>

@@ -16,7 +16,7 @@
                 <span v-if="post.category_name" class="meta-category">
                   {{ post.category_name }}
                 </span>
-                <span class="meta-date">{{ formatDate(post.created_at) }}</span>
+                <span class="meta-date">{{ formatDate(post.published_at || post.created_at) }}</span>
                 <span class="meta-views">👁 {{ post.views }} 次阅读</span>
               </div>
 

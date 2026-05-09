@@ -40,12 +40,12 @@ function getPosts(req, res, next) {
     const listSql = `
       SELECT 
         p.id, p.title, p.summary, p.cover_image, p.tags, 
-        p.is_top, p.views, p.created_at, p.updated_at,
+        p.is_top, p.views, p.sort_order, p.published_at, p.created_at, p.updated_at,
         c.name as category_name, c.slug as category_slug
       FROM posts p
       LEFT JOIN categories c ON p.category_id = c.id
       ${where}
-      ORDER BY p.is_top DESC, p.created_at DESC
+      ORDER BY p.is_top DESC, p.sort_order DESC, p.published_at DESC
       LIMIT ? OFFSET ?
     `
     const list = db.prepare(listSql).all(...params, pageSize, offset)

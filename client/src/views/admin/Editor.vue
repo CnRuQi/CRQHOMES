@@ -74,15 +74,33 @@
 
             <div class="form-group">
               <label class="form-label">封面图</label>
-              <div class="cover-upload">
+              <div class="cover-tabs">
+                <button 
+                  class="tab-btn" 
+                  :class="{ active: coverMode === 'upload' }"
+                  @click="coverMode = 'upload'"
+                >
+                  <Icon name="camera" :size="16" /> 上传
+                </button>
+                <button 
+                  class="tab-btn" 
+                  :class="{ active: coverMode === 'link' }"
+                  @click="coverMode = 'link'"
+                >
+                  <Icon name="external" :size="16" /> 链接
+                </button>
+              </div>
+              
+              <!-- 上传模式 -->
+              <div v-if="coverMode === 'upload'" class="cover-upload">
                 <img
-                  v-if="form.cover_image"
+                  v-if="form.cover_image && !form.cover_image.startsWith('http')"
                   :src="form.cover_image"
                   class="cover-preview"
                 />
                 <div v-else class="cover-placeholder">
                   <Icon name="camera" :size="32" />
-                  <span>点击上传</span>
+                  <span>点击上传图片</span>
                 </div>
                 <input
                   type="file"
@@ -91,6 +109,28 @@
                   @change="handleCoverUpload"
                 />
               </div>
+
+              <!-- 链接模式 -->
+              <div v-else class="cover-link-input">
+                <input
+                  v-model="form.cover_image"
+                  type="text"
+                  class="form-input"
+                  placeholder="输入图片链接，如 https://example.com/image.jpg"
+                />
+                <div v-if="form.cover_image" class="cover-preview-link">
+                  <img :src="form.cover_image" class="cover-preview" @error="handleImageError" />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">发布时间</label>
+              <input
+                v-model="form.published_at"
+                type="datetime-local"
+                class="form-input"
+              />
             </div>
 
             <div class="form-group">
@@ -126,6 +166,7 @@ const isEdit = computed(() => !!route.params.id)
 const loading = ref(false)
 const saving = ref(false)
 const categories = ref([])
+const coverMode = ref('upload') // 'upload' 或 'link'
 
 const form = ref({
   title: '',
@@ -135,7 +176,8 @@ const form = ref({
   category_id: '',
   tags: '',
   is_top: false,
-  status: 1
+  status: 1,
+  published_at: ''
 })
 
 function goBack() {
@@ -158,6 +200,14 @@ async function fetchPost() {
   try {
     const res = await getPost(route.params.id)
     const post = res.data.post
+    
+    // 格式化时间为 datetime-local 格式
+    let publishedAt = ''
+    if (post.published_at) {
+      const date = new Date(post.published_at)
+      publishedAt = date.toISOString().slice(0, 16)
+    }
+
     form.value = {
       title: post.title,
       content: post.content,
@@ -166,7 +216,12 @@ async function fetchPost() {
       category_id: post.category_id || '',
       tags: Array.isArray(post.tags) ? post.tags.join(',') : (post.tags || ''),
       is_top: !!post.is_top,
-      status: post.status
+      status: post.status,
+      published_at: publishedAt
+    }
+    // 根据封面图判断模式
+    if (post.cover_image && post.cover_image.startsWith('http')) {
+      coverMode.value = 'link'
     }
   } catch (error) {
     console.error('获取文章失败:', error)
@@ -187,6 +242,10 @@ async function handleCoverUpload(e) {
     console.error('上传失败:', error)
     alert('上传失败: ' + (error.message || '未知错误'))
   }
+}
+
+function handleImageError() {
+  console.warn('图片加载失败')
 }
 
 async function handleSaveDraft() {
@@ -328,15 +387,60 @@ onMounted(() => {
   color: var(--text-muted);
 }
 
-.cover-placeholder span:first-child {
-  font-size: 2rem;
-}
-
 .cover-input {
   position: absolute;
   inset: 0;
   opacity: 0;
   cursor: pointer;
+}
+
+.cover-tabs {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.tab-btn:hover {
+  background: rgba(163, 166, 156, 0.1);
+  color: var(--text-primary);
+}
+
+.tab-btn.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.cover-link-input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.cover-preview-link {
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.cover-preview-link .cover-preview {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
 }
 
 @media (max-width: 1024px) {

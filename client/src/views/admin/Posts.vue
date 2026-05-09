@@ -33,6 +33,7 @@
         <table>
           <thead>
             <tr>
+              <th class="drag-col"></th>
               <th>标题</th>
               <th>分类</th>
               <th>状态</th>
@@ -42,42 +43,55 @@
               <th>操作</th>
             </tr>
           </thead>
-          <tbody>
-            <tr v-for="post in posts" :key="post.id">
-              <td>
-                <router-link :to="`/admin/posts/${post.id}/edit`" class="post-title">
-                  {{ post.title }}
-                </router-link>
-              </td>
-              <td>
-                <span class="category-tag" v-if="post.category_name">
-                  {{ post.category_name }}
-                </span>
-                <span v-else class="text-muted">未分类</span>
-              </td>
-              <td>
-                <span :class="['status-tag', post.status ? 'published' : 'draft']">
-                  {{ post.status ? '已发布' : '草稿' }}
-                </span>
-              </td>
-              <td>
-                <button
-                  class="top-btn"
-                  :class="{ active: post.is_top }"
-                  @click="handleToggleTop(post)"
-                >
-                  <Icon :name="post.is_top ? 'pinyes' : 'pinno'" :size="18" />
-                </button>
-              </td>
-              <td>{{ post.views }}</td>
-              <td>{{ formatDate(post.created_at) }}</td>
-              <td>
-                <div class="actions">
-                  <router-link
-                    :to="`/admin/posts/${post.id}/edit`"
-                    class="btn btn-sm btn-secondary"
+          <draggable 
+            v-model="posts" 
+            tag="tbody"
+            item-key="id"
+            handle=".drag-handle"
+            @end="handleDragEnd"
+            ghost-class="ghost-row"
+          >
+            <template #item="{ element: post }">
+              <tr>
+                <td class="drag-col">
+                  <span class="drag-handle">
+                    <Icon name="list" :size="16" />
+                  </span>
+                </td>
+                <td>
+                  <router-link :to="`/admin/posts/${post.id}/edit`" class="post-title">
+                    {{ post.title }}
+                  </router-link>
+                </td>
+                <td>
+                  <span class="category-tag" v-if="post.category_name">
+                    {{ post.category_name }}
+                  </span>
+                  <span v-else class="text-muted">未分类</span>
+                </td>
+                <td>
+                  <span :class="['status-tag', post.status ? 'published' : 'draft']">
+                    {{ post.status ? '已发布' : '草稿' }}
+                  </span>
+                </td>
+                <td>
+                  <button
+                    class="top-btn"
+                    :class="{ active: post.is_top }"
+                    @click="handleToggleTop(post)"
                   >
-                    编辑
+                    <Icon :name="post.is_top ? 'pinyes' : 'pinno'" :size="18" />
+                  </button>
+                </td>
+                <td>{{ post.views }}</td>
+                <td>{{ formatDate(post.published_at || post.created_at) }}</td>
+                <td>
+                  <div class="actions">
+                    <router-link
+                      :to="`/admin/posts/${post.id}/edit`"
+                      class="btn btn-sm btn-secondary"
+                    >
+                      编辑
                   </router-link>
                   <button
                     class="btn btn-sm btn-danger"
@@ -88,7 +102,8 @@
                 </div>
               </td>
             </tr>
-          </tbody>
+          </template>
+        </draggable>
         </table>
 
         <div v-if="!posts.length" class="empty-state">
@@ -130,9 +145,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { getAllPosts, deletePost, toggleTop } from '@/api/post'
+import { getAllPosts, deletePost, toggleTop, updateSortOrder } from '@/api/post'
 import { formatDate, debounce } from '@/assets/js/utils'
 import Icon from '@/components/Icon.vue'
+import draggable from 'vuedraggable'
 
 const loading = ref(false)
 const posts = ref([])
@@ -214,6 +230,19 @@ async function handleDelete(post) {
     fetchPosts(pagination.value.page)
   } catch (error) {
     console.error('删除失败:', error)
+  }
+}
+
+async function handleDragEnd() {
+  try {
+    const sortData = posts.value.map((post, index) => ({
+      id: post.id,
+      sort_order: posts.value.length - index
+    }))
+    await updateSortOrder(sortData)
+  } catch (error) {
+    console.error('排序更新失败:', error)
+    fetchPosts()
   }
 }
 
@@ -365,6 +394,34 @@ tr:hover td {
   text-align: center;
   padding: var(--spacing-2xl);
   color: var(--text-muted);
+}
+
+/* 拖拽相关样式 */
+.drag-col {
+  width: 30px;
+  padding: 0 var(--spacing-sm) !important;
+}
+
+.drag-handle {
+  cursor: grab;
+  color: var(--text-disabled);
+  transition: color var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drag-handle:hover {
+  color: var(--text-muted);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.ghost-row {
+  opacity: 0.5;
+  background: rgba(163, 166, 156, 0.1);
 }
 
 @media (max-width: 768px) {

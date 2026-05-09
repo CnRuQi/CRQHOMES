@@ -128,12 +128,12 @@ function getAllPosts(req, res, next) {
     const listSql = `
       SELECT 
         p.id, p.title, p.summary, p.cover_image, p.tags,
-        p.is_top, p.status, p.views, p.created_at, p.updated_at,
+        p.is_top, p.status, p.views, p.sort_order, p.published_at, p.created_at, p.updated_at,
         c.name as category_name, c.slug as category_slug
       FROM posts p
       LEFT JOIN categories c ON p.category_id = c.id
       ${where}
-      ORDER BY p.is_top DESC, p.created_at DESC
+      ORDER BY p.is_top DESC, p.sort_order DESC, p.published_at DESC
       LIMIT ? OFFSET ?
     `
     const list = db.prepare(listSql).all(...params, pageSize, offset)
@@ -152,7 +152,7 @@ function getAllPosts(req, res, next) {
 // 创建文章
 function createPost(req, res, next) {
   try {
-    const { title, content, summary, cover_image, category_id, tags, is_top, status } = req.body
+    const { title, content, summary, cover_image, category_id, tags, is_top, status, published_at } = req.body
 
     if (!title || !content) {
       throw new AppError('标题和内容不能为空', 400)
@@ -163,8 +163,8 @@ function createPost(req, res, next) {
     const tagsStr = Array.isArray(tags) ? tags.join(',') : (tags || '')
 
     const result = db.prepare(`
-      INSERT INTO posts (title, content, summary, cover_image, category_id, tags, is_top, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO posts (title, content, summary, cover_image, category_id, tags, is_top, status, published_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       title,
       content,
@@ -173,7 +173,8 @@ function createPost(req, res, next) {
       category_id || null,
       tagsStr,
       is_top ? 1 : 0,
-      status !== undefined ? status : 1
+      status !== undefined ? status : 1,
+      published_at || new Date().toISOString()
     )
 
     const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(result.lastInsertRowid)
@@ -189,7 +190,7 @@ function createPost(req, res, next) {
 function updatePost(req, res, next) {
   try {
     const { id } = req.params
-    const { title, content, summary, cover_image, category_id, tags, is_top, status } = req.body
+    const { title, content, summary, cover_image, category_id, tags, is_top, status, published_at } = req.body
     const db = getDb()
 
     const existingPost = db.prepare('SELECT id FROM posts WHERE id = ?').get(id)
@@ -206,7 +207,7 @@ function updatePost(req, res, next) {
     db.prepare(`
       UPDATE posts 
       SET title = ?, content = ?, summary = ?, cover_image = ?, 
-          category_id = ?, tags = ?, is_top = ?, status = ?,
+          category_id = ?, tags = ?, is_top = ?, status = ?, published_at = ?,
           updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `).run(
@@ -218,6 +219,7 @@ function updatePost(req, res, next) {
       tagsStr,
       is_top ? 1 : 0,
       status !== undefined ? status : 1,
+      published_at || new Date().toISOString(),
       id
     )
 
@@ -303,6 +305,28 @@ function getArchives(req, res, next) {
   }
 }
 
+// 更新文章排序
+function updateSortOrder(req, res, next) {
+  try {
+    const { posts } = req.body
+    const db = getDb()
+
+    const updateStmt = db.prepare('UPDATE posts SET sort_order = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+
+    const transaction = db.transaction((items) => {
+      for (const item of items) {
+        updateStmt.run(item.sort_order, item.id)
+      }
+    })
+
+    transaction(posts)
+
+    success(res, null, '排序更新成功')
+  } catch (error) {
+    next(error)
+  }
+}
+
 module.exports = {
   getPosts,
   getPost,
@@ -311,5 +335,6 @@ module.exports = {
   updatePost,
   deletePost,
   toggleTop,
-  getArchives
+  getArchives,
+  updateSortOrder
 }

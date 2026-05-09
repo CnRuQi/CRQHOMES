@@ -8,7 +8,8 @@ const {
   updatePost,
   deletePost,
   toggleTop,
-  getArchives
+  getArchives,
+  updateSortOrder
 } = require('../controllers/postController')
 const { authenticate } = require('../middleware/auth')
 
@@ -20,6 +21,9 @@ router.get('/archives', getArchives)
 
 // GET /api/posts/admin - 获取所有文章（后台管理）
 router.get('/admin', authenticate, getAllPosts)
+
+// PUT /api/posts/sort - 更新排序
+router.put('/sort', authenticate, updateSortOrder)
 
 // GET /api/posts/:id - 获取文章详情
 router.get('/:id', getPost)

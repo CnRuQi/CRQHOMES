@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS posts (
     is_top INTEGER DEFAULT 0,
     status INTEGER DEFAULT 1,
     views INTEGER DEFAULT 0,
+    sort_order INTEGER DEFAULT 0,
+    published_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
@@ -41,3 +43,4 @@ CREATE INDEX IF NOT EXISTS idx_posts_status ON posts(status);
 CREATE INDEX IF NOT EXISTS idx_posts_is_top ON posts(is_top);
 CREATE INDEX IF NOT EXISTS idx_posts_category_id ON posts(category_id);
 CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at);
+CREATE INDEX IF NOT EXISTS idx_posts_sort_order ON posts(sort_order);

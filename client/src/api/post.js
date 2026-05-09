@@ -39,3 +39,8 @@ export function toggleTop(id) {
 export function getArchives() {
   return api.get('/posts/archives')
 }
+
+// 更新排序
+export function updateSortOrder(posts) {
+  return api.put('/posts/sort', { posts })
+}

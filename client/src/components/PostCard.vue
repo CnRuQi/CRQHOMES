@@ -191,41 +191,6 @@ defineProps({
   line-height: 1.7;
   margin-bottom: var(--spacing-lg);
 }
-  border-radius: 20px;
-  color: #C49799;
-  font-weight: 500;
-}
-
-.card-date {
-  color: var(--text-disabled);
-  margin-left: auto;
-  font-size: 0.8rem;
-}
-
-.card-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-sm);
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  transition: color 0.3s ease;
-  font-family: var(--font-display);
-}
-
-.post-card:hover .card-title {
-  color: var(--color-primary-dark);
-}
-
-.card-summary {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  line-height: 1.7;
-  margin-bottom: var(--spacing-lg);
-}
 
 .card-footer {
   display: flex;

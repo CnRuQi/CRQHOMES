@@ -65,15 +65,15 @@ defineProps({
   transition: all 0.3s ease;
   position: relative;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(163, 166, 156, 0.15);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(120, 122, 116, 0.15);
   box-shadow: var(--shadow-sm);
 }
 
 .post-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-  border-color: rgba(163, 166, 156, 0.3);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(120, 122, 116, 0.25);
 }
 
 .card-link {
@@ -155,7 +155,42 @@ defineProps({
 
 .card-top {
   padding: 3px 12px;
-  background: rgba(179, 143, 143, 0.12);
+  background: rgba(179, 143, 143, 0.15);
+  border-radius: 20px;
+  color: #9A7272;
+  font-weight: 500;
+}
+
+.card-date {
+  color: var(--text-muted);
+  margin-left: auto;
+  font-size: 0.8rem;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-sm);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: color 0.3s ease;
+  font-family: var(--font-display);
+}
+
+.post-card:hover .card-title {
+  color: var(--color-primary-dark);
+}
+
+.card-summary {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  margin-bottom: var(--spacing-lg);
+}
   border-radius: 20px;
   color: #C49799;
   font-weight: 500;

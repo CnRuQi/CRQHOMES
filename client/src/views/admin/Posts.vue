@@ -239,9 +239,10 @@ onMounted(() => {
   justify-content: space-between;
   padding: var(--spacing-lg);
   margin-bottom: var(--spacing-lg);
-  background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(163, 166, 156, 0.12);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(120, 122, 116, 0.15);
   border-radius: 14px;
+  box-shadow: var(--shadow-sm);
 }
 
 .filter-left {
@@ -253,17 +254,18 @@ onMounted(() => {
 .filter-left .form-input {
   width: auto;
   min-width: 150px;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(163, 166, 156, 0.2);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(120, 122, 116, 0.2);
   border-radius: 10px;
 }
 
 .posts-table {
   overflow-x: auto;
-  background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(163, 166, 156, 0.12);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(120, 122, 116, 0.15);
   border-radius: 14px;
   padding: var(--spacing-sm);
+  box-shadow: var(--shadow-sm);
 }
 
 table {

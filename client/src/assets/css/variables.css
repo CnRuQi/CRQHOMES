@@ -15,30 +15,30 @@
   --bg-primary: #F5F5F3;
   --bg-secondary: #EBEBE8;
   --bg-tertiary: #E0E0DD;
-  --bg-card: rgba(255, 255, 255, 0.65);
-  --bg-card-hover: rgba(255, 255, 255, 0.9);
-  --bg-glass: rgba(255, 255, 255, 0.6);
-  --bg-glass-hover: rgba(245, 245, 243, 0.8);
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-glass: rgba(255, 255, 255, 0.75);
+  --bg-glass-hover: rgba(245, 245, 243, 0.9);
 
-  /* 文字颜色 - 墨色系 */
-  --text-primary: #383936;
-  --text-secondary: #575954;
-  --text-muted: #888A83;
-  --text-disabled: #B5B7B0;
+  /* 文字颜色 - 加深对比度 */
+  --text-primary: #2D2E2B;
+  --text-secondary: #4A4C48;
+  --text-muted: #6E706B;
+  --text-disabled: #9A9C97;
 
-  /* 边框 - 枯叶茶氛围 */
-  --border-color: rgba(163, 166, 156, 0.2);
-  --border-hover: rgba(163, 166, 156, 0.4);
-  --border-active: rgba(163, 166, 156, 0.6);
+  /* 边框 - 增强可见度 */
+  --border-color: rgba(120, 122, 116, 0.2);
+  --border-hover: rgba(120, 122, 116, 0.4);
+  --border-active: rgba(120, 122, 116, 0.6);
   --border-radius: 12px;
   --border-radius-lg: 16px;
   --border-radius-sm: 8px;
 
-  /* 阴影 - 实体投影，摒弃发光 */
-  --shadow-sm: 0 1px 2px rgba(56, 57, 54, 0.06);
-  --shadow-md: 0 2px 8px rgba(56, 57, 54, 0.08);
-  --shadow-lg: 0 4px 16px rgba(56, 57, 54, 0.1);
-  --shadow-btn: 0 2px 0 rgba(130, 133, 124, 0.2);
+  /* 阴影 - 增强层次感 */
+  --shadow-sm: 0 1px 3px rgba(45, 46, 43, 0.08);
+  --shadow-md: 0 4px 12px rgba(45, 46, 43, 0.1);
+  --shadow-lg: 0 8px 24px rgba(45, 46, 43, 0.12);
+  --shadow-btn: 0 2px 0 rgba(130, 133, 124, 0.25);
 
   /* 间距 */
   --spacing-xs: 4px;

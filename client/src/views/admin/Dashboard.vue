@@ -142,8 +142,9 @@ onMounted(async () => {
   gap: var(--spacing-lg);
   padding: var(--spacing-xl);
   border-radius: 16px;
-  background: rgba(255, 252, 248, 0.8);
-  border: 1px solid rgba(150, 164, 138, 0.12);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(120, 122, 116, 0.15);
+  box-shadow: var(--shadow-sm);
 }
 
 .stat-icon {
@@ -170,19 +171,21 @@ onMounted(async () => {
 /* 最近文章卡片 */
 .recent-posts {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(163, 166, 156, 0.12);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(120, 122, 116, 0.15);
   padding: var(--spacing-xl);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 /* 快捷操作卡片 */
 .quick-actions {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(163, 166, 156, 0.12);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(120, 122, 116, 0.15);
   padding: var(--spacing-xl);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .section-title {
@@ -190,7 +193,7 @@ onMounted(async () => {
   font-weight: 600;
   margin-bottom: var(--spacing-lg);
   padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid rgba(163, 166, 156, 0.15);
+  border-bottom: 1px solid rgba(120, 122, 116, 0.15);
   color: var(--text-primary);
 }
 

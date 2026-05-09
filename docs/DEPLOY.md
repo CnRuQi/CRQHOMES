@@ -8,7 +8,7 @@
 | 内存 | 2GB |
 | 带宽 | 5Mbps |
 | 系统 | Ubuntu 20.04+ / CentOS 7+ |
-| Node.js | 18+ |
+| Node.js | 22+ |
 
 ## 部署步骤
 
@@ -18,8 +18,8 @@
 # 更新系统
 sudo apt update && sudo apt upgrade -y
 
-# 安装 Node.js 18
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+# 安装 Node.js 22
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt install -y nodejs
 
 # 验证安装

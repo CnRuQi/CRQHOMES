@@ -36,7 +36,7 @@
 
 | 技术 | 版本 | 说明 |
 |------|------|------|
-| Node.js | 18+ | JavaScript 运行时 |
+| Node.js | 22+ | JavaScript 运行时 |
 | Express | ^4.18 | Web 框架 |
 | better-sqlite3 | ^9.0 | SQLite 数据库 |
 | jsonwebtoken | ^9.0 | JWT 认证 |

@@ -35,7 +35,7 @@
 ### 后端
 | 技术 | 版本 | 用途 |
 |------|------|------|
-| Node.js | 18+ | 运行时 |
+| Node.js | 22+ | 运行时 |
 | Express | ^4.18 | Web框架 |
 | better-sqlite3 | ^9.0 | 数据库 |
 | jsonwebtoken | ^9.0 | JWT认证 |

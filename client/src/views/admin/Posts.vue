@@ -237,8 +237,11 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-md);
+  padding: var(--spacing-lg);
   margin-bottom: var(--spacing-lg);
+  background: rgba(255, 252, 248, 0.85);
+  border: 1px solid rgba(150, 164, 138, 0.12);
+  border-radius: 14px;
 }
 
 .filter-left {
@@ -250,69 +253,95 @@ onMounted(() => {
 .filter-left .form-input {
   width: auto;
   min-width: 150px;
+  background: white;
+  border: 1px solid rgba(150, 164, 138, 0.2);
+  border-radius: 10px;
 }
 
 .posts-table {
   overflow-x: auto;
+  background: rgba(255, 252, 248, 0.85);
+  border: 1px solid rgba(150, 164, 138, 0.12);
+  border-radius: 14px;
+  padding: var(--spacing-sm);
 }
 
 table {
   width: 100%;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  padding: var(--spacing-md);
-  text-align: left;
-  border-bottom: 1px solid var(--border-color);
+  border-collapse: separate;
+  border-spacing: 0 2px;
 }
 
 th {
+  padding: var(--spacing-md) var(--spacing-lg);
+  text-align: left;
   font-weight: 600;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+td {
+  padding: var(--spacing-md) var(--spacing-lg);
+  text-align: left;
+  background: rgba(240, 235, 229, 0.4);
+}
+
+tr td:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+tr td:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+tr:hover td {
+  background: rgba(150, 164, 138, 0.08);
 }
 
 .post-title {
   color: var(--text-primary);
   font-weight: 500;
+  transition: color 0.2s ease;
 }
 
 .post-title:hover {
-  color: var(--color-primary-light);
+  color: var(--color-primary-dark);
 }
 
 .category-tag {
-  padding: 2px 10px;
-  background: rgba(99, 102, 241, 0.2);
+  padding: 3px 12px;
+  background: rgba(150, 164, 138, 0.12);
   border-radius: 20px;
-  font-size: 0.85rem;
-  color: var(--color-primary-light);
+  font-size: 0.8rem;
+  color: var(--color-primary-dark);
+  font-weight: 500;
 }
 
 .status-tag {
-  padding: 2px 10px;
+  padding: 3px 12px;
   border-radius: 20px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
 .status-tag.published {
-  background: rgba(34, 197, 94, 0.2);
-  color: #22c55e;
+  background: rgba(169, 186, 157, 0.2);
+  color: #7B8B6F;
 }
 
 .status-tag.draft {
-  background: rgba(245, 158, 11, 0.2);
-  color: #f59e0b;
+  background: rgba(216, 192, 106, 0.2);
+  color: #B8A04A;
 }
 
 .top-btn {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   padding: var(--spacing-xs);
-  opacity: 0.5;
-  transition: opacity var(--transition-fast);
+  opacity: 0.4;
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .top-btn.active {
@@ -320,7 +349,8 @@ th {
 }
 
 .top-btn:hover {
-  opacity: 1;
+  opacity: 0.8;
+  transform: scale(1.1);
 }
 
 .actions {

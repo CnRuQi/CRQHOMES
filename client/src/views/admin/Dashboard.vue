@@ -141,6 +141,9 @@ onMounted(async () => {
   align-items: center;
   gap: var(--spacing-lg);
   padding: var(--spacing-xl);
+  border-radius: 16px;
+  background: rgba(255, 252, 248, 0.8);
+  border: 1px solid rgba(150, 164, 138, 0.12);
 }
 
 .stat-icon {
@@ -164,27 +167,62 @@ onMounted(async () => {
   gap: var(--spacing-lg);
 }
 
+/* 最近文章卡片 */
+.recent-posts {
+  border-radius: 16px;
+  background: rgba(255, 252, 248, 0.85);
+  border: 1px solid rgba(150, 164, 138, 0.12);
+  padding: var(--spacing-xl);
+  overflow: hidden;
+}
+
+/* 快捷操作卡片 */
+.quick-actions {
+  border-radius: 16px;
+  background: rgba(255, 252, 248, 0.85);
+  border: 1px solid rgba(150, 164, 138, 0.12);
+  padding: var(--spacing-xl);
+  overflow: hidden;
+}
+
 .section-title {
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-sm);
-  border-bottom: 1px solid var(--border-color);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid rgba(150, 164, 138, 0.15);
+  color: var(--text-primary);
 }
 
 .posts-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 2px;
 }
 
 .post-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-md);
-  background: var(--bg-glass);
-  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: rgba(240, 235, 229, 0.5);
+  transition: all 0.2s ease;
+}
+
+.post-item:first-child {
+  border-radius: 10px 10px 0 0;
+}
+
+.post-item:last-child {
+  border-radius: 0 0 10px 10px;
+}
+
+.post-item:only-child {
+  border-radius: 10px;
+}
+
+.post-item:hover {
+  background: rgba(150, 164, 138, 0.1);
 }
 
 .post-info {
@@ -196,32 +234,33 @@ onMounted(async () => {
   font-weight: 500;
   margin-bottom: var(--spacing-xs);
   display: block;
+  transition: color 0.2s ease;
 }
 
 .post-title:hover {
-  color: var(--color-primary-light);
+  color: var(--color-primary-dark);
 }
 
 .post-date {
-  color: var(--text-muted);
-  font-size: 0.85rem;
+  color: var(--text-disabled);
+  font-size: 0.8rem;
 }
 
 .status-tag {
-  padding: 2px 10px;
+  padding: 3px 12px;
   border-radius: 20px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
 .status-tag.published {
-  background: rgba(34, 197, 94, 0.2);
-  color: #22c55e;
+  background: rgba(169, 186, 157, 0.2);
+  color: #7B8B6F;
 }
 
 .status-tag.draft {
-  background: rgba(245, 158, 11, 0.2);
-  color: #f59e0b;
+  background: rgba(216, 192, 106, 0.2);
+  color: #B8A04A;
 }
 
 .empty-state {
@@ -233,31 +272,40 @@ onMounted(async () => {
 .actions-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 2px;
 }
 
 .action-item {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  padding: var(--spacing-md);
-  background: var(--bg-glass);
-  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: rgba(240, 235, 229, 0.5);
   color: var(--text-primary);
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.action-item:first-child {
+  border-radius: 10px 10px 0 0;
+}
+
+.action-item:last-child {
+  border-radius: 0 0 10px 10px;
 }
 
 .action-item:hover {
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(150, 164, 138, 0.12);
   transform: translateX(4px);
 }
 
 .action-icon {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
 }
 
 .action-text {
   font-weight: 500;
+  font-size: 0.95rem;
 }
 
 @media (max-width: 768px) {

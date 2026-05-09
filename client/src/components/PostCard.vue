@@ -64,6 +64,10 @@ defineProps({
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  border-radius: 16px;
+  background: rgba(255, 252, 248, 0.8);
+  border: 1px solid rgba(150, 164, 138, 0.15);
+  box-shadow: 0 2px 8px rgba(150, 164, 138, 0.04);
 }
 
 .post-card::before {
@@ -71,8 +75,8 @@ defineProps({
   position: absolute;
   inset: 0;
   background: linear-gradient(135deg, 
-    rgba(150, 164, 138, 0.1), 
-    rgba(212, 176, 181, 0.1)
+    rgba(150, 164, 138, 0.08), 
+    rgba(212, 176, 181, 0.08)
   );
   opacity: 0;
   transition: opacity 0.4s ease;
@@ -85,6 +89,7 @@ defineProps({
   box-shadow: 
     0 25px 50px rgba(150, 164, 138, 0.15),
     0 0 0 1px rgba(150, 164, 138, 0.2);
+  border-color: rgba(150, 164, 138, 0.3);
 }
 
 .post-card:hover::before {

@@ -267,12 +267,13 @@ CREATE TABLE categories (
 - [x] 浏览量防刷（数据库持久化）
 - [x] 统计 API（Dashboard 数据）
 - [x] view_tracking 表（浏览记录持久化）
+- [x] 暗色模式（跟随系统 + 手动切换）
+- [x] 文章搜索功能（标题+摘要）
+- [x] SEO 优化（meta 标签、sitemap.xml）
 
 ### 📋 待完成
 
-- [ ] 文章搜索功能
-- [ ] SEO 优化
-- [ ] 暗色模式
+（暂无待办项）
 
 ---
 

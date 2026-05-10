@@ -31,6 +31,12 @@ const routes = [
     component: () => import('@/views/Archives.vue'),
     meta: { title: '归档' }
   },
+  {
+    path: '/search',
+    name: 'Search',
+    component: () => import('@/views/Search.vue'),
+    meta: { title: '搜索' }
+  },
 
   // 后台路由
   {

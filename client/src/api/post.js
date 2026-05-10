@@ -49,3 +49,8 @@ export function updateSortOrder(posts) {
 export function getStats() {
   return api.get('/posts/stats')
 }
+
+// 搜索文章
+export function searchPosts(params = {}) {
+  return api.get('/posts/search', { params })
+}

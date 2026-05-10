@@ -70,6 +70,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePostStore } from '@/stores/post'
+import { useSeo } from '@/composables/useSeo'
 import { formatDate } from '@/assets/js/utils'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
@@ -114,6 +115,18 @@ onMounted(async () => {
   try {
     const res = await postStore.fetchPost(route.params.id)
     post.value = res.data.post
+    
+    // 设置 SEO
+    if (post.value) {
+      useSeo({
+        title: post.value.title,
+        description: post.value.summary || post.value.title,
+        keywords: post.value.tags ? post.value.tags.join(',') : '',
+        image: post.value.cover_image || '',
+        type: 'article',
+        url: window.location.href
+      })
+    }
   } catch (error) {
     console.error('获取文章失败:', error)
   } finally {

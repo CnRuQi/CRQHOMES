@@ -11,6 +11,7 @@ const authRoutes = require('./routes/auth')
 const postRoutes = require('./routes/post')
 const categoryRoutes = require('./routes/category')
 const uploadRoutes = require('./routes/upload')
+const sitemapRoutes = require('./routes/sitemap')
 
 // 初始化数据库
 initDb()
@@ -37,6 +38,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
     res.setHeader('X-Content-Type-Options', 'nosniff')
   }
 }))
+
+// Sitemap
+app.use('/sitemap.xml', sitemapRoutes)
 
 // API 路由
 app.use('/api/auth', authRoutes)

@@ -10,13 +10,17 @@ const {
   toggleTop,
   getArchives,
   updateSortOrder,
-  getStats
+  getStats,
+  searchPosts
 } = require('../controllers/postController')
 const { authenticate } = require('../middleware/auth')
 const { postRules } = require('../middleware/validator')
 
 // GET /api/posts/stats - 获取文章统计（后台）
 router.get('/stats', authenticate, getStats)
+
+// GET /api/posts/search - 搜索文章
+router.get('/search', searchPosts)
 
 // GET /api/posts - 获取文章列表（前台）
 router.get('/', postRules.list, getPosts)

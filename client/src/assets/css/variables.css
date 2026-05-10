@@ -64,3 +64,44 @@
   --transition-normal: 0.25s ease;
   --transition-slow: 0.4s ease;
 }
+
+/* 暗色模式 */
+[data-theme="dark"] {
+  /* 主色调 - 枯木冷茶（暗色版） */
+  --color-primary: #8A8D84;
+  --color-primary-light: #6E706B;
+  --color-primary-dark: #A3A69C;
+  --color-accent: #3D3E3B;
+
+  /* 功能色 */
+  --color-success: #7A8270;
+  --color-warning: #A89470;
+  --color-danger: #947070;
+  --color-info: #6E8294;
+
+  /* 背景色 - 夜空/墨石 */
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #242424;
+  --bg-tertiary: #2d2d2d;
+  --bg-card: rgba(45, 45, 45, 0.85);
+  --bg-card-hover: rgba(55, 55, 55, 0.95);
+  --bg-glass: rgba(35, 35, 35, 0.75);
+  --bg-glass-hover: rgba(45, 45, 45, 0.9);
+
+  /* 文字颜色 */
+  --text-primary: #e0e0e0;
+  --text-secondary: #b0b0b0;
+  --text-muted: #808080;
+  --text-disabled: #606060;
+
+  /* 边框 */
+  --border-color: rgba(200, 200, 200, 0.12);
+  --border-hover: rgba(200, 200, 200, 0.25);
+  --border-active: rgba(200, 200, 200, 0.4);
+
+  /* 阴影 */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.3);
+  --shadow-btn: 0 2px 0 rgba(0, 0, 0, 0.3);
+}

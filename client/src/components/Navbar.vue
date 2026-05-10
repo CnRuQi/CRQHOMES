@@ -27,9 +27,17 @@
         </router-link>
       </nav>
 
-      <button class="menu-toggle" @click="toggleMenu">
-        <span :class="{ active: isMenuOpen }"></span>
-      </button>
+      <div class="navbar-actions">
+        <router-link to="/search" class="search-toggle" title="搜索">
+          <Icon name="search" :size="20" />
+        </router-link>
+        <button class="theme-toggle" @click="toggle" :title="isDark ? '切换到亮色模式' : '切换到暗色模式'">
+          <Icon :name="isDark ? 'sun' : 'moon'" :size="20" />
+        </button>
+        <button class="menu-toggle" @click="toggleMenu">
+          <span :class="{ active: isMenuOpen }"></span>
+        </button>
+      </div>
     </div>
   </header>
 </template>
@@ -37,9 +45,11 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { usePostStore } from '@/stores/post'
+import { useTheme } from '@/composables/useTheme'
 import Icon from '@/components/Icon.vue'
 
 const postStore = usePostStore()
+const { isDark, toggle } = useTheme()
 const categories = ref([])
 
 const isScrolled = ref(false)
@@ -86,11 +96,54 @@ onUnmounted(() => {
   box-shadow: 0 1px 3px rgba(56, 57, 54, 0.06);
 }
 
+[data-theme="dark"] .navbar.scrolled {
+  background: rgba(26, 26, 26, 0.92);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
 .navbar-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
   height: 100%;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: var(--text-muted);
+  transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+  color: var(--text-primary);
+  background: rgba(163, 166, 156, 0.1);
+}
+
+.search-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: var(--text-muted);
+  transition: all 0.3s ease;
+}
+
+.search-toggle:hover {
+  color: var(--text-primary);
+  background: rgba(163, 166, 156, 0.1);
 }
 
 .navbar-logo {
@@ -219,6 +272,10 @@ onUnmounted(() => {
     gap: var(--spacing-md);
     transform: translateX(100%);
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  [data-theme="dark"] .navbar-menu {
+    background: rgba(26, 26, 26, 0.98);
   }
 
   .navbar-menu.active {

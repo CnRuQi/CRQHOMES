@@ -25,10 +25,14 @@ import AOS from 'aos'
 import 'aos/dist/aos.css'
 import Toast from '@/components/Toast.vue'
 import { useToast } from '@/composables/useToast'
+import { useTheme } from '@/composables/useTheme'
 
 const { toastState } = useToast()
+const { initTheme, watchSystemTheme } = useTheme()
 
 onMounted(() => {
+  initTheme()
+  watchSystemTheme()
   AOS.init({
     duration: 600,
     easing: 'ease-out',

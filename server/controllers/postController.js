@@ -342,6 +342,54 @@ function getArchives(req, res, next) {
   }
 }
 
+// 搜索文章（标题+摘要）
+function searchPosts(req, res, next) {
+  try {
+    const { page, pageSize, offset } = parsePagination(req.query)
+    const { keyword } = req.query
+    const db = getDb()
+
+    if (!keyword || keyword.trim() === '') {
+      return success(res, { list: [], pagination: { total: 0, page, pageSize, totalPages: 0 } })
+    }
+
+    const searchKeyword = `%${keyword.trim()}%`
+
+    // 查询总数
+    const countSql = `
+      SELECT COUNT(*) as total
+      FROM posts p
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE p.status = 1 AND (p.title LIKE ? OR p.summary LIKE ?)
+    `
+    const { total } = db.prepare(countSql).get(searchKeyword, searchKeyword)
+
+    // 查询列表
+    const listSql = `
+      SELECT 
+        p.id, p.title, p.summary, p.cover_image, p.tags, 
+        p.is_top, p.views, p.sort_order, p.published_at, p.created_at,
+        c.name as category_name, c.slug as category_slug
+      FROM posts p
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE p.status = 1 AND (p.title LIKE ? OR p.summary LIKE ?)
+      ORDER BY p.published_at DESC
+      LIMIT ? OFFSET ?
+    `
+    const list = db.prepare(listSql).all(searchKeyword, searchKeyword, pageSize, offset)
+
+    // 解析标签
+    const formattedList = list.map(post => ({
+      ...post,
+      tags: parseTags(post.tags)
+    }))
+
+    paginate(res, { list: formattedList, total, page, pageSize })
+  } catch (error) {
+    next(error)
+  }
+}
+
 // 更新文章排序
 function updateSortOrder(req, res, next) {
   try {
@@ -397,5 +445,6 @@ module.exports = {
   toggleTop,
   getArchives,
   updateSortOrder,
-  getStats
+  getStats,
+  searchPosts
 }

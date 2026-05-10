@@ -352,6 +352,9 @@ server {
 
 ### v1.0.2 (2026-05-10)
 
+- ✨ 暗色模式：跟随系统主题 + 手动切换按钮
+- ✨ 文章搜索：全文搜索标题和摘要
+- ✨ SEO 优化：meta 标签、Open Graph、sitemap.xml
 - 🔒 安全加固：XSS防护、输入验证、速率限制
 - 🔒 认证重构：httpOnly cookie、移除 localStorage token
 - ⚡ 性能优化：浏览量防刷数据库持久化

@@ -9,10 +9,14 @@ const {
   deletePost,
   toggleTop,
   getArchives,
-  updateSortOrder
+  updateSortOrder,
+  getStats
 } = require('../controllers/postController')
 const { authenticate } = require('../middleware/auth')
 const { postRules } = require('../middleware/validator')
+
+// GET /api/posts/stats - 获取文章统计（后台）
+router.get('/stats', authenticate, getStats)
 
 // GET /api/posts - 获取文章列表（前台）
 router.get('/', postRules.list, getPosts)
@@ -24,7 +28,7 @@ router.get('/archives', getArchives)
 router.get('/admin', authenticate, postRules.list, getAllPosts)
 
 // PUT /api/posts/sort - 更新排序
-router.put('/sort', authenticate, updateSortOrder)
+router.put('/sort', authenticate, postRules.sortOrder, updateSortOrder)
 
 // GET /api/posts/:id - 获取文章详情
 router.get('/:id', postRules.getById, getPost)

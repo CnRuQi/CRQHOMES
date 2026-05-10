@@ -7,22 +7,9 @@ const api = axios.create({
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json'
-  }
-})
-
-// 请求拦截器
-api.interceptors.request.use(
-  (config) => {
-    const authStore = useAuthStore()
-    if (authStore.token) {
-      config.headers.Authorization = `Bearer ${authStore.token}`
-    }
-    return config
   },
-  (error) => {
-    return Promise.reject(error)
-  }
-)
+  withCredentials: true
+})
 
 // 响应拦截器
 api.interceptors.response.use(

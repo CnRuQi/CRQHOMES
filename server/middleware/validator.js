@@ -61,6 +61,15 @@ const postRules = {
       .optional()
       .isInt({ min: 1, max: 50 }).withMessage('每页数量必须在1-50之间'),
     validate
+  ],
+  sortOrder: [
+    body('posts')
+      .isArray({ min: 1 }).withMessage('排序数据必须是非空数组'),
+    body('posts.*.id')
+      .isInt({ min: 1 }).withMessage('文章ID必须是正整数'),
+    body('posts.*.sort_order')
+      .isInt().withMessage('排序值必须是整数'),
+    validate
   ]
 }
 
@@ -90,7 +99,11 @@ const authRules = {
       .isLength({ max: 50 }).withMessage('昵称不能超过50个字符'),
     body('avatar')
       .optional()
-      .isURL().withMessage('头像必须是有效的URL'),
+      .custom((value) => {
+        if (!value || value.trim() === '') return true
+        if (value.startsWith('/') || value.startsWith('./')) return true
+        throw new Error('头像必须是相对路径')
+      }),
     validate
   ]
 }

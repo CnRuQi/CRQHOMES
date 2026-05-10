@@ -44,3 +44,15 @@ CREATE INDEX IF NOT EXISTS idx_posts_is_top ON posts(is_top);
 CREATE INDEX IF NOT EXISTS idx_posts_category_id ON posts(category_id);
 CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at);
 CREATE INDEX IF NOT EXISTS idx_posts_sort_order ON posts(sort_order);
+
+-- 浏览记录表（用于防刷）
+CREATE TABLE IF NOT EXISTS view_tracking (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip_address TEXT NOT NULL,
+    post_id INTEGER NOT NULL,
+    viewed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(ip_address, post_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_view_tracking_ip_post ON view_tracking(ip_address, post_id);
+CREATE INDEX IF NOT EXISTS idx_view_tracking_viewed_at ON view_tracking(viewed_at);

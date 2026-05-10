@@ -3,7 +3,7 @@
     <MdEditorV3
       v-model="content"
       :preview="true"
-      :htmlPreview="true"
+      :htmlPreview="false"
       :toolbarsExclude="['github', 'mermaid']"
       @onUploadImg="handleUploadImage"
     />

@@ -98,8 +98,10 @@ function deleteCategory(req, res, next) {
       throw new AppError('分类不存在', 404)
     }
 
-    // 将该分类下的文章的分类设为 null
-    db.prepare('UPDATE posts SET category_id = NULL WHERE category_id = ?').run(id)
+    const { count } = db.prepare('SELECT COUNT(*) as count FROM posts WHERE category_id = ?').get(id)
+    if (count > 0) {
+      throw new AppError(`该分类下还有 ${count} 篇文章，请先移除或转移文章`, 400)
+    }
 
     db.prepare('DELETE FROM categories WHERE id = ?').run(id)
 

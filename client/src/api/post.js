@@ -44,3 +44,8 @@ export function getArchives() {
 export function updateSortOrder(posts) {
   return api.put('/posts/sort', { posts })
 }
+
+// 获取文章统计
+export function getStats() {
+  return api.get('/posts/stats')
+}

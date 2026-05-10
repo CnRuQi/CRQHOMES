@@ -100,8 +100,9 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getAllPosts } from '@/api/post'
+import { getStats } from '@/api/post'
 import { getCategories } from '@/api/category'
+import { getAllPosts } from '@/api/post'
 import { formatDate } from '@/assets/js/utils'
 import Icon from '@/components/Icon.vue'
 
@@ -117,12 +118,14 @@ const recentPosts = ref([])
 onMounted(async () => {
   try {
     // 获取文章统计
-    const postsRes = await getAllPosts({ pageSize: 100 })
-    const posts = postsRes.data.list
-    stats.value.totalPosts = postsRes.data.pagination.total
-    stats.value.totalViews = posts.reduce((sum, p) => sum + (p.views || 0), 0)
-    stats.value.topPosts = posts.filter(p => p.is_top).length
-    recentPosts.value = posts.slice(0, 5)
+    const statsRes = await getStats()
+    stats.value.totalPosts = statsRes.data.totalPosts
+    stats.value.totalViews = statsRes.data.totalViews
+    stats.value.topPosts = statsRes.data.topPosts
+
+    // 获取最近文章
+    const postsRes = await getAllPosts({ pageSize: 5 })
+    recentPosts.value = postsRes.data.list
 
     // 获取分类统计
     const categoriesRes = await getCategories()

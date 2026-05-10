@@ -2,7 +2,7 @@ const express = require('express')
 const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
-const { v4: uuidv4 } = require('crypto')
+const crypto = require('crypto')
 const config = require('../config')
 const { authenticate } = require('../middleware/auth')
 const { AppError } = require('../middleware/error')
@@ -31,9 +31,8 @@ const storage = multer.diskStorage({
     cb(null, dir)
   },
   filename: (req, file, cb) => {
-    // 生成唯一文件名
-    const ext = path.extname(file.originalname)
-    const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`
+    const ext = path.extname(path.basename(file.originalname))
+    const uniqueName = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}${ext}`
     cb(null, uniqueName)
   }
 })

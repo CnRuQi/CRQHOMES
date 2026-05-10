@@ -32,7 +32,10 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 // 静态文件
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
   maxAge: '30d',
-  etag: true
+  etag: true,
+  setHeaders(res) {
+    res.setHeader('X-Content-Type-Options', 'nosniff')
+  }
 }))
 
 // API 路由

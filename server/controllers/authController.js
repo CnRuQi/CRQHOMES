@@ -42,7 +42,6 @@ async function login(req, res, next) {
     })
 
     success(res, {
-      token, // 同时返回 token，兼容旧客户端
       user: {
         id: user.id,
         username: user.username,
@@ -103,8 +102,11 @@ async function updateProfile(req, res, next) {
     const { nickname, avatar } = req.body
     const db = getDb()
 
+    const newNickname = nickname !== undefined && nickname !== '' ? nickname : req.user.nickname
+    const newAvatar = avatar !== undefined && avatar !== '' ? avatar : req.user.avatar
+
     db.prepare('UPDATE users SET nickname = ?, avatar = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
-      .run(nickname || req.user.nickname, avatar || req.user.avatar, req.user.id)
+      .run(newNickname, newAvatar, req.user.id)
 
     const updatedUser = db.prepare('SELECT id, username, nickname, avatar FROM users WHERE id = ?')
       .get(req.user.id)

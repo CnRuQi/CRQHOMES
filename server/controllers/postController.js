@@ -2,6 +2,35 @@ const { getDb } = require('../db')
 const { AppError } = require('../middleware/error')
 const { success, paginate, parsePagination, parseTags } = require('../utils/helpers')
 
+// 格式化 IP 地址（处理 IPv6 格式）
+function normalizeIp(ip) {
+  if (!ip) return 'unknown'
+  // 移除 IPv6 前缀 ::ffff:
+  return ip.replace(/^::ffff:/, '')
+}
+
+// 浏览量防刷：检查是否在5分钟内浏览过
+function hasRecentlyViewed(db, ip, postId) {
+  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+  const record = db.prepare(
+    'SELECT id FROM view_tracking WHERE ip_address = ? AND post_id = ? AND viewed_at > ?'
+  ).get(ip, postId, fiveMinutesAgo)
+  return !!record
+}
+
+// 记录浏览
+function recordView(db, ip, postId) {
+  db.prepare(
+    'INSERT OR REPLACE INTO view_tracking (ip_address, post_id, viewed_at) VALUES (?, ?, CURRENT_TIMESTAMP)'
+  ).run(ip, postId)
+}
+
+// 清理过期浏览记录（保留最近24小时的记录）
+function cleanupOldViews(db) {
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  db.prepare('DELETE FROM view_tracking WHERE viewed_at < ?').run(oneDayAgo)
+}
+
 // 获取文章列表（前台）
 function getPosts(req, res, next) {
   try {
@@ -81,9 +110,17 @@ function getPost(req, res, next) {
       throw new AppError('文章不存在', 404)
     }
 
-    // 增加浏览量
-    db.prepare('UPDATE posts SET views = views + 1 WHERE id = ?').run(id)
-    post.views += 1
+    // 增加浏览量（同 IP 同文章 5 分钟内不重复计数）
+    const clientIp = normalizeIp(req.ip || req.connection.remoteAddress)
+    if (!hasRecentlyViewed(db, clientIp, id)) {
+      db.prepare('UPDATE posts SET views = views + 1 WHERE id = ?').run(id)
+      post.views += 1
+      recordView(db, clientIp, id)
+      // 定期清理过期记录
+      if (Math.random() < 0.01) { // 1% 概率清理
+        cleanupOldViews(db)
+      }
+    }
     post.tags = parseTags(post.tags)
 
     success(res, { post })
@@ -327,6 +364,29 @@ function updateSortOrder(req, res, next) {
   }
 }
 
+// 获取文章统计（后台 Dashboard）
+function getStats(req, res, next) {
+  try {
+    const db = getDb()
+
+    const stats = db.prepare(`
+      SELECT 
+        COUNT(*) as totalPosts,
+        SUM(views) as totalViews,
+        SUM(CASE WHEN is_top = 1 THEN 1 ELSE 0 END) as topPosts
+      FROM posts
+    `).get()
+
+    success(res, {
+      totalPosts: stats.totalPosts || 0,
+      totalViews: stats.totalViews || 0,
+      topPosts: stats.topPosts || 0
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
 module.exports = {
   getPosts,
   getPost,
@@ -336,5 +396,6 @@ module.exports = {
   deletePost,
   toggleTop,
   getArchives,
-  updateSortOrder
+  updateSortOrder,
+  getStats
 }

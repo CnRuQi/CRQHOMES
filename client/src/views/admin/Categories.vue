@@ -187,7 +187,7 @@ async function handleSubmit() {
 }
 
 async function handleDelete(category) {
-  if (!confirm(`确定删除分类 "${category.name}" 吗？该分类下的文章将变为未分类。`)) {
+  if (!confirm(`确定删除分类 "${category.name}" 吗？如果该分类下有文章，需要先转移或删除文章。`)) {
     return
   }
 

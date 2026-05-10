@@ -216,7 +216,7 @@ async function fetchPost() {
       summary: post.summary || '',
       cover_image: post.cover_image || '',
       category_id: post.category_id || '',
-      tags: Array.isArray(post.tags) ? post.tags.join(',') : (post.tags || ''),
+      tags: Array.isArray(post.tags) ? [...new Set(post.tags)].join(',') : (post.tags || ''),
       is_top: !!post.is_top,
       status: post.status,
       published_at: publishedAt

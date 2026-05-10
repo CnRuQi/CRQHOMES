@@ -2,7 +2,7 @@
 
 > 披花沐雪 - One Last Kiss for the Beautiful World
 > Vue3 + Node.js + SQLite
-> 当前版本：v1.0.0
+> 当前版本：v1.0.2
 
 ---
 
@@ -262,6 +262,11 @@ CREATE TABLE categories (
 - [x] 拖拽排序功能
 - [x] Markdown 编辑器
 - [x] 代码高亮显示
+- [x] 安全加固（XSS防护、输入验证、速率限制）
+- [x] 认证系统重构（httpOnly cookie）
+- [x] 浏览量防刷（数据库持久化）
+- [x] 统计 API（Dashboard 数据）
+- [x] view_tracking 表（浏览记录持久化）
 
 ### 📋 待完成
 

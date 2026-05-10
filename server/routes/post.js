@@ -12,32 +12,33 @@ const {
   updateSortOrder
 } = require('../controllers/postController')
 const { authenticate } = require('../middleware/auth')
+const { postRules } = require('../middleware/validator')
 
 // GET /api/posts - 获取文章列表（前台）
-router.get('/', getPosts)
+router.get('/', postRules.list, getPosts)
 
 // GET /api/posts/archives - 获取归档
 router.get('/archives', getArchives)
 
 // GET /api/posts/admin - 获取所有文章（后台管理）
-router.get('/admin', authenticate, getAllPosts)
+router.get('/admin', authenticate, postRules.list, getAllPosts)
 
 // PUT /api/posts/sort - 更新排序
 router.put('/sort', authenticate, updateSortOrder)
 
 // GET /api/posts/:id - 获取文章详情
-router.get('/:id', getPost)
+router.get('/:id', postRules.getById, getPost)
 
 // POST /api/posts - 创建文章
-router.post('/', authenticate, createPost)
+router.post('/', authenticate, postRules.create, createPost)
 
 // PUT /api/posts/:id - 更新文章
-router.put('/:id', authenticate, updatePost)
+router.put('/:id', authenticate, postRules.update, updatePost)
 
 // DELETE /api/posts/:id - 删除文章
-router.delete('/:id', authenticate, deletePost)
+router.delete('/:id', authenticate, postRules.getById, deletePost)
 
 // PUT /api/posts/:id/top - 切换置顶
-router.put('/:id/top', authenticate, toggleTop)
+router.put('/:id/top', authenticate, postRules.getById, toggleTop)
 
 module.exports = router

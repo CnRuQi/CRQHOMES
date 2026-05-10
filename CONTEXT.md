@@ -61,7 +61,7 @@ cd client && npm run dev
 
 ## 待办事项
 
-- [ ] 添加输入验证 (express-validator)
+- [x] 添加输入验证 (express-validator) - 已完成 2026-05-10
 - [ ] 优化错误提示 (toast 替代 alert)
 - [ ] 加强登录速率限制
 - [ ] 考虑 httpOnly cookie 存储 token
@@ -71,4 +71,4 @@ cd client && npm run dev
 - SQL 查询正确使用参数化
 - JWT 认证流程完整
 - 前端路由守卫正常
-- 建议添加 express-validator
+- ✅ 已添加 express-validator 输入验证

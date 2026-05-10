@@ -2,6 +2,13 @@
 
 > 最后更新：2026-05-10
 
+## 最近修改
+
+1. **2026-05-10 11:16** - 添加 express-validator 输入验证
+2. **2026-05-10** - 更新 README.md 和 project.md 同步代码结构
+3. **2026-05-10** - 添加 CONTEXT.md 项目记忆文档
+4. **2026-05-10** - 创建 start.bat/start.ps1 启动脚本
+
 ## 项目概述
 
 - **名称**：披花沐雪 (One Last Kiss for the Beautiful World)

@@ -33,8 +33,16 @@ async function login(req, res, next) {
       { expiresIn: config.jwt.expiresIn }
     )
 
+    // 设置 httpOnly cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: config.env === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7天
+    })
+
     success(res, {
-      token,
+      token, // 同时返回 token，兼容旧客户端
       user: {
         id: user.id,
         username: user.username,

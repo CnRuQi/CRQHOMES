@@ -157,9 +157,11 @@ import { getCategories } from '@/api/category'
 import { uploadImage } from '@/api/upload'
 import MarkdownEditor from '@/components/MarkdownEditor.vue'
 import Icon from '@/components/Icon.vue'
+import { useToast } from '@/composables/useToast'
 
 const route = useRoute()
 const router = useRouter()
+const toast = useToast()
 
 const isEdit = computed(() => !!route.params.id)
 
@@ -240,7 +242,7 @@ async function handleCoverUpload(e) {
     form.value.cover_image = res.data.url
   } catch (error) {
     console.error('上传失败:', error)
-    alert('上传失败: ' + (error.message || '未知错误'))
+    toast.error('上传失败: ' + (error.message || '未知错误'))
   }
 }
 
@@ -255,11 +257,11 @@ async function handleSaveDraft() {
 
 async function handlePublish() {
   if (!form.value.title.trim()) {
-    alert('请输入文章标题')
+    toast.warning('请输入文章标题')
     return
   }
   if (!form.value.content.trim()) {
-    alert('请输入文章内容')
+    toast.warning('请输入文章内容')
     return
   }
 
@@ -281,10 +283,11 @@ async function savePost() {
       await createPost(data)
     }
 
+    toast.success(isEdit.value ? '文章更新成功' : '文章创建成功')
     router.push('/admin/posts')
   } catch (error) {
     console.error('保存失败:', error)
-    alert('保存失败: ' + (error.message || '未知错误'))
+    toast.error('保存失败: ' + (error.message || '未知错误'))
   } finally {
     saving.value = false
   }

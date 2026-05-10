@@ -8,6 +8,14 @@
         <component :is="Component" :key="route.path" />
       </transition>
     </router-view>
+
+    <!-- 全局 Toast -->
+    <Toast 
+      v-model:visible="toastState.visible"
+      :message="toastState.message"
+      :type="toastState.type"
+      :duration="toastState.duration"
+    />
   </div>
 </template>
 
@@ -15,6 +23,10 @@
 import { onMounted } from 'vue'
 import AOS from 'aos'
 import 'aos/dist/aos.css'
+import Toast from '@/components/Toast.vue'
+import { useToast } from '@/composables/useToast'
+
+const { toastState } = useToast()
 
 onMounted(() => {
   AOS.init({

@@ -120,7 +120,9 @@
 import { ref, onMounted } from 'vue'
 import { getCategories, createCategory, updateCategory, deleteCategory } from '@/api/category'
 import Icon from '@/components/Icon.vue'
+import { useToast } from '@/composables/useToast'
 
+const toast = useToast()
 const loading = ref(false)
 const categories = ref([])
 const showModal = ref(false)
@@ -176,8 +178,9 @@ async function handleSubmit() {
     }
     closeModal()
     fetchCategories()
+    toast.success(editingCategory.value ? '分类更新成功' : '分类创建成功')
   } catch (error) {
-    alert('操作失败: ' + (error.message || '未知错误'))
+    toast.error('操作失败: ' + (error.message || '未知错误'))
   } finally {
     submitting.value = false
   }
@@ -191,8 +194,9 @@ async function handleDelete(category) {
   try {
     await deleteCategory(category.id)
     fetchCategories()
+    toast.success('分类删除成功')
   } catch (error) {
-    alert('删除失败: ' + (error.message || '未知错误'))
+    toast.error('删除失败: ' + (error.message || '未知错误'))
   }
 }
 

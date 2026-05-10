@@ -197,3 +197,29 @@ body::before {
 - **配图风格**：降低饱和度，或加 `grayscale(20%)` 滤镜
 - **图标建议**：线条稍粗（2px），颜色使用 `--text-secondary`
 - **动画风格**：克制、平缓，避免过于花哨的效果
+
+---
+
+## 八、响应式模糊策略
+
+为优化移动端性能，采用响应式模糊方案：
+
+| 设备 | 方案 | 说明 |
+|------|------|------|
+| 移动端 (<768px) | 纯半透明背景 | 无 blur，性能最优 |
+| 桌面端 (≥768px) | backdrop-filter blur | 玻璃拟态效果 |
+
+```css
+/* 移动端默认 */
+.glass-card {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* 桌面端启用模糊 */
+@media (min-width: 768px) {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+  }
+}
+```

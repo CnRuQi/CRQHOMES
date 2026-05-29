@@ -4,7 +4,7 @@ const readline = require('readline')
 
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
 })
 
 function question(prompt) {
@@ -42,9 +42,9 @@ async function createAdmin() {
     const hashedPassword = await bcrypt.hash(password, salt)
 
     // 插入用户
-    const result = db.prepare(
-      'INSERT INTO users (username, password, nickname) VALUES (?, ?, ?)'
-    ).run(username, hashedPassword, nickname || username)
+    const result = db
+      .prepare('INSERT INTO users (username, password, nickname) VALUES (?, ?, ?)')
+      .run(username, hashedPassword, nickname || username)
 
     console.log(`\n管理员账号创建成功！`)
     console.log(`用户ID: ${result.lastInsertRowid}`)

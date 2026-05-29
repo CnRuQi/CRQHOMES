@@ -56,8 +56,14 @@
 
   /* 布局 */
   --max-width: 1200px;
-  --header-height: 64px;
+  --header-height: calc(64px + env(safe-area-inset-top, 0px));
   --sidebar-width: 240px;
+
+  /* 安全区域 */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
 
   /* 过渡 */
   --transition-fast: 0.15s ease;

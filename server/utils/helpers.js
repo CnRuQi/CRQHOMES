@@ -3,7 +3,7 @@ function success(res, data = null, message = '操作成功') {
   return res.json({
     code: 200,
     message,
-    data
+    data,
   })
 }
 
@@ -18,9 +18,9 @@ function paginate(res, { list, total, page, pageSize }) {
         total,
         page,
         pageSize,
-        totalPages: Math.ceil(total / pageSize)
-      }
-    }
+        totalPages: Math.ceil(total / pageSize),
+      },
+    },
   })
 }
 
@@ -37,7 +37,10 @@ function parsePagination(query) {
 function parseTags(tags) {
   if (!tags) return []
   if (Array.isArray(tags)) return tags
-  return tags.split(',').map(t => t.trim()).filter(Boolean)
+  return tags
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean)
 }
 
 // 格式化日期
@@ -51,5 +54,5 @@ module.exports = {
   paginate,
   parsePagination,
   parseTags,
-  formatDate
+  formatDate,
 }

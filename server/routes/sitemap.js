@@ -1,58 +1,49 @@
 const express = require('express')
 const router = express.Router()
-const { getDb } = require('../db')
+const { getSitemapData } = require('../controllers/sitemapController')
+
+function escapeXml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+}
 
 // GET /sitemap.xml
 router.get('/', (req, res) => {
   try {
-    const db = getDb()
-    const siteUrl = req.protocol + '://' + req.get('host')
-    
-    // 获取所有已发布的文章
-    const posts = db.prepare(`
-      SELECT id, updated_at, published_at 
-      FROM posts 
-      WHERE status = 1 
-      ORDER BY published_at DESC
-    `).all()
-    
-    // 获取所有分类
-    const categories = db.prepare(`
-      SELECT slug 
-      FROM categories 
-      ORDER BY sort ASC
-    `).all()
+    const { siteUrl, posts, categories } = getSitemapData(req)
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>${siteUrl}/</loc>
+    <loc>${escapeXml(siteUrl)}/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>${siteUrl}/archives</loc>
+    <loc>${escapeXml(siteUrl)}/archives</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>`
 
-    // 添加分类页面
-    categories.forEach(cat => {
+    categories.forEach((cat) => {
       xml += `
   <url>
-    <loc>${siteUrl}/category/${cat.slug}</loc>
+    <loc>${escapeXml(siteUrl)}/category/${escapeXml(cat.slug)}</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>`
     })
 
-    // 添加文章页面
-    posts.forEach(post => {
+    posts.forEach((post) => {
       const lastmod = post.updated_at || post.published_at
       xml += `
   <url>
-    <loc>${siteUrl}/post/${post.id}</loc>
-    <lastmod>${lastmod}</lastmod>
+    <loc>${escapeXml(siteUrl)}/post/${escapeXml(post.slug)}</loc>
+    <lastmod>${escapeXml(lastmod)}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>`

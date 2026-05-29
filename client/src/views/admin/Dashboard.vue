@@ -46,11 +46,7 @@
       <div class="recent-posts glass-card" data-aos="fade-up">
         <h3 class="section-title">最近文章</h3>
         <div class="posts-list">
-          <div
-            v-for="post in recentPosts"
-            :key="post.id"
-            class="post-item"
-          >
+          <div v-for="post in recentPosts" :key="post.id" class="post-item">
             <div class="post-info">
               <router-link :to="`/admin/posts/${post.id}/edit`" class="post-title">
                 {{ post.title }}
@@ -104,34 +100,36 @@ import { getStats } from '@/api/post'
 import { getCategories } from '@/api/category'
 import { getAllPosts } from '@/api/post'
 import { formatDate } from '@/assets/js/utils'
+import { useToast } from '@/composables/useToast'
 import Icon from '@/components/Icon.vue'
+
+const toast = useToast()
 
 const stats = ref({
   totalPosts: 0,
   totalCategories: 0,
   totalViews: 0,
-  topPosts: 0
+  topPosts: 0,
 })
 
 const recentPosts = ref([])
 
 onMounted(async () => {
   try {
-    // 获取文章统计
-    const statsRes = await getStats()
+    const [statsRes, postsRes, categoriesRes] = await Promise.all([
+      getStats(),
+      getAllPosts({ pageSize: 5 }),
+      getCategories(),
+    ])
+
     stats.value.totalPosts = statsRes.data.totalPosts
     stats.value.totalViews = statsRes.data.totalViews
     stats.value.topPosts = statsRes.data.topPosts
-
-    // 获取最近文章
-    const postsRes = await getAllPosts({ pageSize: 5 })
     recentPosts.value = postsRes.data.list
-
-    // 获取分类统计
-    const categoriesRes = await getCategories()
     stats.value.totalCategories = categoriesRes.data.categories.length
   } catch (error) {
     console.error('获取统计数据失败:', error)
+    toast.error('加载统计数据失败')
   }
 })
 </script>
@@ -267,12 +265,12 @@ onMounted(async () => {
 
 .status-tag.published {
   background: rgba(155, 163, 142, 0.15);
-  color: #7B8370;
+  color: #7b8370;
 }
 
 .status-tag.draft {
   background: rgba(199, 179, 141, 0.15);
-  color: #A69570;
+  color: #a69570;
 }
 
 .empty-state {

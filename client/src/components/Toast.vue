@@ -10,33 +10,48 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { computed, watch, ref, onUnmounted } from 'vue'
 import Icon from './Icon.vue'
 
 const props = defineProps({
   message: { type: String, default: '' },
   type: { type: String, default: 'info' }, // info, success, warning, error
   duration: { type: Number, default: 3000 },
-  visible: { type: Boolean, default: false }
+  visible: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['update:visible'])
+
+const timer = ref(null)
 
 const iconName = computed(() => {
   const icons = {
     info: 'info',
     success: 'check',
     warning: 'alert',
-    error: 'close'
+    error: 'close',
   }
   return icons[props.type] || 'info'
 })
 
-watch(() => props.visible, (val) => {
-  if (val && props.duration > 0) {
-    setTimeout(() => {
-      emit('update:visible', false)
-    }, props.duration)
+watch(
+  () => props.visible,
+  (val) => {
+    if (timer.value) {
+      clearTimeout(timer.value)
+      timer.value = null
+    }
+    if (val && props.duration > 0) {
+      timer.value = setTimeout(() => {
+        emit('update:visible', false)
+      }, props.duration)
+    }
+  }
+)
+
+onUnmounted(() => {
+  if (timer.value) {
+    clearTimeout(timer.value)
   }
 })
 </script>

@@ -15,7 +15,7 @@ function notFound(req, res, next) {
 }
 
 // 错误处理中间件
-function errorHandler(err, req, res, next) {
+function errorHandler(err, req, res, _next) {
   let statusCode = err.statusCode || 500
   let message = err.message || '服务器内部错误'
 
@@ -44,12 +44,12 @@ function errorHandler(err, req, res, next) {
   res.status(statusCode).json({
     code: statusCode,
     message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   })
 }
 
 module.exports = {
   AppError,
   notFound,
-  errorHandler
+  errorHandler,
 }

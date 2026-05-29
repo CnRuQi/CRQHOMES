@@ -19,7 +19,9 @@ function authenticate(req, res, next) {
 
     // 查询用户是否存在
     const db = getDb()
-    const user = db.prepare('SELECT id, username, nickname, avatar FROM users WHERE id = ?').get(decoded.userId)
+    const user = db
+      .prepare('SELECT id, username, nickname, avatar FROM users WHERE id = ?')
+      .get(decoded.userId)
 
     if (!user) {
       throw new AppError('用户不存在', 401)
@@ -50,13 +52,15 @@ function optionalAuth(req, res, next) {
       const decoded = jwt.verify(token, config.jwt.secret)
 
       const db = getDb()
-      const user = db.prepare('SELECT id, username, nickname, avatar FROM users WHERE id = ?').get(decoded.userId)
+      const user = db
+        .prepare('SELECT id, username, nickname, avatar FROM users WHERE id = ?')
+        .get(decoded.userId)
 
       if (user) {
         req.user = user
       }
     }
-  } catch (error) {
+  } catch (_error) {
     // 忽略认证错误，继续处理请求
   }
   next()
@@ -64,5 +68,5 @@ function optionalAuth(req, res, next) {
 
 module.exports = {
   authenticate,
-  optionalAuth
+  optionalAuth,
 }

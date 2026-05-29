@@ -1,15 +1,11 @@
 <template>
-  <article
-    class="post-card glass-card"
-    data-aos="fade-up"
-    :data-aos-delay="index * 100"
-  >
-    <router-link :to="`/post/${post.id}`" class="card-link">
-      <div class="card-cover" v-if="post.cover_image">
+  <article class="post-card glass-card" data-aos="fade-up" :data-aos-delay="index * 100">
+    <router-link :to="`/post/${post.slug || post.id}`" class="card-link">
+      <div v-if="post.cover_image" class="card-cover">
         <img :src="post.cover_image" :alt="post.title" loading="lazy" />
         <div class="cover-overlay"></div>
       </div>
-      <div class="card-cover placeholder" v-else>
+      <div v-else class="card-cover placeholder">
         <span class="placeholder-icon">✦</span>
       </div>
 
@@ -22,14 +18,22 @@
           <span class="card-date">{{ fromNow(post.published_at || post.created_at) }}</span>
         </div>
 
-        <h3 class="card-title">{{ post.title }}</h3>
+        <!-- eslint-disable-next-line vue/no-v-html -->
+        <h3 v-if="keyword" class="card-title" v-html="highlightKeywords(post.title, keyword)"></h3>
+        <h3 v-else class="card-title">{{ post.title }}</h3>
 
-        <p class="card-summary" v-if="post.summary">
+        <!-- eslint-disable-next-line vue/no-v-html -->
+        <p
+          v-if="post.summary && keyword"
+          class="card-summary"
+          v-html="highlightKeywords(truncate(post.summary, 100), keyword)"
+        ></p>
+        <p v-else-if="post.summary" class="card-summary">
           {{ truncate(post.summary, 100) }}
         </p>
 
         <div class="card-footer">
-          <div class="card-tags" v-if="post.tags && post.tags.length">
+          <div v-if="post.tags && post.tags.length" class="card-tags">
             <span v-for="tag in post.tags.slice(0, 3)" :key="tag" class="tag">
               {{ tag }}
             </span>
@@ -45,18 +49,22 @@
 </template>
 
 <script setup>
-import { fromNow, truncate, formatNumber } from '@/assets/js/utils'
+import { fromNow, truncate, formatNumber, highlightKeywords } from '@/assets/js/utils'
 import Icon from '@/components/Icon.vue'
 
 defineProps({
   post: {
     type: Object,
-    required: true
+    required: true,
   },
   index: {
     type: Number,
-    default: 0
-  }
+    default: 0,
+  },
+  keyword: {
+    type: String,
+    default: '',
+  },
 })
 </script>
 
@@ -105,22 +113,14 @@ defineProps({
 .cover-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    transparent 50%,
-    rgba(56, 57, 54, 0.4) 100%
-  );
+  background: linear-gradient(180deg, transparent 50%, rgba(56, 57, 54, 0.4) 100%);
 }
 
 .card-cover.placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(
-    135deg,
-    rgba(163, 166, 156, 0.12),
-    rgba(222, 223, 217, 0.12)
-  );
+  background: linear-gradient(135deg, rgba(163, 166, 156, 0.12), rgba(222, 223, 217, 0.12));
 }
 
 .placeholder-icon {
@@ -130,8 +130,13 @@ defineProps({
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 .card-body {
@@ -158,7 +163,7 @@ defineProps({
   padding: 3px 12px;
   background: rgba(179, 143, 143, 0.15);
   border-radius: 20px;
-  color: #9A7272;
+  color: #9a7272;
   font-weight: 500;
 }
 
@@ -227,5 +232,12 @@ defineProps({
   .card-title {
     font-size: 1.1rem;
   }
+}
+
+:deep(mark) {
+  background: rgba(163, 166, 156, 0.3);
+  color: inherit;
+  padding: 1px 2px;
+  border-radius: 2px;
 }
 </style>

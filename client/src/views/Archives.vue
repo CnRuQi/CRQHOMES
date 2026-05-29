@@ -1,13 +1,16 @@
 <template>
   <div class="archives">
-    <Navbar />
-
     <main class="main-content">
       <div class="container">
         <h1 class="page-title" data-aos="fade-down">归档</h1>
 
-        <div v-if="loading" class="loading">
-          <div class="spinner"></div>
+        <div v-if="loading" class="archives-skeleton">
+          <div v-for="i in 3" :key="i" class="skeleton-group">
+            <div class="skeleton-group-title skeleton-pulse"></div>
+            <div class="skeleton-items">
+              <div v-for="j in 4" :key="j" class="skeleton-item skeleton-pulse"></div>
+            </div>
+          </div>
         </div>
 
         <template v-else>
@@ -27,10 +30,12 @@
                 <router-link
                   v-for="post in archive.posts"
                   :key="post.id"
-                  :to="`/post/${post.id}`"
+                  :to="`/post/${post.slug || post.id}`"
                   class="archive-item"
                 >
-                  <span class="item-date">{{ formatDate(post.published_at || post.created_at, 'MM-DD') }}</span>
+                  <span class="item-date">{{
+                    formatDate(post.published_at || post.created_at, 'MM-DD')
+                  }}</span>
                   <span class="item-title">{{ post.title }}</span>
                 </router-link>
               </div>
@@ -44,8 +49,6 @@
         </template>
       </div>
     </main>
-
-    <Footer />
   </div>
 </template>
 
@@ -53,9 +56,9 @@
 import { ref, onMounted } from 'vue'
 import { getArchives } from '@/api/post'
 import { formatDate } from '@/assets/js/utils'
-import Navbar from '@/components/Navbar.vue'
-import Footer from '@/components/Footer.vue'
+import { useToast } from '@/composables/useToast'
 
+const toast = useToast()
 const loading = ref(false)
 const archives = ref([])
 
@@ -66,6 +69,7 @@ onMounted(async () => {
     archives.value = res.data.archives
   } catch (error) {
     console.error('获取归档失败:', error)
+    toast.error('加载归档失败')
   } finally {
     loading.value = false
   }
@@ -78,7 +82,6 @@ onMounted(async () => {
 }
 
 .main-content {
-  padding-top: calc(var(--header-height) + var(--spacing-2xl));
   padding-bottom: var(--spacing-2xl);
 }
 
@@ -128,8 +131,8 @@ onMounted(async () => {
 }
 
 .archive-item:hover {
-  background: rgba(99, 102, 241, 0.1);
-  border-color: rgba(99, 102, 241, 0.3);
+  background: rgba(163, 166, 156, 0.1);
+  border-color: rgba(163, 166, 156, 0.3);
   transform: translateX(8px);
 }
 
@@ -142,6 +145,49 @@ onMounted(async () => {
 
 .item-title {
   flex: 1;
+}
+
+.skeleton-pulse {
+  background: linear-gradient(
+    90deg,
+    rgba(163, 166, 156, 0.1) 25%,
+    rgba(163, 166, 156, 0.2) 50%,
+    rgba(163, 166, 156, 0.1) 75%
+  );
+  background-size: 200% 100%;
+  animation: pulse 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+@keyframes pulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-group {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.skeleton-group-title {
+  height: 28px;
+  width: 150px;
+  margin-bottom: var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+}
+
+.skeleton-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.skeleton-item {
+  height: 48px;
+  border-radius: var(--border-radius-sm);
 }
 
 @media (max-width: 768px) {

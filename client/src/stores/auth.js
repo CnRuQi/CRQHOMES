@@ -4,13 +4,16 @@ import { login as loginApi, getProfile } from '@/api/auth'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
+  const token = ref(localStorage.getItem('token') || '')
 
-  const isAuthenticated = computed(() => !!user.value)
+  const isAuthenticated = computed(() => !!token.value)
 
   // 登录
   async function login(username, password) {
     const res = await loginApi(username, password)
+    token.value = res.data.token
     user.value = res.data.user
+    localStorage.setItem('token', res.data.token)
     return res
   }
 
@@ -28,14 +31,17 @@ export const useAuthStore = defineStore('auth', () => {
 
   // 登出
   function logout() {
+    token.value = ''
     user.value = null
+    localStorage.removeItem('token')
   }
 
   return {
     user,
+    token,
     isAuthenticated,
     login,
     fetchUser,
-    logout
+    logout,
   }
 })

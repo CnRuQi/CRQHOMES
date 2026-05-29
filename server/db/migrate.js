@@ -5,7 +5,7 @@ const config = require('../config')
 
 function migrate() {
   console.log('开始数据库迁移...\n')
-  
+
   const dbPath = config.db.path
   const dbDir = path.dirname(dbPath)
 
@@ -20,9 +20,9 @@ function migrate() {
 
   try {
     // 检查字段是否存在
-    const columns = db.prepare("PRAGMA table_info(posts)").all()
-    const columnNames = columns.map(col => col.name)
-    
+    const columns = db.prepare('PRAGMA table_info(posts)').all()
+    const columnNames = columns.map((col) => col.name)
+
     console.log('当前 posts 表字段:', columnNames.join(', '))
 
     // 如果表不存在，创建完整的表
@@ -32,6 +32,7 @@ function migrate() {
         CREATE TABLE IF NOT EXISTS posts (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           title TEXT NOT NULL,
+          slug TEXT UNIQUE,
           content TEXT NOT NULL,
           summary TEXT,
           cover_image TEXT,
@@ -124,16 +125,24 @@ function migrate() {
         db.exec('DROP TABLE posts_temp')
         console.log('  ✓ published_at 字段已添加')
       }
+
+      // 添加 slug 字段
+      if (!columnNames.includes('slug')) {
+        console.log('添加 slug 字段...')
+        db.exec('ALTER TABLE posts ADD COLUMN slug TEXT')
+        db.exec("UPDATE posts SET slug = 'post-' || id WHERE slug IS NULL OR slug = ''")
+        console.log('  ✓ slug 字段已添加')
+      }
     }
 
     // 创建索引
     console.log('创建索引...')
     db.exec('CREATE INDEX IF NOT EXISTS idx_posts_sort_order ON posts(sort_order)')
     db.exec('CREATE INDEX IF NOT EXISTS idx_posts_published_at ON posts(published_at)')
+    db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug)')
     console.log('  ✓ 索引已创建')
 
     console.log('\n✅ 数据库迁移完成！')
-
   } catch (error) {
     console.error('迁移失败:', error.message)
   } finally {

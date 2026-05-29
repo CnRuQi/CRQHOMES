@@ -1,7 +1,12 @@
 const express = require('express')
 const router = express.Router()
 const rateLimit = require('express-rate-limit')
-const { login, getProfile, changePassword, updateProfile } = require('../controllers/authController')
+const {
+  login,
+  getProfile,
+  changePassword,
+  updateProfile,
+} = require('../controllers/authController')
 const { authenticate } = require('../middleware/auth')
 const { authRules } = require('../middleware/validator')
 
@@ -11,10 +16,10 @@ const loginLimiter = rateLimit({
   max: 5, // 最多5次
   message: {
     code: 429,
-    message: '登录尝试次数过多，请15分钟后再试'
+    message: '登录尝试次数过多，请15分钟后再试',
   },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
 })
 
 // 密码修改速率限制：1小时内最多3次
@@ -23,8 +28,8 @@ const passwordLimiter = rateLimit({
   max: 3,
   message: {
     code: 429,
-    message: '密码修改次数过多，请1小时后再试'
-  }
+    message: '密码修改次数过多，请1小时后再试',
+  },
 })
 
 // POST /api/auth/login - 登录

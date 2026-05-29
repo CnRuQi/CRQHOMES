@@ -1,35 +1,61 @@
 <template>
   <div class="admin-layout">
+    <!-- 移动端遮罩 -->
+    <div v-if="isMobileOpen" class="mobile-overlay" @click="closeMobileSidebar"></div>
+
     <!-- 侧边栏 -->
-    <aside class="sidebar glass-sidebar" :class="{ collapsed: isCollapsed }">
+    <aside
+      class="sidebar glass-sidebar"
+      :class="{ collapsed: isCollapsed, 'mobile-open': isMobileOpen }"
+    >
       <div class="sidebar-header">
-        <router-link to="/admin" class="sidebar-logo">
+        <router-link to="/admin" class="sidebar-logo" @click="closeMobileSidebar">
           <Icon name="logo" :size="24" />
-          <span class="logo-text" v-show="!isCollapsed">披花沐雪</span>
+          <span v-show="!isCollapsed" class="logo-text">披花沐雪</span>
         </router-link>
       </div>
 
       <nav class="sidebar-menu">
-        <router-link to="/admin" class="menu-item" exact-active-class="active">
+        <router-link
+          to="/admin"
+          class="menu-item"
+          exact-active-class="active"
+          @click="closeMobileSidebar"
+        >
           <Icon name="dashboard" :size="20" />
           <span class="menu-text" :class="{ hidden: isCollapsed }">仪表盘</span>
         </router-link>
-        <router-link to="/admin/posts" class="menu-item" active-class="active">
+        <router-link
+          to="/admin/posts"
+          class="menu-item"
+          active-class="active"
+          @click="closeMobileSidebar"
+        >
           <Icon name="article" :size="20" />
           <span class="menu-text" :class="{ hidden: isCollapsed }">文章管理</span>
         </router-link>
-        <router-link to="/admin/posts/create" class="menu-item" active-class="active">
+        <router-link
+          to="/admin/posts/create"
+          class="menu-item"
+          active-class="active"
+          @click="closeMobileSidebar"
+        >
           <Icon name="edit" :size="20" />
           <span class="menu-text" :class="{ hidden: isCollapsed }">写文章</span>
         </router-link>
-        <router-link to="/admin/categories" class="menu-item" active-class="active">
+        <router-link
+          to="/admin/categories"
+          class="menu-item"
+          active-class="active"
+          @click="closeMobileSidebar"
+        >
           <Icon name="category" :size="20" />
           <span class="menu-text" :class="{ hidden: isCollapsed }">分类管理</span>
         </router-link>
       </nav>
 
       <div class="sidebar-footer">
-        <router-link to="/" class="menu-item">
+        <router-link to="/" class="menu-item" @click="closeMobileSidebar">
           <Icon name="external" :size="20" />
           <span class="menu-text" :class="{ hidden: isCollapsed }">访问前台</span>
         </router-link>
@@ -54,7 +80,9 @@
         <div class="topbar-right">
           <span class="user-info">
             <Icon name="user" :size="20" />
-            <span class="user-name">{{ authStore.user?.nickname || authStore.user?.username }}</span>
+            <span class="user-name">{{
+              authStore.user?.nickname || authStore.user?.username
+            }}</span>
           </span>
         </div>
       </header>
@@ -82,13 +110,22 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const isCollapsed = ref(false)
+const isMobileOpen = ref(false)
 
 const currentPageTitle = computed(() => {
   return route.meta.title || '仪表盘'
 })
 
 function toggleSidebar() {
-  isCollapsed.value = !isCollapsed.value
+  if (window.innerWidth <= 768) {
+    isMobileOpen.value = !isMobileOpen.value
+  } else {
+    isCollapsed.value = !isCollapsed.value
+  }
+}
+
+function closeMobileSidebar() {
+  isMobileOpen.value = false
 }
 
 function handleLogout() {
@@ -154,7 +191,9 @@ function handleLogout() {
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--border-radius-sm);
   color: var(--text-secondary);
-  transition: background 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
   text-decoration: none;
   cursor: pointer;
   background: none;
@@ -259,8 +298,16 @@ function handleLogout() {
 }
 
 @media (max-width: 768px) {
+  .mobile-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1002;
+  }
+
   .sidebar {
     transform: translateX(-100%);
+    z-index: 1003;
   }
 
   .sidebar.mobile-open {

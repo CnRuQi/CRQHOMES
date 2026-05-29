@@ -19,9 +19,11 @@ initDb()
 const app = express()
 
 // 安全中间件
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' }
-}))
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+)
 
 // CORS
 app.use(cors(config.cors))
@@ -31,13 +33,16 @@ app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
 // 静态文件
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
-  maxAge: '30d',
-  etag: true,
-  setHeaders(res) {
-    res.setHeader('X-Content-Type-Options', 'nosniff')
-  }
-}))
+app.use(
+  '/uploads',
+  express.static(path.join(__dirname, 'uploads'), {
+    maxAge: '30d',
+    etag: true,
+    setHeaders(res) {
+      res.setHeader('X-Content-Type-Options', 'nosniff')
+    },
+  })
+)
 
 // Sitemap
 app.use('/sitemap.xml', sitemapRoutes)
@@ -64,6 +69,20 @@ app.listen(config.port, () => {
   console.log(`服务器运行在 http://localhost:${config.port}`)
   console.log(`环境: ${config.env}`)
 })
+
+// 每小时清理一次过期浏览记录
+const { cleanupOldViews } = require('./controllers/postController')
+const { getDb } = require('./db')
+setInterval(
+  () => {
+    try {
+      cleanupOldViews(getDb())
+    } catch (error) {
+      console.error('清理浏览记录失败:', error)
+    }
+  },
+  60 * 60 * 1000
+)
 
 // 优雅关闭
 process.on('SIGINT', () => {

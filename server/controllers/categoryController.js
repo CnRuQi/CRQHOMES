@@ -7,7 +7,9 @@ function getCategories(req, res, next) {
   try {
     const db = getDb()
 
-    const categories = db.prepare(`
+    const categories = db
+      .prepare(
+        `
       SELECT 
         c.id, c.name, c.slug, c.description, c.sort,
         COUNT(p.id) as post_count
@@ -15,7 +17,9 @@ function getCategories(req, res, next) {
       LEFT JOIN posts p ON p.category_id = c.id AND p.status = 1
       GROUP BY c.id
       ORDER BY c.sort ASC, c.created_at ASC
-    `).all()
+    `
+      )
+      .all()
 
     success(res, { categories })
   } catch (error) {
@@ -40,12 +44,11 @@ function createCategory(req, res, next) {
       throw new AppError('分类别名已存在', 400)
     }
 
-    const result = db.prepare(
-      'INSERT INTO categories (name, slug, description, sort) VALUES (?, ?, ?, ?)'
-    ).run(name, slug, description || '', sort || 0)
+    const result = db
+      .prepare('INSERT INTO categories (name, slug, description, sort) VALUES (?, ?, ?, ?)')
+      .run(name, slug, description || '', sort || 0)
 
-    const category = db.prepare('SELECT * FROM categories WHERE id = ?')
-      .get(result.lastInsertRowid)
+    const category = db.prepare('SELECT * FROM categories WHERE id = ?').get(result.lastInsertRowid)
 
     success(res, { category }, '分类创建成功')
   } catch (error) {
@@ -70,7 +73,9 @@ function updateCategory(req, res, next) {
     }
 
     // 检查别名是否被其他分类使用
-    const slugExists = db.prepare('SELECT id FROM categories WHERE slug = ? AND id != ?').get(slug, id)
+    const slugExists = db
+      .prepare('SELECT id FROM categories WHERE slug = ? AND id != ?')
+      .get(slug, id)
     if (slugExists) {
       throw new AppError('分类别名已存在', 400)
     }
@@ -98,7 +103,9 @@ function deleteCategory(req, res, next) {
       throw new AppError('分类不存在', 404)
     }
 
-    const { count } = db.prepare('SELECT COUNT(*) as count FROM posts WHERE category_id = ?').get(id)
+    const { count } = db
+      .prepare('SELECT COUNT(*) as count FROM posts WHERE category_id = ?')
+      .get(id)
     if (count > 0) {
       throw new AppError(`该分类下还有 ${count} 篇文章，请先移除或转移文章`, 400)
     }
@@ -115,5 +122,5 @@ module.exports = {
   getCategories,
   createCategory,
   updateCategory,
-  deleteCategory
+  deleteCategory,
 }

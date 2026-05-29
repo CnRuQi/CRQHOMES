@@ -87,13 +87,16 @@ export function generateId() {
 export function parseTags(tags) {
   if (!tags) return []
   if (Array.isArray(tags)) return tags
-  return tags.split(',').map(t => t.trim()).filter(Boolean)
+  return tags
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean)
 }
 
 // 图片懒加载
 export function lazyLoad(img, src) {
   const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
+    entries.forEach((entry) => {
       if (entry.isIntersecting) {
         img.src = src
         observer.unobserve(img)
@@ -101,4 +104,34 @@ export function lazyLoad(img, src) {
     })
   })
   observer.observe(img)
+}
+
+// 生成分页页码范围
+export function getPageRange(total, current, range = 2) {
+  const pages = []
+  let start = Math.max(1, current - range)
+  let end = Math.min(total, current + range)
+
+  if (end - start < range * 2) {
+    if (start === 1) {
+      end = Math.min(total, start + range * 2)
+    } else {
+      start = Math.max(1, end - range * 2)
+    }
+  }
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+  return pages
+}
+
+// 搜索关键词高亮
+export function highlightKeywords(text, keyword) {
+  if (!text || !keyword) return text
+  // 先转义 HTML 特殊字符防止 XSS
+  const safeText = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const regex = new RegExp(`(${escaped})`, 'gi')
+  return safeText.replace(regex, '<mark>$1</mark>')
 }

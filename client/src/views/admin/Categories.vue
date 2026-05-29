@@ -22,7 +22,7 @@
           <div class="category-info">
             <h3 class="category-name">{{ category.name }}</h3>
             <p class="category-slug">{{ category.slug }}</p>
-            <p class="category-desc" v-if="category.description">
+            <p v-if="category.description" class="category-desc">
               {{ category.description }}
             </p>
             <div class="category-meta">
@@ -30,12 +30,8 @@
             </div>
           </div>
           <div class="category-actions">
-            <button class="btn btn-sm btn-secondary" @click="editCategory(category)">
-              编辑
-            </button>
-            <button class="btn btn-sm btn-danger" @click="handleDelete(category)">
-              删除
-            </button>
+            <button class="btn btn-sm btn-secondary" @click="editCategory(category)">编辑</button>
+            <button class="btn btn-sm btn-danger" @click="handleDelete(category)">删除</button>
           </div>
         </div>
       </div>
@@ -43,9 +39,7 @@
       <div v-if="!categories.length" class="empty-state glass-card">
         <Icon name="folder" :size="48" class="empty-icon" />
         <p>暂无分类</p>
-        <button class="btn btn-primary mt-md" @click="showModal = true">
-          创建第一个分类
-        </button>
+        <button class="btn btn-primary mt-md" @click="showModal = true">创建第一个分类</button>
       </div>
     </template>
 
@@ -102,9 +96,7 @@
             </div>
 
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" @click="closeModal">
-                取消
-              </button>
+              <button type="button" class="btn btn-secondary" @click="closeModal">取消</button>
               <button type="submit" class="btn btn-primary" :disabled="submitting">
                 {{ submitting ? '保存中...' : '保存' }}
               </button>
@@ -133,7 +125,7 @@ const form = ref({
   name: '',
   slug: '',
   description: '',
-  sort: 0
+  sort: 0,
 })
 
 async function fetchCategories() {
@@ -152,7 +144,7 @@ function editCategory(category) {
     name: category.name,
     slug: category.slug,
     description: category.description || '',
-    sort: category.sort || 0
+    sort: category.sort || 0,
   }
   showModal.value = true
 }
@@ -164,7 +156,7 @@ function closeModal() {
     name: '',
     slug: '',
     description: '',
-    sort: 0
+    sort: 0,
   }
 }
 

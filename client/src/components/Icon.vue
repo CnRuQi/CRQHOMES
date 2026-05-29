@@ -1,7 +1,7 @@
 <template>
-  <img 
-    :src="iconSrc" 
-    :alt="name" 
+  <img
+    :src="iconSrc"
+    :alt="name"
     class="icon"
     :style="{ width: size + 'px', height: size + 'px' }"
   />
@@ -13,12 +13,12 @@ import { computed } from 'vue'
 const props = defineProps({
   name: {
     type: String,
-    required: true
+    required: true,
   },
   size: {
     type: Number,
-    default: 20
-  }
+    default: 20,
+  },
 })
 
 const iconSrc = computed(() => {

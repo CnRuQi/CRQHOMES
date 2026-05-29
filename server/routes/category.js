@@ -4,7 +4,7 @@ const {
   getCategories,
   createCategory,
   updateCategory,
-  deleteCategory
+  deleteCategory,
 } = require('../controllers/categoryController')
 const { authenticate } = require('../middleware/auth')
 const { categoryRules } = require('../middleware/validator')

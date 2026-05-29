@@ -43,13 +43,13 @@
               <th>操作</th>
             </tr>
           </thead>
-          <draggable 
-            v-model="posts" 
+          <draggable
+            v-model="posts"
             tag="tbody"
             item-key="id"
             handle=".drag-handle"
-            @end="handleDragEnd"
             ghost-class="ghost-row"
+            @end="handleDragEnd"
           >
             <template #item="{ element: post }">
               <tr>
@@ -64,7 +64,7 @@
                   </router-link>
                 </td>
                 <td>
-                  <span class="category-tag" v-if="post.category_name">
+                  <span v-if="post.category_name" class="category-tag">
                     {{ post.category_name }}
                   </span>
                   <span v-else class="text-muted">未分类</span>
@@ -92,25 +92,18 @@
                       class="btn btn-sm btn-secondary"
                     >
                       编辑
-                  </router-link>
-                  <button
-                    class="btn btn-sm btn-danger"
-                    @click="handleDelete(post)"
-                  >
-                    删除
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </template>
-        </draggable>
+                    </router-link>
+                    <button class="btn btn-sm btn-danger" @click="handleDelete(post)">删除</button>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </draggable>
         </table>
 
         <div v-if="!posts.length" class="empty-state">
           <p>暂无文章</p>
-          <router-link to="/admin/posts/create" class="btn btn-primary mt-md">
-            写文章
-          </router-link>
+          <router-link to="/admin/posts/create" class="btn btn-primary mt-md"> 写文章 </router-link>
         </div>
       </div>
 
@@ -146,45 +139,28 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { getAllPosts, deletePost, toggleTop, updateSortOrder } from '@/api/post'
-import { formatDate, debounce } from '@/assets/js/utils'
+import { formatDate, debounce, getPageRange } from '@/assets/js/utils'
+import { useToast } from '@/composables/useToast'
 import Icon from '@/components/Icon.vue'
 import draggable from 'vuedraggable'
 
+const toast = useToast()
 const loading = ref(false)
 const posts = ref([])
 const pagination = ref({
   total: 0,
   page: 1,
   pageSize: 10,
-  totalPages: 0
+  totalPages: 0,
 })
 
 const filters = ref({
   status: '',
-  keyword: ''
+  keyword: '',
 })
 
 const displayPages = computed(() => {
-  const total = pagination.value.totalPages
-  const current = pagination.value.page
-  const pages = []
-
-  let start = Math.max(1, current - 2)
-  let end = Math.min(total, current + 2)
-
-  if (end - start < 4) {
-    if (start === 1) {
-      end = Math.min(total, start + 4)
-    } else {
-      start = Math.max(1, end - 4)
-    }
-  }
-
-  for (let i = start; i <= end; i++) {
-    pages.push(i)
-  }
-
-  return pages
+  return getPageRange(pagination.value.totalPages, pagination.value.page)
 })
 
 const debouncedFetch = debounce(() => {
@@ -197,7 +173,7 @@ async function fetchPosts(page = 1) {
     const params = {
       page,
       pageSize: 10,
-      ...filters.value
+      ...filters.value,
     }
     const res = await getAllPosts(params)
     posts.value = res.data.list
@@ -217,6 +193,7 @@ async function handleToggleTop(post) {
     post.is_top = post.is_top ? 0 : 1
   } catch (error) {
     console.error('切换置顶失败:', error)
+    toast.error('切换置顶失败')
   }
 }
 
@@ -230,6 +207,7 @@ async function handleDelete(post) {
     fetchPosts(pagination.value.page)
   } catch (error) {
     console.error('删除失败:', error)
+    toast.error('删除失败')
   }
 }
 
@@ -237,12 +215,12 @@ async function handleDragEnd() {
   try {
     const sortData = posts.value.map((post, index) => ({
       id: post.id,
-      sort_order: posts.value.length - index
+      sort_order: posts.value.length - index,
     }))
     await updateSortOrder(sortData)
   } catch (error) {
     console.error('排序更新失败:', error)
-    fetchPosts()
+    toast.error('排序更新失败')
   }
 }
 
@@ -360,12 +338,12 @@ tr:hover td {
 
 .status-tag.published {
   background: rgba(155, 163, 142, 0.15);
-  color: #7B8370;
+  color: #7b8370;
 }
 
 .status-tag.draft {
   background: rgba(199, 179, 141, 0.15);
-  color: #A69570;
+  color: #a69570;
 }
 
 .top-btn {

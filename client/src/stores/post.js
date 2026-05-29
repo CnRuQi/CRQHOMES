@@ -11,7 +11,7 @@ export const usePostStore = defineStore('post', () => {
     total: 0,
     page: 1,
     pageSize: 10,
-    totalPages: 0
+    totalPages: 0,
   })
   const loading = ref(false)
 
@@ -29,10 +29,10 @@ export const usePostStore = defineStore('post', () => {
   }
 
   // 获取文章详情
-  async function fetchPost(id) {
+  async function fetchPost(slugOrId) {
     loading.value = true
     try {
-      const res = await getPost(id)
+      const res = await getPost(slugOrId)
       currentPost.value = res.data.post
       return res
     } finally {
@@ -73,6 +73,6 @@ export const usePostStore = defineStore('post', () => {
     fetchPosts,
     fetchPost,
     fetchAllPosts,
-    fetchCategories
+    fetchCategories,
   }
 })

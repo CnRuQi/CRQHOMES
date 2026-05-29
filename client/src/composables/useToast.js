@@ -4,7 +4,7 @@ const toastState = ref({
   visible: false,
   message: '',
   type: 'info',
-  duration: 3000
+  duration: 3000,
 })
 
 export function useToast() {
@@ -13,7 +13,7 @@ export function useToast() {
       visible: true,
       message,
       type,
-      duration
+      duration,
     }
   }
 
@@ -44,6 +44,6 @@ export function useToast() {
     success,
     warning,
     error,
-    hide
+    hide,
   }
 }

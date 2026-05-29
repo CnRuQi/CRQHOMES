@@ -30,6 +30,20 @@ function initDb() {
   const schemaPath = path.join(__dirname, 'schema.sql')
   const schema = fs.readFileSync(schemaPath, 'utf-8')
 
+  // 先检查 posts 表是否有 slug 列，如果没有则添加
+  try {
+    const columns = database.prepare('PRAGMA table_info(posts)').all()
+    const columnNames = columns.map((col) => col.name)
+    if (columnNames.includes('id') && !columnNames.includes('slug')) {
+      console.log('添加 slug 字段...')
+      database.exec('ALTER TABLE posts ADD COLUMN slug TEXT')
+      database.exec("UPDATE posts SET slug = 'post-' || id WHERE slug IS NULL OR slug = ''")
+      console.log('  ✓ slug 字段已添加')
+    }
+  } catch (_e) {
+    // 表可能还不存在，忽略错误
+  }
+
   database.exec(schema)
   console.log('数据库初始化完成')
 
@@ -47,5 +61,5 @@ function closeDb() {
 module.exports = {
   getDb,
   initDb,
-  closeDb
+  closeDb,
 }

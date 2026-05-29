@@ -1,7 +1,5 @@
 <template>
   <div class="post-detail">
-    <Navbar />
-
     <main class="main-content">
       <div class="container">
         <div v-if="loading" class="loading">
@@ -16,13 +14,18 @@
                 <span v-if="post.category_name" class="meta-category">
                   {{ post.category_name }}
                 </span>
-                <span class="meta-date">{{ formatDate(post.published_at || post.created_at) }}</span>
-                <span class="meta-views">👁 {{ post.views }} 次阅读</span>
+                <span class="meta-date">{{
+                  formatDate(post.published_at || post.created_at)
+                }}</span>
+                <span class="meta-views">
+                  <Icon name="views" :size="16" />
+                  {{ post.views }} 次阅读
+                </span>
               </div>
 
               <h1 class="article-title">{{ post.title }}</h1>
 
-              <div class="article-tags" v-if="post.tags && post.tags.length">
+              <div v-if="post.tags && post.tags.length" class="article-tags">
                 <span v-for="tag in post.tags" :key="tag" class="tag">
                   {{ tag }}
                 </span>
@@ -30,11 +33,12 @@
             </header>
 
             <!-- 封面图 -->
-            <div class="article-cover" v-if="post.cover_image">
+            <div v-if="post.cover_image" class="article-cover">
               <img :src="post.cover_image" :alt="post.title" />
             </div>
 
-            <!-- 文章内容 -->
+            <!-- 文章内容 (v-html is safe: rendered from sanitized markdown) -->
+            <!-- eslint-disable-next-line vue/no-v-html -->
             <div class="article-content" v-html="renderedContent"></div>
 
             <!-- 文章底部 -->
@@ -44,9 +48,7 @@
               </div>
 
               <div class="article-actions">
-                <button class="btn btn-secondary" @click="goBack">
-                  ← 返回
-                </button>
+                <button class="btn btn-secondary" @click="goBack">← 返回</button>
               </div>
             </footer>
           </article>
@@ -55,14 +57,10 @@
         <div v-else class="empty">
           <div class="empty-icon">😕</div>
           <p>文章不存在</p>
-          <router-link to="/" class="btn btn-primary mt-md">
-            返回首页
-          </router-link>
+          <router-link to="/" class="btn btn-primary mt-md"> 返回首页 </router-link>
         </div>
       </div>
     </main>
-
-    <Footer />
   </div>
 </template>
 
@@ -71,39 +69,44 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePostStore } from '@/stores/post'
 import { useSeo } from '@/composables/useSeo'
+import { useToast } from '@/composables/useToast'
 import { formatDate } from '@/assets/js/utils'
 import { marked } from 'marked'
+import { markedHighlight } from 'marked-highlight'
 import hljs from 'highlight.js'
+import DOMPurify from 'dompurify'
 import 'highlight.js/styles/github-dark.css'
-import Navbar from '@/components/Navbar.vue'
-import Footer from '@/components/Footer.vue'
+import Icon from '@/components/Icon.vue'
 
 const route = useRoute()
 const router = useRouter()
 const postStore = usePostStore()
+const toast = useToast()
 
 const loading = ref(false)
 const post = ref(null)
 
-// 配置 marked
-marked.setOptions({
-  highlight: function (code, lang) {
-    if (lang && hljs.getLanguage(lang)) {
-      try {
-        return hljs.highlight(code, { language: lang }).value
-      } catch (e) {
-        // ignore
+// 配置 marked + 语法高亮
+marked.use(
+  markedHighlight({
+    langPrefix: 'hljs language-',
+    highlight(code, lang) {
+      if (lang && hljs.getLanguage(lang)) {
+        try {
+          return hljs.highlight(code, { language: lang }).value
+        } catch (_e) {
+          // ignore
+        }
       }
-    }
-    return hljs.highlightAuto(code).value
-  },
-  breaks: true,
-  gfm: true
-})
+      return hljs.highlightAuto(code).value
+    },
+  })
+)
+marked.use({ breaks: true, gfm: true })
 
 const renderedContent = computed(() => {
   if (!post.value?.content) return ''
-  return marked(post.value.content)
+  return DOMPurify.sanitize(marked(post.value.content))
 })
 
 function goBack() {
@@ -113,9 +116,9 @@ function goBack() {
 onMounted(async () => {
   loading.value = true
   try {
-    const res = await postStore.fetchPost(route.params.id)
+    const res = await postStore.fetchPost(route.params.slug)
     post.value = res.data.post
-    
+
     // 设置 SEO
     if (post.value) {
       useSeo({
@@ -124,11 +127,12 @@ onMounted(async () => {
         keywords: post.value.tags ? post.value.tags.join(',') : '',
         image: post.value.cover_image || '',
         type: 'article',
-        url: window.location.href
+        url: window.location.href,
       })
     }
   } catch (error) {
     console.error('获取文章失败:', error)
+    toast.error('加载文章失败')
   } finally {
     loading.value = false
   }
@@ -141,7 +145,6 @@ onMounted(async () => {
 }
 
 .main-content {
-  padding-top: calc(var(--header-height) + var(--spacing-2xl));
   padding-bottom: var(--spacing-2xl);
 }
 
@@ -323,7 +326,7 @@ onMounted(async () => {
   }
 
   .article-title {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
   }
 
   .article-meta {
@@ -334,6 +337,26 @@ onMounted(async () => {
   .article-footer {
     flex-direction: column;
     gap: var(--spacing-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .article {
+    padding: var(--spacing-md);
+    border-radius: 12px;
+    margin: 0 var(--spacing-xs);
+  }
+
+  .article-title {
+    font-size: 1.3rem;
+  }
+
+  .article-meta {
+    font-size: 0.8rem;
+  }
+
+  .article-content {
+    font-size: 0.95rem;
   }
 }
 </style>

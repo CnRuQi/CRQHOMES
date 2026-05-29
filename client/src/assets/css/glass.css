@@ -22,7 +22,7 @@
 }
 
 .glass-header {
-  background: rgba(245, 245, 243, 0.98);
+  background: rgb(245, 245, 243);
   border-bottom: 1px solid rgba(120, 122, 116, 0.15);
 }
 

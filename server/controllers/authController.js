@@ -27,28 +27,23 @@ async function login(req, res, next) {
     }
 
     // 生成 JWT
-    const token = jwt.sign(
-      { userId: user.id, username: user.username },
-      config.jwt.secret,
-      { expiresIn: config.jwt.expiresIn }
-    )
-
-    // 设置 httpOnly cookie
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: config.env === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7天
+    const token = jwt.sign({ userId: user.id, username: user.username }, config.jwt.secret, {
+      expiresIn: config.jwt.expiresIn,
     })
 
-    success(res, {
-      user: {
-        id: user.id,
-        username: user.username,
-        nickname: user.nickname,
-        avatar: user.avatar
-      }
-    }, '登录成功')
+    success(
+      res,
+      {
+        token,
+        user: {
+          id: user.id,
+          username: user.username,
+          nickname: user.nickname,
+          avatar: user.avatar,
+        },
+      },
+      '登录成功'
+    )
   } catch (error) {
     next(error)
   }
@@ -87,8 +82,10 @@ async function changePassword(req, res, next) {
     const salt = await bcrypt.genSalt(10)
     const hashedPassword = await bcrypt.hash(newPassword, salt)
 
-    db.prepare('UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
-      .run(hashedPassword, req.user.id)
+    db.prepare('UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(
+      hashedPassword,
+      req.user.id
+    )
 
     success(res, null, '密码修改成功')
   } catch (error) {
@@ -105,10 +102,12 @@ async function updateProfile(req, res, next) {
     const newNickname = nickname !== undefined && nickname !== '' ? nickname : req.user.nickname
     const newAvatar = avatar !== undefined && avatar !== '' ? avatar : req.user.avatar
 
-    db.prepare('UPDATE users SET nickname = ?, avatar = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
-      .run(newNickname, newAvatar, req.user.id)
+    db.prepare(
+      'UPDATE users SET nickname = ?, avatar = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+    ).run(newNickname, newAvatar, req.user.id)
 
-    const updatedUser = db.prepare('SELECT id, username, nickname, avatar FROM users WHERE id = ?')
+    const updatedUser = db
+      .prepare('SELECT id, username, nickname, avatar FROM users WHERE id = ?')
       .get(req.user.id)
 
     success(res, { user: updatedUser }, '个人信息更新成功')
@@ -121,5 +120,5 @@ module.exports = {
   login,
   getProfile,
   changePassword,
-  updateProfile
+  updateProfile,
 }

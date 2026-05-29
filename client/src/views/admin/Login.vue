@@ -38,11 +38,7 @@
             {{ error }}
           </div>
 
-          <button
-            type="submit"
-            class="btn btn-primary btn-lg login-btn"
-            :disabled="loading"
-          >
+          <button type="submit" class="btn btn-primary btn-lg login-btn" :disabled="loading">
             <span v-if="loading" class="spinner-sm"></span>
             <span v-else>登 录</span>
           </button>
@@ -68,7 +64,7 @@ const authStore = useAuthStore()
 
 const form = ref({
   username: '',
-  password: ''
+  password: '',
 })
 
 const loading = ref(false)
@@ -140,7 +136,7 @@ async function handleLogin() {
   background: rgba(179, 143, 143, 0.1);
   border: 1px solid rgba(179, 143, 143, 0.2);
   border-radius: var(--border-radius-sm);
-  color: #9A7272;
+  color: #9a7272;
   font-size: 0.9rem;
 }
 

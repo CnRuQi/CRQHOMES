@@ -7,7 +7,7 @@ export function uploadImage(file) {
 
   return api.post('/upload/image', formData, {
     headers: {
-      'Content-Type': 'multipart/form-data'
-    }
+      'Content-Type': 'multipart/form-data',
+    },
   })
 }

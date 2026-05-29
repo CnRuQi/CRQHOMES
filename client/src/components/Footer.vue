@@ -22,7 +22,31 @@
       </div>
 
       <div class="footer-bottom">
-        <p>&copy; {{ currentYear }} 披花沐雪 <span class="footer-separator">|</span> cnruqi.site. All rights reserved.</p>
+        <div class="beian-info">
+          <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer"
+            >ICP备: 蜀ICP备2025145207号-1</a
+          >
+          <span class="divider">|</span>
+          <a
+            href="https://beian.mps.gov.cn/#/query/webSearch"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="police-link"
+          >
+            <img
+              src="https://beian.mps.gov.cn/img/logo01.dd7ff50e.png"
+              alt="网安备"
+              width="16"
+              height="16"
+              loading="lazy"
+            />
+            <span>川公网安备51180202512029号</span>
+          </a>
+        </div>
+        <p class="copyright">
+          &copy; {{ currentYear }} 披花沐雪 <span class="footer-separator">|</span> cnruqi.site. All
+          rights reserved.
+        </p>
       </div>
     </div>
   </footer>
@@ -95,7 +119,41 @@ const currentYear = new Date().getFullYear()
   text-align: center;
 }
 
-.footer-bottom p {
+.beian-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.beian-info a {
+  color: var(--text-disabled);
+  font-size: 0.8rem;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.beian-info a:hover {
+  color: var(--text-muted);
+}
+
+.beian-info .divider {
+  color: var(--text-disabled);
+  font-size: 0.8rem;
+  opacity: 0.5;
+}
+
+.beian-info .police-link img {
+  vertical-align: middle;
+  opacity: 0.7;
+}
+
+.copyright {
   color: var(--text-disabled);
   font-size: 0.85rem;
 }

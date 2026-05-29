@@ -1,7 +1,5 @@
 <template>
   <div class="search-page">
-    <Navbar />
-
     <main class="main-content">
       <div class="container">
         <section class="search-header" data-aos="fade-down">
@@ -13,17 +11,15 @@
               type="text"
               class="search-input"
               placeholder="输入关键词搜索文章..."
-              @input="debouncedSearch"
               autofocus
+              @input="debouncedSearch"
             />
-            <button v-if="keyword" class="clear-btn" @click="clearSearch">
-              ✕
-            </button>
+            <button v-if="keyword" class="clear-btn" @click="clearSearch">✕</button>
           </div>
         </section>
 
-        <div v-if="loading" class="loading">
-          <div class="spinner"></div>
+        <div v-if="loading" class="posts-grid">
+          <SkeletonCard v-for="i in 3" :key="i" />
         </div>
 
         <template v-else>
@@ -41,6 +37,7 @@
                 :key="post.id"
                 :post="post"
                 :index="index"
+                :keyword="keyword"
               />
             </div>
 
@@ -79,23 +76,22 @@
         </template>
       </div>
     </main>
-
-    <Footer />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { searchPosts } from '@/api/post'
-import { debounce } from '@/assets/js/utils'
-import Navbar from '@/components/Navbar.vue'
+import { debounce, getPageRange } from '@/assets/js/utils'
+import { useToast } from '@/composables/useToast'
 import PostCard from '@/components/PostCard.vue'
-import Footer from '@/components/Footer.vue'
+import SkeletonCard from '@/components/SkeletonCard.vue'
 import Icon from '@/components/Icon.vue'
 
 const route = useRoute()
 const router = useRouter()
+const toast = useToast()
 
 const keyword = ref(route.query.q || '')
 const posts = ref([])
@@ -105,30 +101,11 @@ const pagination = ref({
   total: 0,
   page: 1,
   pageSize: 10,
-  totalPages: 0
+  totalPages: 0,
 })
 
 const displayPages = computed(() => {
-  const total = pagination.value.totalPages
-  const current = pagination.value.page
-  const pages = []
-
-  let start = Math.max(1, current - 2)
-  let end = Math.min(total, current + 2)
-
-  if (end - start < 4) {
-    if (start === 1) {
-      end = Math.min(total, start + 4)
-    } else {
-      start = Math.max(1, end - 4)
-    }
-  }
-
-  for (let i = start; i <= end; i++) {
-    pages.push(i)
-  }
-
-  return pages
+  return getPageRange(pagination.value.totalPages, pagination.value.page)
 })
 
 async function doSearch(page = 1) {
@@ -144,7 +121,7 @@ async function doSearch(page = 1) {
     const res = await searchPosts({
       keyword: keyword.value.trim(),
       page,
-      pageSize: 10
+      pageSize: 10,
     })
     posts.value = res.data.list
     total.value = res.data.pagination.total
@@ -154,6 +131,7 @@ async function doSearch(page = 1) {
     router.replace({ query: { q: keyword.value.trim() } })
   } catch (error) {
     console.error('搜索失败:', error)
+    toast.error('搜索失败')
   } finally {
     loading.value = false
   }
@@ -191,7 +169,6 @@ if (keyword.value) {
 
 .main-content {
   flex: 1;
-  padding-top: calc(var(--header-height) + var(--spacing-2xl));
   padding-bottom: var(--spacing-2xl);
 }
 

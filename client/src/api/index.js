@@ -6,10 +6,22 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 15000,
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   },
-  withCredentials: true
+  withCredentials: true,
 })
+
+// 请求拦截器：添加 Token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => Promise.reject(error)
+)
 
 // 响应拦截器
 api.interceptors.response.use(
@@ -22,8 +34,25 @@ api.interceptors.response.use(
     if (response) {
       const { status, data } = response
 
-      // 401 未授权
+      // 401 未授权 - 检查是否在编辑页面
       if (status === 401) {
+        const currentPath = router.currentRoute.value.path
+        const isEditing = currentPath.includes('/admin/posts/') && currentPath.includes('/edit')
+        const isCreating = currentPath === '/admin/posts/create'
+
+        if (isEditing || isCreating) {
+          // 在编辑页面，提示用户保存后再登录
+          const shouldLogout = window.confirm(
+            '登录已过期，是否跳转到登录页？（请确保已保存当前编辑的内容）'
+          )
+          if (!shouldLogout) {
+            return Promise.reject({
+              code: 401,
+              message: '登录已过期，请保存内容后重新登录',
+            })
+          }
+        }
+
         const authStore = useAuthStore()
         authStore.logout()
         router.push('/admin/login')
@@ -32,14 +61,14 @@ api.interceptors.response.use(
       // 返回错误信息
       return Promise.reject({
         code: status,
-        message: data?.message || '请求失败'
+        message: data?.message || '请求失败',
       })
     }
 
     // 网络错误
     return Promise.reject({
       code: 0,
-      message: '网络连接失败'
+      message: '网络连接失败',
     })
   }
 )

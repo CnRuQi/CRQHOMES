@@ -1,4 +1,7 @@
 <template>
+  <!-- 移动端菜单遮罩 -->
+  <div v-if="isMenuOpen" class="mobile-overlay" @click="closeMenu"></div>
+
   <header class="navbar glass-header" :class="{ scrolled: isScrolled }">
     <div class="container navbar-content">
       <router-link to="/" class="navbar-logo">
@@ -7,9 +10,7 @@
       </router-link>
 
       <nav class="navbar-menu" :class="{ active: isMenuOpen }">
-        <router-link to="/" class="nav-link" @click="closeMenu">
-          首页
-        </router-link>
+        <router-link to="/" class="nav-link" @click="closeMenu"> 首页 </router-link>
         <router-link
           v-for="cat in categories"
           :key="cat.id"
@@ -19,9 +20,7 @@
         >
           {{ cat.name }}
         </router-link>
-        <router-link to="/archives" class="nav-link" @click="closeMenu">
-          归档
-        </router-link>
+        <router-link to="/archives" class="nav-link" @click="closeMenu"> 归档 </router-link>
         <router-link to="/admin/login" class="nav-link admin-link" @click="closeMenu">
           管理
         </router-link>
@@ -31,7 +30,11 @@
         <router-link to="/search" class="search-toggle" title="搜索">
           <Icon name="search" :size="20" />
         </router-link>
-        <button class="theme-toggle" @click="toggle" :title="isDark ? '切换到亮色模式' : '切换到暗色模式'">
+        <button
+          class="theme-toggle"
+          :title="isDark ? '切换到亮色模式' : '切换到暗色模式'"
+          @click="toggle"
+        >
           <Icon :name="isDark ? 'sun' : 'moon'" :size="20" />
         </button>
         <button class="menu-toggle" @click="toggleMenu">
@@ -61,10 +64,12 @@ function handleScroll() {
 
 function toggleMenu() {
   isMenuOpen.value = !isMenuOpen.value
+  document.body.style.overflow = isMenuOpen.value ? 'hidden' : ''
 }
 
 function closeMenu() {
   isMenuOpen.value = false
+  document.body.style.overflow = ''
 }
 
 onMounted(async () => {
@@ -75,6 +80,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  document.body.style.overflow = ''
 })
 </script>
 
@@ -96,7 +102,7 @@ onUnmounted(() => {
   box-shadow: 0 1px 3px rgba(56, 57, 54, 0.06);
 }
 
-[data-theme="dark"] .navbar.scrolled {
+[data-theme='dark'] .navbar.scrolled {
   background: rgba(26, 26, 26, 0.92);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
@@ -118,8 +124,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 8px;
   color: var(--text-muted);
   transition: all 0.3s ease;
@@ -134,8 +140,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 8px;
   color: var(--text-muted);
   transition: all 0.3s ease;
@@ -264,18 +270,18 @@ onUnmounted(() => {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(252, 251, 249, 0.98);
-    backdrop-filter: blur(30px);
+    background: rgb(252, 251, 249);
     flex-direction: column;
     justify-content: flex-start;
     padding-top: var(--spacing-2xl);
     gap: var(--spacing-md);
     transform: translateX(100%);
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1001;
   }
 
-  [data-theme="dark"] .navbar-menu {
-    background: rgba(26, 26, 26, 0.98);
+  [data-theme='dark'] .navbar-menu {
+    background: rgb(26, 26, 26);
   }
 
   .navbar-menu.active {
@@ -287,6 +293,24 @@ onUnmounted(() => {
     padding: 12px 24px;
     width: 90%;
     text-align: center;
+  }
+
+  .mobile-overlay {
+    position: fixed;
+    inset: 0;
+    top: var(--header-height);
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1002;
+    animation: overlayFadeIn 0.3s ease;
+  }
+
+  @keyframes overlayFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 }
 </style>

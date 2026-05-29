@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS categories (
 CREATE TABLE IF NOT EXISTS posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
+    slug TEXT UNIQUE,
     content TEXT NOT NULL,
     summary TEXT,
     cover_image TEXT,
@@ -44,6 +45,7 @@ CREATE INDEX IF NOT EXISTS idx_posts_is_top ON posts(is_top);
 CREATE INDEX IF NOT EXISTS idx_posts_category_id ON posts(category_id);
 CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at);
 CREATE INDEX IF NOT EXISTS idx_posts_sort_order ON posts(sort_order);
+CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug);
 
 -- 浏览记录表（用于防刷）
 CREATE TABLE IF NOT EXISTS view_tracking (

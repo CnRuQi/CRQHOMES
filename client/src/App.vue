@@ -2,15 +2,15 @@
   <div class="app-wrapper">
     <!-- 和纸纹理 -->
     <div class="washi-texture"></div>
-    
+
     <router-view v-slot="{ Component, route }">
       <transition name="page" mode="out-in">
-        <component :is="Component" :key="route.path" />
+        <component :is="Component" :key="route.matched[0]?.path || route.path" />
       </transition>
     </router-view>
 
     <!-- 全局 Toast -->
-    <Toast 
+    <Toast
       v-model:visible="toastState.visible"
       :message="toastState.message"
       :type="toastState.type"
@@ -37,7 +37,7 @@ onMounted(() => {
     duration: 600,
     easing: 'ease-out',
     once: true,
-    offset: 50
+    offset: 50,
   })
 })
 </script>
@@ -57,7 +57,7 @@ onMounted(() => {
   height: 100%;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E");
   pointer-events: none;
-  z-index: 9999;
+  z-index: 1;
   mix-blend-mode: multiply;
 }
 

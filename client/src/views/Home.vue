@@ -1,11 +1,9 @@
 <template>
   <div class="home">
-    <Navbar />
-
     <main class="main-content">
       <div class="container">
-        <!-- Hero 区域 -->
-        <section class="hero" data-aos="fade-down">
+        <!-- Hero 区域 - 仅首页显示 -->
+        <section v-if="!route.params.slug" class="hero" data-aos="fade-down">
           <div class="hero-decoration">
             <span class="deco-line"></span>
             <span class="deco-dot"></span>
@@ -24,18 +22,13 @@
 
         <!-- 文章列表 -->
         <section class="posts-section">
-          <div v-if="loading" class="loading">
-            <div class="spinner"></div>
+          <div v-if="loading" class="posts-grid">
+            <SkeletonCard v-for="i in 6" :key="i" />
           </div>
 
           <template v-else>
             <div v-if="posts.length" class="posts-grid">
-              <PostCard
-                v-for="(post, index) in posts"
-                :key="post.id"
-                :post="post"
-                :index="index"
-              />
+              <PostCard v-for="(post, index) in posts" :key="post.id" :post="post" :index="index" />
             </div>
 
             <div v-else class="empty">
@@ -73,8 +66,6 @@
         </section>
       </div>
     </main>
-
-    <Footer />
   </div>
 </template>
 
@@ -82,9 +73,9 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePostStore } from '@/stores/post'
-import Navbar from '@/components/Navbar.vue'
+import { getPageRange } from '@/assets/js/utils'
 import PostCard from '@/components/PostCard.vue'
-import Footer from '@/components/Footer.vue'
+import SkeletonCard from '@/components/SkeletonCard.vue'
 import Icon from '@/components/Icon.vue'
 
 const route = useRoute()
@@ -96,30 +87,11 @@ const pagination = ref({
   total: 0,
   page: 1,
   pageSize: 10,
-  totalPages: 0
+  totalPages: 0,
 })
 
 const displayPages = computed(() => {
-  const total = pagination.value.totalPages
-  const current = pagination.value.page
-  const pages = []
-
-  let start = Math.max(1, current - 2)
-  let end = Math.min(total, current + 2)
-
-  if (end - start < 4) {
-    if (start === 1) {
-      end = Math.min(total, start + 4)
-    } else {
-      start = Math.max(1, end - 4)
-    }
-  }
-
-  for (let i = start; i <= end; i++) {
-    pages.push(i)
-  }
-
-  return pages
+  return getPageRange(pagination.value.totalPages, pagination.value.page)
 })
 
 async function fetchPosts(page = 1) {
@@ -142,9 +114,12 @@ function changePage(page) {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-watch(() => route.params.slug, () => {
-  fetchPosts(1)
-})
+watch(
+  () => route.params.slug,
+  () => {
+    fetchPosts(1)
+  }
+)
 
 onMounted(() => {
   fetchPosts()
@@ -157,7 +132,6 @@ onMounted(() => {
 }
 
 .main-content {
-  padding-top: calc(var(--header-height) + var(--spacing-2xl));
   padding-bottom: var(--spacing-2xl);
 }
 
@@ -200,7 +174,7 @@ onMounted(() => {
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #82857C 0%, #A3A69C 40%, #C4C6BF 70%, #DEDFD9 100%);
+  background: linear-gradient(135deg, #82857c 0%, #a3a69c 40%, #c4c6bf 70%, #dedfd9 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -209,7 +183,8 @@ onMounted(() => {
 }
 
 @keyframes gradient-shift {
-  0%, 100% {
+  0%,
+  100% {
     background-position: 0% 50%;
   }
   50% {
@@ -233,11 +208,31 @@ onMounted(() => {
 
 @media (max-width: 768px) {
   .hero-title {
-    font-size: 2.5rem;
+    font-size: 1.8rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.95rem;
   }
 
   .posts-grid {
     grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 1.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+  }
+
+  .deco-line {
+    width: 40px;
   }
 }
 </style>

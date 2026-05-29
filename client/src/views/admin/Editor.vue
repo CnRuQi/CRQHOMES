@@ -4,10 +4,10 @@
       <h2>{{ isEdit ? '编辑文章' : '写文章' }}</h2>
       <div class="header-actions">
         <button class="btn btn-secondary" @click="goBack">取消</button>
-        <button class="btn btn-secondary" @click="handleSaveDraft" :disabled="saving">
+        <button class="btn btn-secondary" :disabled="saving" @click="handleSaveDraft">
           保存草稿
         </button>
-        <button class="btn btn-primary" @click="handlePublish" :disabled="saving">
+        <button class="btn btn-primary" :disabled="saving" @click="handlePublish">
           {{ saving ? '保存中...' : '发布' }}
         </button>
       </div>
@@ -42,11 +42,7 @@
               <label class="form-label">分类</label>
               <select v-model="form.category_id" class="form-select">
                 <option value="">无分类</option>
-                <option
-                  v-for="cat in categories"
-                  :key="cat.id"
-                  :value="cat.id"
-                >
+                <option v-for="cat in categories" :key="cat.id" :value="cat.id">
                   {{ cat.name }}
                 </option>
               </select>
@@ -75,22 +71,22 @@
             <div class="form-group">
               <label class="form-label">封面图</label>
               <div class="cover-tabs">
-                <button 
-                  class="tab-btn" 
+                <button
+                  class="tab-btn"
                   :class="{ active: coverMode === 'upload' }"
                   @click="coverMode = 'upload'"
                 >
                   <Icon name="camera" :size="16" /> 上传
                 </button>
-                <button 
-                  class="tab-btn" 
+                <button
+                  class="tab-btn"
                   :class="{ active: coverMode === 'link' }"
                   @click="coverMode = 'link'"
                 >
                   <Icon name="external" :size="16" /> 链接
                 </button>
               </div>
-              
+
               <!-- 上传模式 -->
               <div v-if="coverMode === 'upload'" class="cover-upload">
                 <img
@@ -126,19 +122,12 @@
 
             <div class="form-group">
               <label class="form-label">发布时间</label>
-              <input
-                v-model="form.published_at"
-                type="datetime-local"
-                class="form-input"
-              />
+              <input v-model="form.published_at" type="datetime-local" class="form-input" />
             </div>
 
             <div class="form-group">
               <label class="form-label">
-                <input
-                  v-model="form.is_top"
-                  type="checkbox"
-                />
+                <input v-model="form.is_top" type="checkbox" />
                 置顶文章
               </label>
             </div>
@@ -179,7 +168,7 @@ const form = ref({
   tags: '',
   is_top: false,
   status: 1,
-  published_at: ''
+  published_at: '',
 })
 
 function goBack() {
@@ -202,7 +191,7 @@ async function fetchPost() {
   try {
     const res = await getPost(route.params.id)
     const post = res.data.post
-    
+
     // 格式化时间为 datetime-local 格式
     let publishedAt = ''
     if (post.published_at) {
@@ -216,10 +205,10 @@ async function fetchPost() {
       summary: post.summary || '',
       cover_image: post.cover_image || '',
       category_id: post.category_id || '',
-      tags: Array.isArray(post.tags) ? [...new Set(post.tags)].join(',') : (post.tags || ''),
+      tags: Array.isArray(post.tags) ? [...new Set(post.tags)].join(',') : post.tags || '',
       is_top: !!post.is_top,
       status: post.status,
-      published_at: publishedAt
+      published_at: publishedAt,
     }
     // 根据封面图判断模式
     if (post.cover_image && post.cover_image.startsWith('http')) {
@@ -274,7 +263,7 @@ async function savePost() {
   try {
     const data = {
       ...form.value,
-      is_top: form.value.is_top ? 1 : 0
+      is_top: form.value.is_top ? 1 : 0,
     }
 
     if (isEdit.value) {

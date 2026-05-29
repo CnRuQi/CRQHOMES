@@ -4,7 +4,7 @@ const { getDb, initDb, closeDb } = require('./index')
 const categories = [
   { id: 1, name: '默认分类', slug: 'default', description: '默认文章分类' },
   { id: 2, name: '电影', slug: 'movie', description: '' },
-  { id: 3, name: '鸡汤来喽', slug: 'chicken-soup', description: '鸡汤来喽' }
+  { id: 3, name: '鸡汤来喽', slug: 'chicken-soup', description: '鸡汤来喽' },
 ]
 
 // 文章数据
@@ -12,6 +12,7 @@ const posts = [
   {
     id: 1,
     title: '这是一些链接',
+    slug: 'yi-xie-lian-jie',
     summary: '我的链接',
     content: `这是一些链接卡片：
 
@@ -22,11 +23,12 @@ const posts = [
     is_top: 1,
     category_id: 1,
     status: 1,
-    views: 0
+    views: 0,
   },
   {
     id: 2,
     title: '余命十年',
+    slug: 'yu-ming-shi-nian',
     summary: '晴空塔的大雨，打湿了两个人的心\n眼睛为他下着雨，心却在为他打伞',
     content: `## 余命十年
 
@@ -49,11 +51,12 @@ const posts = [
     is_top: 0,
     category_id: 2,
     status: 1,
-    views: 0
+    views: 0,
   },
   {
     id: 3,
     title: '今夜，就算这份爱恋从世界上消失',
+    slug: 'jin-ye-ai-lian',
     summary: '真织，重要的记忆会刻在心里。你会想起来的。',
     content: `## 今夜，就算这份爱恋从世界上消失
 
@@ -70,11 +73,12 @@ const posts = [
     is_top: 0,
     category_id: 2,
     status: 1,
-    views: 0
+    views: 0,
   },
   {
     id: 4,
     title: '明日的我与昨日的你约会',
+    slug: 'ming-ri-wo-yu-zuo-ri-ni',
     summary: '明天见',
     content: `## 明日的我与昨日的你约会
 
@@ -91,11 +95,12 @@ const posts = [
     is_top: 0,
     category_id: 2,
     status: 1,
-    views: 0
+    views: 0,
   },
   {
     id: 5,
     title: 'Love Letter',
+    slug: 'love-letter',
     summary: '你好吗？我很好',
     content: `## Love Letter
 
@@ -112,11 +117,12 @@ const posts = [
     is_top: 0,
     category_id: 2,
     status: 1,
-    views: 0
+    views: 0,
   },
   {
     id: 6,
     title: '花束般的恋爱',
+    slug: 'hua-shu-ban-de-lian-ai',
     summary: '我们应该……都没有……爱着对方吧',
     content: `## 花束般的恋爱
 
@@ -141,11 +147,12 @@ const posts = [
     is_top: 0,
     category_id: 2,
     status: 1,
-    views: 0
+    views: 0,
   },
   {
     id: 7,
     title: '世界从不替你下定义',
+    slug: 'shi-jie-cong-bu-ti-ni-xia-ding-yi',
     summary: '它只是安静地等你给它意义',
     content: `## 世界从不替你下定义
 
@@ -174,11 +181,12 @@ const posts = [
     is_top: 0,
     category_id: 3,
     status: 1,
-    views: 0
+    views: 0,
   },
   {
     id: 8,
     title: 'Be Happy, My Friend. ( ´͈ ᵕ `͈ )◞♡',
+    slug: 'be-happy-my-friend',
     summary: '不是只有相拥之人，才能起舞',
     content: `## Be Happy, My Friend
 
@@ -209,13 +217,13 @@ const posts = [
     is_top: 0,
     category_id: 3,
     status: 1,
-    views: 0
-  }
+    views: 0,
+  },
 ]
 
 function importData() {
   console.log('开始导入数据...\n')
-  
+
   initDb()
   const db = getDb()
 
@@ -230,7 +238,7 @@ function importData() {
     const insertCategory = db.prepare(
       'INSERT INTO categories (id, name, slug, description) VALUES (?, ?, ?, ?)'
     )
-    
+
     for (const cat of categories) {
       insertCategory.run(cat.id, cat.name, cat.slug, cat.description)
       console.log(`  ✓ 分类: ${cat.name}`)
@@ -239,14 +247,15 @@ function importData() {
     // 导入文章
     console.log('\n导入文章...')
     const insertPost = db.prepare(`
-      INSERT INTO posts (id, title, content, summary, cover_image, category_id, is_top, status, views)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO posts (id, title, slug, content, summary, cover_image, category_id, is_top, status, views)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
-    
+
     for (const post of posts) {
       insertPost.run(
         post.id,
         post.title,
+        post.slug,
         post.content,
         post.summary,
         post.cover_image,
@@ -259,13 +268,16 @@ function importData() {
     }
 
     // 重置自增 ID
-    db.prepare("UPDATE sqlite_sequence SET seq = (SELECT MAX(id) FROM posts) WHERE name = 'posts'").run()
-    db.prepare("UPDATE sqlite_sequence SET seq = (SELECT MAX(id) FROM categories) WHERE name = 'categories'").run()
+    db.prepare(
+      "UPDATE sqlite_sequence SET seq = (SELECT MAX(id) FROM posts) WHERE name = 'posts'"
+    ).run()
+    db.prepare(
+      "UPDATE sqlite_sequence SET seq = (SELECT MAX(id) FROM categories) WHERE name = 'categories'"
+    ).run()
 
     console.log('\n✅ 数据导入完成！')
     console.log(`   - 分类: ${categories.length} 个`)
     console.log(`   - 文章: ${posts.length} 篇`)
-
   } catch (error) {
     console.error('导入失败:', error.message)
   } finally {

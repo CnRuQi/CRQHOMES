@@ -44,7 +44,7 @@
           </a>
         </div>
         <p class="copyright">
-          &copy; {{ currentYear }} 披花沐雪 <span class="footer-separator">|</span> cnruqi.site. All
+          &copy; {{ currentYear }} 披花沐雪 <span class="footer-separator">|</span> crq.homes. All
           rights reserved.
         </p>
       </div>

@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /api/
-Sitemap: https://cnruqi.site/sitemap.xml
+Sitemap: https://crq.homes/sitemap.xml

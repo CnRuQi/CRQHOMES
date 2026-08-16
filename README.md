@@ -333,7 +333,7 @@ npm run lint:fix    # 自动修复 lint
 
 ## 开源协议
 
-[MIT License](LICENSE)
+本项目采用 [Apache License 2.0](LICENSE)，允许商用、修改、分发（需保留版权声明与 NOTICE 信息）。
 
 ## 致谢
 

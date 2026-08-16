@@ -24,7 +24,7 @@
       <div class="footer-bottom">
         <div class="beian-info">
           <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer"
-            >ICP备: 蜀ICP备2025145207号-1</a
+            >蜀ICP备2025145207号-2</a
           >
           <span class="divider">|</span>
           <a
@@ -40,7 +40,7 @@
               height="16"
               loading="lazy"
             />
-            <span>川公网安备51180202512029号</span>
+            <span>川公网安备51180202512082号</span>
           </a>
         </div>
         <p class="copyright">

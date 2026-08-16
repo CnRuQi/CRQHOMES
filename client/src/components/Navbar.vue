@@ -212,7 +212,7 @@ onUnmounted(() => {
   background: rgba(163, 166, 156, 0.08);
 }
 
-.nav-link.router-link-active {
+.nav-link.router-link-exact-active {
   color: var(--color-primary-dark);
   background: rgba(163, 166, 156, 0.12);
 }
@@ -234,7 +234,7 @@ onUnmounted(() => {
   }
 
   .nav-link:hover::after,
-  .nav-link.router-link-active::after {
+  .nav-link.router-link-exact-active::after {
     width: 60%;
     left: 20%;
   }

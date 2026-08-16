@@ -110,7 +110,12 @@ const renderedContent = computed(() => {
 })
 
 function goBack() {
-  router.back()
+  // 无历史记录（直接访问/新标签页打开）时回首页，避免按钮无效
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    router.push('/')
+  }
 }
 
 onMounted(async () => {

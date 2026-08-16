@@ -24,7 +24,8 @@ api.interceptors.response.use(
 
       // 401 未授权 - 检查是否在编辑页面
       if (status === 401) {
-        const currentPath = router.currentRoute.value.path
+        // 用完整路径（含 query）作为 redirect，登录后回跳不丢失参数
+        const currentPath = router.currentRoute.value.fullPath
         const isEditing = currentPath.includes('/admin/posts/') && currentPath.includes('/edit')
         const isCreating = currentPath === '/admin/posts/create'
 

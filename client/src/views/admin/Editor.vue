@@ -171,7 +171,12 @@ const form = ref({
 })
 
 function goBack() {
-  router.back()
+  // 无历史记录（刷新后直接访问编辑页）时回文章列表
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    router.push('/admin/posts')
+  }
 }
 
 // 分类兜底：无论新建还是编辑历史「无分类」文章，未选择分类时默认选中「默认分类」
@@ -255,6 +260,10 @@ function handleImageError() {
 }
 
 async function handleSaveDraft() {
+  if (!form.value.title.trim()) {
+    toast.warning('请输入文章标题')
+    return
+  }
   form.value.status = 0
   await savePost()
 }

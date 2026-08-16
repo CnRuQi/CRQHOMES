@@ -1,0 +1,12 @@
+# 统一换行符为 LF（prettier endOfLine: lf），避免 Windows 下 git 自动转 CRLF
+* text=auto eol=lf
+
+# 二进制文件不转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.db binary
+*.pdf binary

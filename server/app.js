@@ -74,10 +74,19 @@ app.use(notFound)
 // 错误处理
 app.use(errorHandler)
 
-// 启动服务器
-app.listen(config.port, () => {
+// 启动服务器（监听端口占用等错误，避免进程异常崩溃）
+const server = app.listen(config.port, () => {
   console.log(`服务器运行在 http://localhost:${config.port}`)
   console.log(`环境: ${config.env}`)
+})
+
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`端口 ${config.port} 已被占用，请更换 PORT 或停止占用进程后重试`)
+  } else {
+    console.error('服务器启动失败:', error.message)
+  }
+  process.exit(1)
 })
 
 // 每小时清理一次过期浏览记录

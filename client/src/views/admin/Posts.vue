@@ -180,7 +180,12 @@ async function handleDelete(post) {
 
   try {
     await deletePost(post.id)
-    fetchPosts(pagination.value.page)
+    // 删除末页最后一条后回退一页，避免页码越界显示空列表
+    const targetPage =
+      posts.value.length === 1 && pagination.value.page > 1
+        ? pagination.value.page - 1
+        : pagination.value.page
+    fetchPosts(targetPage)
   } catch (error) {
     console.error('删除失败:', error)
     toast.error('删除失败')

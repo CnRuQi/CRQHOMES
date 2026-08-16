@@ -1,0 +1,62 @@
+name: Weekly Code Cleanup
+
+on:
+  schedule:
+    - cron: '0 2 * * 1'  # 每周一凌晨 2 点 (UTC)
+  workflow_dispatch:  # 支持手动触发
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          cd server && npm ci
+          cd ../client && npm ci
+          cd .. && npm ci
+
+      - name: Auto-fix lint issues
+        run: |
+          cd server && npm run lint:fix || true
+          cd ../client && npm run lint:fix || true
+
+      - name: Format code
+        run: npm run format || true
+
+      - name: Run tests
+        run: |
+          cd server && npm test
+          cd ../client && npm test
+
+      - name: Check for changes
+        id: changes
+        run: |
+          git diff --quiet || echo "has_changes=true" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: weekly automated code cleanup'
+          title: 'chore: weekly automated code cleanup'
+          body: |
+            ## Weekly Code Cleanup
+            
+            This PR was automatically created by the weekly code cleanup workflow.
+            
+            Changes include:
+            - ESLint auto-fixes
+            - Prettier formatting
+            - All tests passing
+          branch: automated/code-cleanup
+          delete-branch: true

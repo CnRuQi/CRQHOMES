@@ -1,0 +1,378 @@
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+/* 按钮 - 枯木冷茶风格 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+  border: 1px solid var(--color-primary-dark);
+  box-shadow: var(--shadow-btn);
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background: rgba(163, 166, 156, 0.08);
+  border-color: var(--border-hover);
+}
+
+.btn-danger {
+  background: rgba(179, 143, 143, 0.1);
+  color: #9a7272;
+  border: 1px solid rgba(179, 143, 143, 0.2);
+}
+
+.btn-danger:hover {
+  background: rgba(179, 143, 143, 0.18);
+}
+
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  border-radius: 8px;
+}
+
+.btn-lg {
+  padding: 14px 32px;
+  font-size: 1.05rem;
+  border-radius: 12px;
+}
+
+/* 表单 */
+.form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.form-label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-primary);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(163, 166, 156, 0.1);
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--text-disabled);
+}
+
+.form-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* 标签 */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  background: rgba(163, 166, 156, 0.1);
+  border: 1px solid rgba(163, 166, 156, 0.2);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: var(--color-primary-dark);
+  transition: all var(--transition-fast);
+}
+
+.tag:hover {
+  background: rgba(163, 166, 156, 0.18);
+  border-color: rgba(163, 166, 156, 0.35);
+}
+
+/* 文章状态标签（后台列表/仪表盘共用） */
+.status-tag {
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-tag.published {
+  background: rgba(155, 163, 142, 0.15);
+  color: #7b8370;
+}
+
+.status-tag.draft {
+  background: rgba(199, 179, 141, 0.15);
+  color: #a69570;
+}
+
+/* 分页 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-xl);
+}
+
+.pagination-btn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-muted);
+  transition: all var(--transition-fast);
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: rgba(163, 166, 156, 0.1);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.pagination-btn.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 加载动画 */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-2xl);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 后台页面头部（标题 + 操作按钮，各管理页共用） */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+}
+
+/* 空状态 */
+.empty {
+  text-align: center;
+  padding: 80px 40px;
+  background: rgba(163, 166, 156, 0.04);
+  border: 1px dashed rgba(163, 166, 156, 0.25);
+  border-radius: 20px;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: var(--spacing-lg);
+  opacity: 0.5;
+}
+
+.empty p {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  margin-bottom: var(--spacing-md);
+}
+
+/* 工具类 */
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.mt-sm {
+  margin-top: var(--spacing-sm);
+}
+.mt-md {
+  margin-top: var(--spacing-md);
+}
+.mt-lg {
+  margin-top: var(--spacing-lg);
+}
+.mt-xl {
+  margin-top: var(--spacing-xl);
+}
+
+.mb-sm {
+  margin-bottom: var(--spacing-sm);
+}
+.mb-md {
+  margin-bottom: var(--spacing-md);
+}
+.mb-lg {
+  margin-bottom: var(--spacing-lg);
+}
+.mb-xl {
+  margin-bottom: var(--spacing-xl);
+}
+
+.flex {
+  display: flex;
+}
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.gap-sm {
+  gap: var(--spacing-sm);
+}
+.gap-md {
+  gap: var(--spacing-md);
+}
+
+/* 触控设备（手机/平板）：无 hover，统一用按下反馈 */
+@media (hover: none) {
+  .btn:active {
+    transform: scale(0.96);
+  }
+
+  .btn-primary:active {
+    background: var(--color-primary-dark);
+    box-shadow: none;
+  }
+
+  .btn-secondary:active {
+    background: rgba(163, 166, 156, 0.15);
+  }
+
+  .pagination-btn:active:not(:disabled) {
+    background: rgba(163, 166, 156, 0.18);
+    color: var(--text-primary);
+  }
+
+  /* 链接/列表项的按压反馈（补足移除 tap-highlight 后的视觉响应） */
+  .nav-link:active,
+  .archive-item:active,
+  .menu-item:active,
+  .action-item:active,
+  .post-item:active,
+  .tag:active {
+    background: rgba(163, 166, 156, 0.15);
+  }
+
+  a:active {
+    opacity: 0.7;
+  }
+}
+
+/* 移动端全局 */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 var(--spacing-md);
+  }
+
+  /* 触控目标不小于 40px（iOS 建议 44px） */
+  .btn {
+    padding: 10px 18px;
+  }
+
+  .btn-sm {
+    padding: 8px 14px;
+  }
+
+  .btn-lg {
+    padding: 12px 24px;
+    font-size: 1rem;
+  }
+
+  .pagination-btn {
+    min-width: 40px;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 空状态缩小 */
+  .empty {
+    padding: 48px 20px;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+  }
+
+  /* 页面头部在移动端纵向排列，按钮全宽 */
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-header > .btn {
+    width: 100%;
+  }
+}

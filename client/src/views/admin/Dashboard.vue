@@ -1,0 +1,338 @@
+<template>
+  <div class="dashboard">
+    <div class="stats-grid">
+      <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="0">
+        <div class="stat-icon">
+          <Icon name="article" :size="32" />
+        </div>
+        <div class="stat-info">
+          <div class="stat-value">{{ totalPosts.value }}</div>
+          <div class="stat-label">文章总数</div>
+        </div>
+      </div>
+
+      <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="stat-icon">
+          <Icon name="category" :size="32" />
+        </div>
+        <div class="stat-info">
+          <div class="stat-value">{{ totalCategories.value }}</div>
+          <div class="stat-label">分类数量</div>
+        </div>
+      </div>
+
+      <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="200">
+        <div class="stat-icon">
+          <Icon name="views" :size="32" />
+        </div>
+        <div class="stat-info">
+          <div class="stat-value">{{ totalViews.value }}</div>
+          <div class="stat-label">总阅读量</div>
+        </div>
+      </div>
+
+      <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="300">
+        <div class="stat-icon">
+          <Icon name="pinyes" :size="32" />
+        </div>
+        <div class="stat-info">
+          <div class="stat-value">{{ topPosts.value }}</div>
+          <div class="stat-label">置顶文章</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-grid">
+      <div class="recent-posts glass-card" data-aos="fade-up">
+        <h3 class="section-title">最近文章</h3>
+        <div class="posts-list">
+          <div v-for="post in recentPosts" :key="post.id" class="post-item">
+            <div class="post-info">
+              <router-link :to="`/admin/posts/${post.id}/edit`" class="post-title">
+                {{ post.title }}
+              </router-link>
+              <span class="post-date">{{ formatDate(post.published_at || post.created_at) }}</span>
+            </div>
+            <div class="post-status">
+              <span :class="['status-tag', post.status ? 'published' : 'draft']">
+                {{ post.status ? '已发布' : '草稿' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="!recentPosts.length" class="empty-state">
+          <p>暂无文章</p>
+          <router-link to="/admin/posts/create" class="btn btn-primary btn-sm mt-md">
+            写文章
+          </router-link>
+        </div>
+      </div>
+
+      <div class="quick-actions glass-card" data-aos="fade-up" data-aos-delay="100">
+        <h3 class="section-title">快捷操作</h3>
+        <div class="actions-list">
+          <router-link to="/admin/posts/create" class="action-item">
+            <Icon name="edit" :size="20" />
+            <span class="action-text">写新文章</span>
+          </router-link>
+          <router-link to="/admin/posts" class="action-item">
+            <Icon name="list" :size="20" />
+            <span class="action-text">管理文章</span>
+          </router-link>
+          <router-link to="/admin/categories" class="action-item">
+            <Icon name="folder" :size="20" />
+            <span class="action-text">管理分类</span>
+          </router-link>
+          <router-link to="/" class="action-item">
+            <Icon name="external" :size="20" />
+            <span class="action-text">访问前台</span>
+          </router-link>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { getStats } from '@/api/post'
+import { getCategories } from '@/api/category'
+import { getAllPosts } from '@/api/post'
+import { formatDate } from '@/assets/js/utils'
+import { useToast } from '@/composables/useToast'
+import { useCountUp } from '@/composables/useCountUp'
+import Icon from '@/components/Icon.vue'
+
+const toast = useToast()
+
+const stats = ref({
+  totalPosts: 0,
+  totalCategories: 0,
+  totalViews: 0,
+  topPosts: 0,
+})
+
+const recentPosts = ref([])
+
+// 统计数字计数滚动动画
+const totalPosts = useCountUp(computed(() => stats.value.totalPosts))
+const totalCategories = useCountUp(computed(() => stats.value.totalCategories))
+const totalViews = useCountUp(computed(() => stats.value.totalViews))
+const topPosts = useCountUp(computed(() => stats.value.topPosts))
+
+onMounted(async () => {
+  try {
+    const [statsRes, postsRes, categoriesRes] = await Promise.all([
+      getStats(),
+      getAllPosts({ pageSize: 5 }),
+      getCategories(),
+    ])
+
+    stats.value.totalPosts = statsRes.data.totalPosts
+    stats.value.totalViews = statsRes.data.totalViews
+    stats.value.topPosts = statsRes.data.topPosts
+    recentPosts.value = postsRes.data.list
+    stats.value.totalCategories = categoriesRes.data.categories.length
+  } catch (error) {
+    console.error('获取统计数据失败:', error)
+    toast.error('加载统计数据失败')
+  }
+})
+</script>
+
+<style scoped>
+.dashboard {
+  max-width: 1200px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-xl);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(120, 122, 116, 0.15);
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  opacity: 0.7;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-label {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--spacing-lg);
+}
+
+/* 最近文章卡片 */
+.recent-posts {
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(120, 122, 116, 0.15);
+  padding: var(--spacing-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+/* 快捷操作卡片 */
+.quick-actions {
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(120, 122, 116, 0.15);
+  padding: var(--spacing-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid rgba(120, 122, 116, 0.15);
+  color: var(--text-primary);
+}
+
+.posts-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.post-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: transparent;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(163, 166, 156, 0.08);
+}
+
+.post-item:last-child {
+  border-bottom: none;
+}
+
+.post-item:hover {
+  background: rgba(163, 166, 156, 0.06);
+}
+
+.post-info {
+  flex: 1;
+}
+
+.post-title {
+  color: var(--text-primary);
+  font-weight: 500;
+  margin-bottom: var(--spacing-xs);
+  display: block;
+  transition: color 0.2s ease;
+}
+
+.post-title:hover {
+  color: var(--color-primary-dark);
+}
+
+.post-date {
+  color: var(--text-disabled);
+  font-size: 0.8rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--text-muted);
+}
+
+.actions-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: transparent;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(163, 166, 156, 0.1);
+}
+
+.action-item:last-child {
+  border-bottom: none;
+}
+
+.action-item:hover {
+  background: rgba(163, 166, 156, 0.06);
+  transform: translateX(4px);
+}
+
+.action-text {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-sm);
+  }
+
+  .stat-card {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    text-align: center;
+  }
+
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+  }
+
+  .recent-posts,
+  .quick-actions {
+    padding: var(--spacing-md);
+  }
+}
+</style>

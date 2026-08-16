@@ -1,0 +1,48 @@
+{
+  "name": "blog-client",
+  "version": "1.0.0",
+  "description": "个人博客系统前端",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "blog",
+    "vue3",
+    "vite"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@vueuse/head": "^2.0.0",
+    "aos": "^2.3.4",
+    "axios": "^1.7.9",
+    "dayjs": "^1.11.13",
+    "dompurify": "^3.4.5",
+    "highlight.js": "^11.11.1",
+    "marked": "^18.0.3",
+    "marked-highlight": "^2.2.4",
+    "md-editor-v3": "^5.5.2",
+    "nprogress": "^0.2.0",
+    "pinia": "^2.3.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0",
+    "vuedraggable": "^4.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/eslint-config-prettier": "^10.2.0",
+    "@vue/test-utils": "^2.4.10",
+    "eslint": "^9.39.4",
+    "eslint-plugin-vue": "^9.33.0",
+    "jsdom": "^25.0.1",
+    "vite": "^6.0.5",
+    "vitest": "^3.2.4"
+  }
+}

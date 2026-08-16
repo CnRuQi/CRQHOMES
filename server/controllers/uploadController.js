@@ -14,14 +14,40 @@ const MAGIC_BYTES = {
   'image/webp': [0x52, 0x49, 0x46, 0x46],
 }
 
+// MIME 类型对应的安全扩展名（不信任客户端提供的 originalname）
+const EXT_BY_MIME = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/gif': '.gif',
+  'image/webp': '.webp',
+}
+
 function verifyFileType(filePath, claimedMimetype) {
   const expected = MAGIC_BYTES[claimedMimetype]
   if (!expected) return false
-  const fd = fs.openSync(filePath, 'r')
-  const buffer = Buffer.alloc(expected.length)
-  fs.readSync(fd, buffer, 0, expected.length, 0)
-  fs.closeSync(fd)
-  return expected.every((byte, i) => buffer[i] === byte)
+
+  let fd
+  try {
+    fd = fs.openSync(filePath, 'r')
+    const buffer = Buffer.alloc(12)
+    fs.readSync(fd, buffer, 0, 12, 0)
+
+    if (!expected.every((byte, i) => buffer[i] === byte)) {
+      return false
+    }
+
+    // webp 需额外校验第 8-12 字节为 "WEBP"，避免任意 RIFF 容器（WAV/AVI）绕过
+    if (claimedMimetype === 'image/webp') {
+      const webpMagic = [0x57, 0x45, 0x42, 0x50] // "WEBP"
+      return webpMagic.every((byte, i) => buffer[8 + i] === byte)
+    }
+
+    return true
+  } finally {
+    if (fd !== undefined) {
+      fs.closeSync(fd)
+    }
+  }
 }
 
 // 确保上传目录存在
@@ -44,7 +70,8 @@ const storage = multer.diskStorage({
     cb(null, dir)
   },
   filename: (req, file, cb) => {
-    const ext = path.extname(path.basename(file.originalname))
+    // 扩展名由服务端根据 MIME 决定，杜绝客户端通过 originalname 注入危险扩展名
+    const ext = EXT_BY_MIME[file.mimetype] || '.bin'
     const uniqueName = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}${ext}`
     cb(null, uniqueName)
   },

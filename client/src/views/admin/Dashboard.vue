@@ -6,7 +6,7 @@
           <Icon name="article" :size="32" />
         </div>
         <div class="stat-info">
-          <div class="stat-value">{{ stats.totalPosts }}</div>
+          <div class="stat-value">{{ totalPosts.value }}</div>
           <div class="stat-label">文章总数</div>
         </div>
       </div>
@@ -16,7 +16,7 @@
           <Icon name="category" :size="32" />
         </div>
         <div class="stat-info">
-          <div class="stat-value">{{ stats.totalCategories }}</div>
+          <div class="stat-value">{{ totalCategories.value }}</div>
           <div class="stat-label">分类数量</div>
         </div>
       </div>
@@ -26,7 +26,7 @@
           <Icon name="views" :size="32" />
         </div>
         <div class="stat-info">
-          <div class="stat-value">{{ stats.totalViews }}</div>
+          <div class="stat-value">{{ totalViews.value }}</div>
           <div class="stat-label">总阅读量</div>
         </div>
       </div>
@@ -36,7 +36,7 @@
           <Icon name="pinyes" :size="32" />
         </div>
         <div class="stat-info">
-          <div class="stat-value">{{ stats.topPosts }}</div>
+          <div class="stat-value">{{ topPosts.value }}</div>
           <div class="stat-label">置顶文章</div>
         </div>
       </div>
@@ -95,12 +95,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { getStats } from '@/api/post'
 import { getCategories } from '@/api/category'
 import { getAllPosts } from '@/api/post'
 import { formatDate } from '@/assets/js/utils'
 import { useToast } from '@/composables/useToast'
+import { useCountUp } from '@/composables/useCountUp'
 import Icon from '@/components/Icon.vue'
 
 const toast = useToast()
@@ -113,6 +114,12 @@ const stats = ref({
 })
 
 const recentPosts = ref([])
+
+// 统计数字计数滚动动画
+const totalPosts = useCountUp(computed(() => stats.value.totalPosts))
+const totalCategories = useCountUp(computed(() => stats.value.totalCategories))
+const totalViews = useCountUp(computed(() => stats.value.totalViews))
+const topPosts = useCountUp(computed(() => stats.value.topPosts))
 
 onMounted(async () => {
   try {
@@ -256,23 +263,6 @@ onMounted(async () => {
   font-size: 0.8rem;
 }
 
-.status-tag {
-  padding: 3px 12px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.status-tag.published {
-  background: rgba(155, 163, 142, 0.15);
-  color: #7b8370;
-}
-
-.status-tag.draft {
-  background: rgba(199, 179, 141, 0.15);
-  color: #a69570;
-}
-
 .empty-state {
   text-align: center;
   padding: var(--spacing-xl);
@@ -313,6 +303,36 @@ onMounted(async () => {
 @media (max-width: 768px) {
   .content-grid {
     grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-sm);
+  }
+
+  .stat-card {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    text-align: center;
+  }
+
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+  }
+
+  .recent-posts,
+  .quick-actions {
+    padding: var(--spacing-md);
   }
 }
 </style>

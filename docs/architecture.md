@@ -135,6 +135,6 @@ posts (1) ──────── (N) view_tracking  [浏览记录]
                               store mutation → 响应式 UI 更新
 ```
 
-- 认证状态：`stores/auth.js` 管理 token 和用户信息
+- 认证状态：`stores/auth.js` 管理用户信息（token 由后端 httpOnly cookie 维护，前端不可读）
 - 文章数据：`stores/post.js` 管理文章列表和当前文章
 - 路由守卫：`router/index.js` 检查 `requiresAuth` meta

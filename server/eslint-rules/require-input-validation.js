@@ -3,6 +3,7 @@
  *
  * POST/PUT/PATCH 路由必须包含验证中间件。
  * 检测 router.post/put/patch 调用中是否包含 *Rules.xxx 或 validate 中间件。
+ * 登出路由（/logout）无请求体输入，豁免。
  *
  * AGENT FIX: 在路由定义中添加验证规则中间件。
  * 参考: docs/tasks/new-api.md → 步骤 3
@@ -42,6 +43,16 @@ module.exports = {
         ) {
           const method = node.callee.property.name
           const args = node.arguments
+
+          // 获取路径参数
+          const pathArg = args[0]
+          let pathStr = ''
+          if (pathArg && pathArg.type === 'Literal') {
+            pathStr = pathArg.value
+          }
+
+          // 登出路由豁免（无请求体输入）
+          if (pathStr === '/logout') return
 
           // 跳过第一个参数（路径），检查后续参数
           const middlewares = args.slice(1)

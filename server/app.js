@@ -1,7 +1,6 @@
 const express = require('express')
 const cors = require('cors')
 const helmet = require('helmet')
-const path = require('path')
 const config = require('./config')
 const { initDb } = require('./db')
 const { errorHandler, notFound } = require('./middleware/error')
@@ -18,12 +17,23 @@ initDb()
 
 const app = express()
 
+// 信任反向代理（宝塔/Nginx 反代时设置 TRUST_PROXY=1，用于正确识别客户端 IP 和限流）
+if (config.trustProxy) {
+  app.set('trust proxy', 1)
+}
+
 // 安全中间件
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 )
+
+// API 响应禁止缓存（列表/搜索等动态数据不应在浏览器或代理中滞留）
+app.use('/api', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store')
+  next()
+})
 
 // CORS
 app.use(cors(config.cors))
@@ -35,7 +45,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 // 静态文件
 app.use(
   '/uploads',
-  express.static(path.join(__dirname, 'uploads'), {
+  express.static(config.upload.dir, {
     maxAge: '30d',
     etag: true,
     setHeaders(res) {

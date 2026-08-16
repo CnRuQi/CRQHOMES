@@ -15,6 +15,11 @@ export function getAllPosts(params = {}) {
   return api.get('/posts/admin', { params })
 }
 
+// 获取单篇文章（后台，含草稿）
+export function getPostForAdmin(id) {
+  return api.get(`/posts/admin/${id}`)
+}
+
 // 创建文章
 export function createPost(data) {
   return api.post('/posts', data)

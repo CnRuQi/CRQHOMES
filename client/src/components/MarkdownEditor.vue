@@ -36,16 +36,28 @@ const content = computed({
 
 async function handleUploadImage(files, callback) {
   try {
-    const res = await Promise.all(
+    // 逐文件捕获错误，单文件失败不影响其他文件
+    const results = await Promise.all(
       files.map(async (file) => {
-        const res = await uploadImage(file)
-        return res.data.url
+        try {
+          const res = await uploadImage(file)
+          return res.data.url
+        } catch (error) {
+          console.error('图片上传失败:', error)
+          return null
+        }
       })
     )
-    callback(res)
-  } catch (error) {
-    console.error('图片上传失败:', error)
+
+    const urls = results.filter(Boolean)
+    if (urls.length < files.length) {
+      toast.error('部分图片上传失败，请重试')
+    }
+    // 始终调用 callback，避免编辑器上传 loading 状态卡死
+    callback(urls)
+  } catch (_error) {
     toast.error('图片上传失败，请重试')
+    callback([])
   }
 }
 </script>

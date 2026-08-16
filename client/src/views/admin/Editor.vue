@@ -40,8 +40,7 @@
 
             <div class="form-group">
               <label class="form-label">分类</label>
-              <select v-model="form.category_id" class="form-select">
-                <option value="">无分类</option>
+              <select v-model="form.category_id" class="form-select" required>
                 <option v-for="cat in categories" :key="cat.id" :value="cat.id">
                   {{ cat.name }}
                 </option>
@@ -141,7 +140,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { createPost, updatePost, getPost } from '@/api/post'
+import { createPost, updatePost, getPostForAdmin } from '@/api/post'
 import { getCategories } from '@/api/category'
 import { uploadImage } from '@/api/upload'
 import MarkdownEditor from '@/components/MarkdownEditor.vue'
@@ -175,10 +174,20 @@ function goBack() {
   router.back()
 }
 
+// 分类兜底：无论新建还是编辑历史「无分类」文章，未选择分类时默认选中「默认分类」
+// （找不到名为「默认分类」的分类时退化为第一个分类）
+function ensureDefaultCategory() {
+  if (!form.value.category_id && categories.value.length) {
+    const defaultCat = categories.value.find((c) => c.name === '默认分类') || categories.value[0]
+    form.value.category_id = defaultCat.id
+  }
+}
+
 async function fetchCategories() {
   try {
     const res = await getCategories()
     categories.value = res.data.categories
+    ensureDefaultCategory()
   } catch (error) {
     console.error('获取分类失败:', error)
   }
@@ -189,14 +198,15 @@ async function fetchPost() {
 
   loading.value = true
   try {
-    const res = await getPost(route.params.id)
+    const res = await getPostForAdmin(route.params.id)
     const post = res.data.post
 
-    // 格式化时间为 datetime-local 格式
+    // 格式化为 datetime-local 格式（保持本地时区，避免 toISOString 转 UTC 导致偏移）
     let publishedAt = ''
     if (post.published_at) {
       const date = new Date(post.published_at)
-      publishedAt = date.toISOString().slice(0, 16)
+      const pad = (n) => String(n).padStart(2, '0')
+      publishedAt = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
     }
 
     form.value = {
@@ -210,6 +220,8 @@ async function fetchPost() {
       status: post.status,
       published_at: publishedAt,
     }
+    // 历史「无分类」文章编辑时兜底到默认分类（分类列表可能已加载）
+    ensureDefaultCategory()
     // 根据封面图判断模式
     if (post.cover_image && post.cover_image.startsWith('http')) {
       coverMode.value = 'link'
@@ -232,6 +244,9 @@ async function handleCoverUpload(e) {
   } catch (error) {
     console.error('上传失败:', error)
     toast.error('上传失败: ' + (error.message || '未知错误'))
+  } finally {
+    // 重置 input，允许再次选择同一文件
+    e.target.value = ''
   }
 }
 
@@ -291,15 +306,6 @@ onMounted(() => {
 <style scoped>
 .editor-page {
   max-width: 1400px;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--spacing-xl);
-  flex-wrap: wrap;
-  gap: var(--spacing-md);
 }
 
 .header-actions {
@@ -442,6 +448,25 @@ onMounted(() => {
 
   .sidebar-card {
     position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .editor-page .header-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr 2fr;
+    gap: var(--spacing-sm);
+  }
+
+  .editor-page .header-actions .btn {
+    width: 100%;
+    padding: 10px 6px;
+    font-size: 0.9rem;
+  }
+
+  .editor-main .title-input {
+    font-size: 1.2rem;
+    padding: var(--spacing-sm) var(--spacing-md);
   }
 }
 </style>

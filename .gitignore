@@ -42,3 +42,8 @@ data/*.db-shm
 
 # Build
 *.tsbuildinfo
+
+# Deployment archives (打包产物不上传仓库)
+*.tar.gz
+*.zip
+*.rar

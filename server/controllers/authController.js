@@ -31,10 +31,12 @@ async function login(req, res, next) {
       expiresIn: config.jwt.expiresIn,
     })
 
+    // 通过 httpOnly cookie 下发 token，前端 JS 无法读取，防 XSS 窃取
+    res.cookie(config.cookie.name, token, config.cookie.options)
+
     success(
       res,
       {
-        token,
         user: {
           id: user.id,
           username: user.username,
@@ -44,6 +46,22 @@ async function login(req, res, next) {
       },
       '登录成功'
     )
+  } catch (error) {
+    next(error)
+  }
+}
+
+// 登出（清除认证 cookie）
+function logout(req, res, next) {
+  try {
+    res.clearCookie(config.cookie.name, {
+      httpOnly: config.cookie.options.httpOnly,
+      sameSite: config.cookie.options.sameSite,
+      secure: config.cookie.options.secure,
+      path: config.cookie.options.path,
+    })
+
+    success(res, null, '登出成功')
   } catch (error) {
     next(error)
   }
@@ -118,6 +136,7 @@ async function updateProfile(req, res, next) {
 
 module.exports = {
   login,
+  logout,
   getProfile,
   changePassword,
   updateProfile,

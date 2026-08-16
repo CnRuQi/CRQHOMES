@@ -59,7 +59,7 @@ onUnmounted(() => {
 <style scoped>
 .toast {
   position: fixed;
-  top: 20px;
+  top: calc(20px + env(safe-area-inset-top, 0px));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -70,6 +70,7 @@ onUnmounted(() => {
   font-size: 14px;
   z-index: 10000;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-width: calc(100vw - 32px);
 }
 
 .toast-info {

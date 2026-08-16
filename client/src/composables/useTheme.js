@@ -2,6 +2,9 @@ import { ref } from 'vue'
 
 const isDark = ref(false)
 
+let mediaQuery = null
+let systemThemeHandler = null
+
 export function useTheme() {
   function setTheme(dark) {
     isDark.value = dark
@@ -25,12 +28,31 @@ export function useTheme() {
 
   // 监听系统主题变化
   function watchSystemTheme() {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    mediaQuery.addEventListener('change', (e) => {
+    mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    systemThemeHandler = (e) => {
       if (!localStorage.getItem('theme')) {
         setTheme(e.matches)
       }
-    })
+    }
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', systemThemeHandler)
+    } else if (mediaQuery.addListener) {
+      // 兼容旧版 Safari（<14）
+      mediaQuery.addListener(systemThemeHandler)
+    }
+  }
+
+  // 停止监听系统主题变化
+  function stopWatchSystemTheme() {
+    if (mediaQuery && systemThemeHandler) {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', systemThemeHandler)
+      } else if (mediaQuery.removeListener) {
+        mediaQuery.removeListener(systemThemeHandler)
+      }
+    }
+    systemThemeHandler = null
+    mediaQuery = null
   }
 
   return {
@@ -38,5 +60,6 @@ export function useTheme() {
     toggle,
     initTheme,
     watchSystemTheme,
+    stopWatchSystemTheme,
   }
 }

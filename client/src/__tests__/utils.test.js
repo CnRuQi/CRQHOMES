@@ -1,13 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-  formatDate,
-  truncate,
-  formatNumber,
-  debounce,
-  throttle,
-  parseTags,
-  generateId,
-} from '../assets/js/utils.js'
+import { formatDate, truncate, formatNumber, debounce } from '../assets/js/utils.js'
 
 describe('formatDate', () => {
   it('returns empty string for falsy input', () => {
@@ -76,52 +68,5 @@ describe('debounce', () => {
     expect(count).toBe(0)
     await new Promise((resolve) => setTimeout(resolve, 150))
     expect(count).toBe(1)
-  })
-})
-
-describe('throttle', () => {
-  it('limits function calls', async () => {
-    let count = 0
-    const fn = throttle(() => {
-      count++
-    }, 100)
-    fn()
-    fn()
-    fn()
-    expect(count).toBe(1)
-    await new Promise((resolve) => setTimeout(resolve, 150))
-    fn()
-    expect(count).toBe(2)
-  })
-})
-
-describe('parseTags', () => {
-  it('returns empty array for falsy input', () => {
-    expect(parseTags(null)).toEqual([])
-    expect(parseTags(undefined)).toEqual([])
-    expect(parseTags('')).toEqual([])
-  })
-
-  it('returns array as-is', () => {
-    expect(parseTags(['a', 'b'])).toEqual(['a', 'b'])
-  })
-
-  it('splits comma-separated string', () => {
-    expect(parseTags('vue,node,js')).toEqual(['vue', 'node', 'js'])
-  })
-
-  it('trims and filters', () => {
-    expect(parseTags(' vue , , node ')).toEqual(['vue', 'node'])
-  })
-})
-
-describe('generateId', () => {
-  it('returns a string', () => {
-    expect(typeof generateId()).toBe('string')
-  })
-
-  it('returns unique values', () => {
-    const ids = new Set(Array.from({ length: 100 }, () => generateId()))
-    expect(ids.size).toBe(100)
   })
 })

@@ -168,4 +168,28 @@ async function handleLogin() {
 .back-link:hover {
   color: var(--color-primary-light);
 }
+
+@media (max-width: 768px) {
+  .login-page {
+    padding: 0 var(--spacing-md);
+    align-items: flex-start;
+    padding-top: calc(var(--spacing-2xl) + env(safe-area-inset-top, 0px));
+  }
+
+  .login-container {
+    padding: 0;
+  }
+
+  .login-card {
+    padding: var(--spacing-xl) var(--spacing-lg);
+  }
+
+  .login-title {
+    font-size: 1.6rem;
+  }
+
+  .login-btn {
+    min-height: 48px;
+  }
+}
 </style>

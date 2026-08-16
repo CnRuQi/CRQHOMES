@@ -18,18 +18,18 @@
           <span class="card-date">{{ fromNow(post.published_at || post.created_at) }}</span>
         </div>
 
-        <!-- eslint-disable-next-line vue/no-v-html -->
-        <h3 v-if="keyword" class="card-title" v-html="highlightKeywords(post.title, keyword)"></h3>
-        <h3 v-else class="card-title">{{ post.title }}</h3>
+        <h3 class="card-title">
+          <template v-for="(part, i) in titleParts" :key="i">
+            <mark v-if="part.highlight">{{ part.text }}</mark>
+            <span v-else>{{ part.text }}</span>
+          </template>
+        </h3>
 
-        <!-- eslint-disable-next-line vue/no-v-html -->
-        <p
-          v-if="post.summary && keyword"
-          class="card-summary"
-          v-html="highlightKeywords(truncate(post.summary, 100), keyword)"
-        ></p>
-        <p v-else-if="post.summary" class="card-summary">
-          {{ truncate(post.summary, 100) }}
+        <p v-if="post.summary" class="card-summary">
+          <template v-for="(part, i) in summaryParts" :key="i">
+            <mark v-if="part.highlight">{{ part.text }}</mark>
+            <span v-else>{{ part.text }}</span>
+          </template>
         </p>
 
         <div class="card-footer">
@@ -49,10 +49,11 @@
 </template>
 
 <script setup>
-import { fromNow, truncate, formatNumber, highlightKeywords } from '@/assets/js/utils'
+import { computed } from 'vue'
+import { fromNow, truncate, formatNumber, highlightParts } from '@/assets/js/utils'
 import Icon from '@/components/Icon.vue'
 
-defineProps({
+const props = defineProps({
   post: {
     type: Object,
     required: true,
@@ -66,6 +67,11 @@ defineProps({
     default: '',
   },
 })
+
+const titleParts = computed(() => highlightParts(props.post.title, props.keyword))
+const summaryParts = computed(() =>
+  highlightParts(truncate(props.post.summary, 100), props.keyword)
+)
 </script>
 
 <style scoped>
@@ -231,6 +237,14 @@ defineProps({
 
   .card-title {
     font-size: 1.1rem;
+  }
+}
+
+@media (hover: none) {
+  .post-card:active {
+    transform: scale(0.98);
+    box-shadow: var(--shadow-md);
+    transition-duration: 0.1s;
   }
 }
 

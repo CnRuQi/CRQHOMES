@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parsePagination, parseTags, formatDate } from '../utils/helpers.js'
+import { parsePagination, parseTags } from '../utils/helpers.js'
 
 describe('parsePagination', () => {
   it('returns defaults for empty query', () => {
@@ -54,18 +54,5 @@ describe('parseTags', () => {
 
   it('filters empty strings', () => {
     expect(parseTags('vue,,node,')).toEqual(['vue', 'node'])
-  })
-})
-
-describe('formatDate', () => {
-  it('returns null for falsy input', () => {
-    expect(formatDate(null)).toBeNull()
-    expect(formatDate(undefined)).toBeNull()
-    expect(formatDate('')).toBeNull()
-  })
-
-  it('returns ISO string for valid date', () => {
-    const result = formatDate('2024-01-15T10:30:00')
-    expect(result).toMatch(/2024-01-15/)
   })
 })

@@ -60,11 +60,7 @@
 
 /* 渐变玻璃效果 */
 .glass-gradient {
-  background: linear-gradient(
-    135deg,
-    rgba(163, 166, 156, 0.12),
-    rgba(222, 223, 217, 0.12)
-  );
+  background: linear-gradient(135deg, rgba(163, 166, 156, 0.12), rgba(222, 223, 217, 0.12));
   border: 1px solid rgba(120, 122, 116, 0.18);
   border-radius: var(--border-radius-lg);
 }

@@ -43,7 +43,7 @@
 
 .btn-danger {
   background: rgba(179, 143, 143, 0.1);
-  color: #9A7272;
+  color: #9a7272;
   border: 1px solid rgba(179, 143, 143, 0.2);
 }
 
@@ -84,7 +84,9 @@
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   color: var(--text-primary);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .form-input:focus,
@@ -122,10 +124,29 @@
   border-color: rgba(163, 166, 156, 0.35);
 }
 
+/* 文章状态标签（后台列表/仪表盘共用） */
+.status-tag {
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-tag.published {
+  background: rgba(155, 163, 142, 0.15);
+  color: #7b8370;
+}
+
+.status-tag.draft {
+  background: rgba(199, 179, 141, 0.15);
+  color: #a69570;
+}
+
 /* 分页 */
 .pagination {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   gap: var(--spacing-sm);
   margin-top: var(--spacing-xl);
 }
@@ -179,6 +200,16 @@
   }
 }
 
+/* 后台页面头部（标题 + 操作按钮，各管理页共用） */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+}
+
 /* 空状态 */
 .empty {
   text-align: center;
@@ -217,18 +248,131 @@
   color: var(--color-primary);
 }
 
-.mt-sm { margin-top: var(--spacing-sm); }
-.mt-md { margin-top: var(--spacing-md); }
-.mt-lg { margin-top: var(--spacing-lg); }
-.mt-xl { margin-top: var(--spacing-xl); }
+.mt-sm {
+  margin-top: var(--spacing-sm);
+}
+.mt-md {
+  margin-top: var(--spacing-md);
+}
+.mt-lg {
+  margin-top: var(--spacing-lg);
+}
+.mt-xl {
+  margin-top: var(--spacing-xl);
+}
 
-.mb-sm { margin-bottom: var(--spacing-sm); }
-.mb-md { margin-bottom: var(--spacing-md); }
-.mb-lg { margin-bottom: var(--spacing-lg); }
-.mb-xl { margin-bottom: var(--spacing-xl); }
+.mb-sm {
+  margin-bottom: var(--spacing-sm);
+}
+.mb-md {
+  margin-bottom: var(--spacing-md);
+}
+.mb-lg {
+  margin-bottom: var(--spacing-lg);
+}
+.mb-xl {
+  margin-bottom: var(--spacing-xl);
+}
 
-.flex { display: flex; }
-.flex-center { display: flex; align-items: center; justify-content: center; }
-.flex-between { display: flex; align-items: center; justify-content: space-between; }
-.gap-sm { gap: var(--spacing-sm); }
-.gap-md { gap: var(--spacing-md); }
+.flex {
+  display: flex;
+}
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.gap-sm {
+  gap: var(--spacing-sm);
+}
+.gap-md {
+  gap: var(--spacing-md);
+}
+
+/* 触控设备（手机/平板）：无 hover，统一用按下反馈 */
+@media (hover: none) {
+  .btn:active {
+    transform: scale(0.96);
+  }
+
+  .btn-primary:active {
+    background: var(--color-primary-dark);
+    box-shadow: none;
+  }
+
+  .btn-secondary:active {
+    background: rgba(163, 166, 156, 0.15);
+  }
+
+  .pagination-btn:active:not(:disabled) {
+    background: rgba(163, 166, 156, 0.18);
+    color: var(--text-primary);
+  }
+
+  /* 链接/列表项的按压反馈（补足移除 tap-highlight 后的视觉响应） */
+  .nav-link:active,
+  .archive-item:active,
+  .menu-item:active,
+  .action-item:active,
+  .post-item:active,
+  .tag:active {
+    background: rgba(163, 166, 156, 0.15);
+  }
+
+  a:active {
+    opacity: 0.7;
+  }
+}
+
+/* 移动端全局 */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 var(--spacing-md);
+  }
+
+  /* 触控目标不小于 40px（iOS 建议 44px） */
+  .btn {
+    padding: 10px 18px;
+  }
+
+  .btn-sm {
+    padding: 8px 14px;
+  }
+
+  .btn-lg {
+    padding: 12px 24px;
+    font-size: 1rem;
+  }
+
+  .pagination-btn {
+    min-width: 40px;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 空状态缩小 */
+  .empty {
+    padding: 48px 20px;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+  }
+
+  /* 页面头部在移动端纵向排列，按钮全宽 */
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-header > .btn {
+    width: 100%;
+  }
+}

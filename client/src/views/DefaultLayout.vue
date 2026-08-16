@@ -29,4 +29,11 @@ import Footer from '@/components/Footer.vue'
   padding-top: calc(var(--header-height) + var(--spacing-2xl));
   padding-bottom: calc(var(--spacing-2xl) + env(safe-area-inset-bottom, 0px));
 }
+
+@media (max-width: 768px) {
+  .main-content {
+    padding-top: calc(var(--header-height) + var(--spacing-xl));
+    padding-bottom: calc(var(--spacing-xl) + env(safe-area-inset-bottom, 0px));
+  }
+}
 </style>

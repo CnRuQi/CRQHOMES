@@ -36,74 +36,74 @@
         </div>
       </div>
 
-      <div v-if="!categories.length" class="empty-state glass-card">
-        <Icon name="folder" :size="48" class="empty-icon" />
-        <p>暂无分类</p>
+      <EmptyState v-if="!categories.length" icon="folder" text="暂无分类" glass>
         <button class="btn btn-primary mt-md" @click="showModal = true">创建第一个分类</button>
-      </div>
+      </EmptyState>
     </template>
 
     <!-- 模态框 -->
     <Teleport to="body">
-      <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
-        <div class="modal glass-card" data-aos="zoom-in">
-          <div class="modal-header">
-            <h3>{{ editingCategory ? '编辑分类' : '新建分类' }}</h3>
-            <button class="close-btn" @click="closeModal">✕</button>
+      <Transition name="modal-fade">
+        <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
+          <div class="modal glass-card">
+            <div class="modal-header">
+              <h3>{{ editingCategory ? '编辑分类' : '新建分类' }}</h3>
+              <button class="close-btn" @click="closeModal">✕</button>
+            </div>
+
+            <form class="modal-body" @submit.prevent="handleSubmit">
+              <div class="form-group">
+                <label class="form-label">分类名称 *</label>
+                <input
+                  v-model="form.name"
+                  type="text"
+                  class="form-input"
+                  placeholder="请输入分类名称"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">分类别名 *</label>
+                <input
+                  v-model="form.slug"
+                  type="text"
+                  class="form-input"
+                  placeholder="用于URL，如：tech"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">描述</label>
+                <textarea
+                  v-model="form.description"
+                  class="form-textarea"
+                  placeholder="分类描述（选填）"
+                  rows="3"
+                ></textarea>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">排序</label>
+                <input
+                  v-model.number="form.sort"
+                  type="number"
+                  class="form-input"
+                  placeholder="数字越小越靠前"
+                />
+              </div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @click="closeModal">取消</button>
+                <button type="submit" class="btn btn-primary" :disabled="submitting">
+                  {{ submitting ? '保存中...' : '保存' }}
+                </button>
+              </div>
+            </form>
           </div>
-
-          <form class="modal-body" @submit.prevent="handleSubmit">
-            <div class="form-group">
-              <label class="form-label">分类名称 *</label>
-              <input
-                v-model="form.name"
-                type="text"
-                class="form-input"
-                placeholder="请输入分类名称"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">分类别名 *</label>
-              <input
-                v-model="form.slug"
-                type="text"
-                class="form-input"
-                placeholder="用于URL，如：tech"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">描述</label>
-              <textarea
-                v-model="form.description"
-                class="form-textarea"
-                placeholder="分类描述（选填）"
-                rows="3"
-              ></textarea>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">排序</label>
-              <input
-                v-model.number="form.sort"
-                type="number"
-                class="form-input"
-                placeholder="数字越小越靠前"
-              />
-            </div>
-
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" @click="closeModal">取消</button>
-              <button type="submit" class="btn btn-primary" :disabled="submitting">
-                {{ submitting ? '保存中...' : '保存' }}
-              </button>
-            </div>
-          </form>
         </div>
-      </div>
+      </Transition>
     </Teleport>
   </div>
 </template>
@@ -112,6 +112,7 @@
 import { ref, onMounted } from 'vue'
 import { getCategories, createCategory, updateCategory, deleteCategory } from '@/api/category'
 import Icon from '@/components/Icon.vue'
+import EmptyState from '@/components/EmptyState.vue'
 import { useToast } from '@/composables/useToast'
 
 const toast = useToast()
@@ -133,6 +134,9 @@ async function fetchCategories() {
   try {
     const res = await getCategories()
     categories.value = res.data.categories
+  } catch (error) {
+    console.error('获取分类失败:', error)
+    toast.error('加载分类失败')
   } finally {
     loading.value = false
   }
@@ -162,15 +166,16 @@ function closeModal() {
 
 async function handleSubmit() {
   submitting.value = true
+  const isEdit = !!editingCategory.value
   try {
-    if (editingCategory.value) {
+    if (isEdit) {
       await updateCategory(editingCategory.value.id, form.value)
     } else {
       await createCategory(form.value)
     }
     closeModal()
-    fetchCategories()
-    toast.success(editingCategory.value ? '分类更新成功' : '分类创建成功')
+    await fetchCategories()
+    toast.success(isEdit ? '分类更新成功' : '分类创建成功')
   } catch (error) {
     toast.error('操作失败: ' + (error.message || '未知错误'))
   } finally {
@@ -185,7 +190,7 @@ async function handleDelete(category) {
 
   try {
     await deleteCategory(category.id)
-    fetchCategories()
+    await fetchCategories()
     toast.success('分类删除成功')
   } catch (error) {
     toast.error('删除失败: ' + (error.message || '未知错误'))
@@ -200,13 +205,6 @@ onMounted(() => {
 <style scoped>
 .categories-page {
   max-width: 1200px;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--spacing-xl);
 }
 
 .categories-grid {
@@ -255,16 +253,6 @@ onMounted(() => {
   gap: var(--spacing-sm);
 }
 
-.empty-state {
-  text-align: center;
-  padding: var(--spacing-2xl);
-}
-
-.empty-icon {
-  font-size: 3rem;
-  margin-bottom: var(--spacing-md);
-}
-
 /* 模态框 */
 .modal-overlay {
   position: fixed;
@@ -283,6 +271,69 @@ onMounted(() => {
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
+  animation: modalZoomIn 0.25s ease;
+}
+
+/* 模态框遮罩淡入/淡出（退出过渡） */
+.modal-fade-enter-active {
+  transition: opacity 0.25s ease;
+}
+
+.modal-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+
+@keyframes modalZoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .categories-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* 移动端模态框：底部弹出式（Bottom Sheet） */
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal {
+    max-width: 100%;
+    max-height: 92vh;
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    animation: modalSlideUp 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .modal-footer {
+    flex-direction: column-reverse;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+  }
+}
+
+@keyframes modalSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 .modal-header {

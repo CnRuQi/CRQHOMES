@@ -3,6 +3,7 @@ const router = express.Router()
 const rateLimit = require('express-rate-limit')
 const {
   login,
+  logout,
   getProfile,
   changePassword,
   updateProfile,
@@ -34,6 +35,9 @@ const passwordLimiter = rateLimit({
 
 // POST /api/auth/login - 登录
 router.post('/login', loginLimiter, authRules.login, login)
+
+// POST /api/auth/logout - 登出（清除 cookie，无需认证）
+router.post('/logout', logout)
 
 // GET /api/auth/profile - 获取当前用户信息
 router.get('/profile', authenticate, getProfile)

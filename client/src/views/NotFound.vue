@@ -49,4 +49,24 @@
   justify-content: center;
   flex-wrap: wrap;
 }
+
+@media (max-width: 768px) {
+  .error-code {
+    font-size: 5rem;
+  }
+
+  .error-message {
+    font-size: 1.2rem;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .actions .btn {
+    width: 100%;
+    max-width: 260px;
+  }
+}
 </style>

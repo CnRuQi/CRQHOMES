@@ -12,7 +12,7 @@
       <nav class="navbar-menu" :class="{ active: isMenuOpen }">
         <router-link to="/" class="nav-link" @click="closeMenu"> 首页 </router-link>
         <router-link
-          v-for="cat in categories"
+          v-for="cat in postStore.categories"
           :key="cat.id"
           :to="`/category/${cat.slug}`"
           class="nav-link"
@@ -46,14 +46,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { usePostStore } from '@/stores/post'
 import { useTheme } from '@/composables/useTheme'
 import Icon from '@/components/Icon.vue'
 
+const route = useRoute()
 const postStore = usePostStore()
 const { isDark, toggle } = useTheme()
-const categories = ref([])
 
 const isScrolled = ref(false)
 const isMenuOpen = ref(false)
@@ -64,23 +65,37 @@ function handleScroll() {
 
 function toggleMenu() {
   isMenuOpen.value = !isMenuOpen.value
-  document.body.style.overflow = isMenuOpen.value ? 'hidden' : ''
+  setBodyScrollLock(isMenuOpen.value)
 }
 
 function closeMenu() {
   isMenuOpen.value = false
-  document.body.style.overflow = ''
+  setBodyScrollLock(false)
 }
+
+// 锁定/释放页面滚动（html + body 双锁，兼容 iOS Safari）
+function setBodyScrollLock(locked) {
+  const overflow = locked ? 'hidden' : ''
+  document.documentElement.style.overflow = overflow
+  document.body.style.overflow = overflow
+}
+
+// 路由变化时自动关闭菜单（浏览器前进/后退），释放 body 滚动锁
+watch(
+  () => route.fullPath,
+  () => {
+    if (isMenuOpen.value) closeMenu()
+  }
+)
 
 onMounted(async () => {
   window.addEventListener('scroll', handleScroll)
   await postStore.fetchCategories()
-  categories.value = postStore.categories
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
-  document.body.style.overflow = ''
+  setBodyScrollLock(false)
 })
 </script>
 
@@ -97,9 +112,17 @@ onUnmounted(() => {
 
 .navbar.scrolled {
   background: rgba(245, 245, 243, 0.92);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
   box-shadow: 0 1px 3px rgba(56, 57, 54, 0.06);
+}
+
+/* 桌面端启用毛玻璃；移动端禁用 backdrop-filter——
+   backdrop-filter 会使 .navbar 成为内部 fixed 子元素（移动端菜单）的包含块，
+   导致菜单定位错乱、塌陷（滚动页面后菜单只剩第一项）。移动端保持纯背景，也符合性能优先设计 */
+@media (min-width: 768px) {
+  .navbar.scrolled {
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
 }
 
 [data-theme='dark'] .navbar.scrolled {
@@ -194,6 +217,29 @@ onUnmounted(() => {
   background: rgba(163, 166, 156, 0.12);
 }
 
+/* 桌面端：导航链接下划线滑动动画（移动端菜单不使用，避免干扰交错动画） */
+@media (min-width: 769px) {
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--color-primary);
+    border-radius: 2px;
+    transition:
+      width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .nav-link:hover::after,
+  .nav-link.router-link-active::after {
+    width: 60%;
+    left: 20%;
+  }
+}
+
 .admin-link {
   padding: 8px 18px;
   background: rgba(255, 255, 255, 0.4);
@@ -273,11 +319,13 @@ onUnmounted(() => {
     background: rgb(252, 251, 249);
     flex-direction: column;
     justify-content: flex-start;
-    padding-top: var(--spacing-2xl);
-    gap: var(--spacing-md);
+    padding: var(--spacing-2xl) var(--spacing-lg)
+      calc(var(--spacing-2xl) + env(safe-area-inset-bottom, 0px));
+    gap: var(--spacing-sm);
     transform: translateX(100%);
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1);
     z-index: 1001;
+    overflow-y: auto;
   }
 
   [data-theme='dark'] .navbar-menu {
@@ -288,11 +336,62 @@ onUnmounted(() => {
     transform: translateX(0);
   }
 
+  /* 菜单项交错滑入动画 */
+  .navbar-menu .nav-link {
+    opacity: 0;
+    transform: translateX(28px);
+    transition:
+      opacity 0.35s ease,
+      transform 0.4s cubic-bezier(0.32, 0.72, 0, 1),
+      color 0.2s ease,
+      background 0.2s ease;
+  }
+
+  .navbar-menu.active .nav-link {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .navbar-menu.active .nav-link:nth-child(1) {
+    transition-delay: 0.05s;
+  }
+  .navbar-menu.active .nav-link:nth-child(2) {
+    transition-delay: 0.1s;
+  }
+  .navbar-menu.active .nav-link:nth-child(3) {
+    transition-delay: 0.15s;
+  }
+  .navbar-menu.active .nav-link:nth-child(4) {
+    transition-delay: 0.2s;
+  }
+  .navbar-menu.active .nav-link:nth-child(5) {
+    transition-delay: 0.25s;
+  }
+  .navbar-menu.active .nav-link:nth-child(6) {
+    transition-delay: 0.3s;
+  }
+  .navbar-menu.active .nav-link:nth-child(7) {
+    transition-delay: 0.35s;
+  }
+  .navbar-menu.active .nav-link:nth-child(8) {
+    transition-delay: 0.4s;
+  }
+  .navbar-menu.active .nav-link:nth-child(9) {
+    transition-delay: 0.45s;
+  }
+  .navbar-menu.active .nav-link:nth-child(10) {
+    transition-delay: 0.5s;
+  }
+
   .nav-link {
     font-size: 1.1rem;
-    padding: 12px 24px;
-    width: 90%;
+    padding: 14px 24px;
+    width: 100%;
     text-align: center;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .mobile-overlay {
@@ -300,7 +399,8 @@ onUnmounted(() => {
     inset: 0;
     top: var(--header-height);
     background: rgba(0, 0, 0, 0.3);
-    z-index: 1002;
+    /* 必须低于 .navbar 的 z-index(1000)，否则会盖住 header 内的菜单导致菜单项无法点击 */
+    z-index: 999;
     animation: overlayFadeIn 0.3s ease;
   }
 

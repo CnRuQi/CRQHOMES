@@ -25,7 +25,12 @@ const postRules = {
       .withMessage('标题不能超过200个字符'),
     body('content').notEmpty().withMessage('内容不能为空'),
     body('summary').optional().isLength({ max: 500 }).withMessage('摘要不能超过500个字符'),
-    body('category_id').optional({ nullable: true }).isInt().withMessage('分类ID必须是整数'),
+    body('category_id')
+      .notEmpty()
+      .withMessage('请选择分类')
+      .bail()
+      .isInt()
+      .withMessage('分类ID必须是整数'),
     body('tags').optional().isString().withMessage('标签必须是字符串'),
     body('is_top').optional().isIn([0, 1, true, false]).withMessage('置顶值无效'),
     body('status').optional().isIn([0, 1]).withMessage('状态值无效'),
@@ -41,7 +46,12 @@ const postRules = {
       .withMessage('标题不能超过200个字符'),
     body('content').notEmpty().withMessage('内容不能为空'),
     body('summary').optional().isLength({ max: 500 }).withMessage('摘要不能超过500个字符'),
-    body('category_id').optional({ nullable: true }).isInt().withMessage('分类ID必须是整数'),
+    body('category_id')
+      .notEmpty()
+      .withMessage('请选择分类')
+      .bail()
+      .isInt()
+      .withMessage('分类ID必须是整数'),
     body('tags').optional().isString().withMessage('标签必须是字符串'),
     body('is_top').optional().isIn([0, 1, true, false]).withMessage('置顶值无效'),
     body('status').optional().isIn([0, 1]).withMessage('状态值无效'),
@@ -51,6 +61,14 @@ const postRules = {
   list: [
     query('page').optional().isInt({ min: 1 }).withMessage('页码必须是正整数'),
     query('pageSize').optional().isInt({ min: 1, max: 50 }).withMessage('每页数量必须在1-50之间'),
+    query('status').optional({ checkFalsy: true }).isIn(['0', '1']).withMessage('状态值无效'),
+    query('category').optional({ checkFalsy: true }).isString().withMessage('分类参数无效'),
+    query('tag').optional({ checkFalsy: true }).isString().withMessage('标签参数无效'),
+    query('keyword')
+      .optional({ checkFalsy: true })
+      .isString()
+      .isLength({ max: 100 })
+      .withMessage('关键词不能超过100个字符'),
     validate,
   ],
   sortOrder: [
@@ -62,6 +80,7 @@ const postRules = {
   search: [
     query('keyword')
       .optional()
+      .isString()
       .trim()
       .isLength({ max: 100 })
       .withMessage('搜索关键词不能超过100个字符'),
@@ -127,7 +146,7 @@ const categoryRules = {
       .withMessage('分类别名只能包含小写字母、数字和连字符')
       .isLength({ max: 50 })
       .withMessage('分类别名不能超过50个字符'),
-    body('sort').optional().isInt().withMessage('排序值必须是整数'),
+    body('sort').optional({ checkFalsy: true }).isInt().withMessage('排序值必须是整数'),
     validate,
   ],
   update: [
@@ -139,7 +158,7 @@ const categoryRules = {
       .isLength({ max: 50 })
       .withMessage('分类名称不能超过50个字符'),
     body('slug')
-      .optional()
+      .optional({ checkFalsy: true })
       .trim()
       .matches(/^[a-z0-9-]+$/)
       .withMessage('分类别名只能包含小写字母、数字和连字符')
@@ -154,5 +173,4 @@ module.exports = {
   postRules,
   authRules,
   categoryRules,
-  validate,
 }

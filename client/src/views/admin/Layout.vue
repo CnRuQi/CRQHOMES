@@ -119,6 +119,7 @@ const currentPageTitle = computed(() => {
 function toggleSidebar() {
   if (window.innerWidth <= 768) {
     isMobileOpen.value = !isMobileOpen.value
+    setBodyScrollLock(isMobileOpen.value)
   } else {
     isCollapsed.value = !isCollapsed.value
   }
@@ -126,10 +127,18 @@ function toggleSidebar() {
 
 function closeMobileSidebar() {
   isMobileOpen.value = false
+  setBodyScrollLock(false)
 }
 
-function handleLogout() {
-  authStore.logout()
+// 锁定/释放页面滚动（html + body 双锁，兼容 iOS Safari）
+function setBodyScrollLock(locked) {
+  const overflow = locked ? 'hidden' : ''
+  document.documentElement.style.overflow = overflow
+  document.body.style.overflow = overflow
+}
+
+async function handleLogout() {
+  await authStore.logout()
   router.push('/admin/login')
 }
 </script>
@@ -149,7 +158,9 @@ function handleLogout() {
   display: flex;
   flex-direction: column;
   z-index: 100;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
   overflow: hidden;
 }
 
@@ -297,12 +308,24 @@ function handleLogout() {
   min-height: calc(100vh - var(--header-height));
 }
 
+/* 后台页面切换过渡 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
 @media (max-width: 768px) {
   .mobile-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.3);
     z-index: 1002;
+    animation: fadeIn 0.25s ease;
   }
 
   .sidebar {
@@ -316,6 +339,18 @@ function handleLogout() {
 
   .main-wrapper {
     margin-left: 0 !important;
+  }
+
+  .topbar {
+    padding: 0 var(--spacing-md);
+  }
+
+  .admin-content {
+    padding: var(--spacing-md);
+  }
+
+  .user-name {
+    display: none;
   }
 }
 </style>

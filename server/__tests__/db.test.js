@@ -1,7 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import Database from 'better-sqlite3'
 import { readFileSync } from 'fs'
-import { join } from 'path'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
+
+// ESM 测试环境下 __dirname 可能未定义，显式推导
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 let db
 

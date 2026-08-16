@@ -63,26 +63,29 @@ function updateCategory(req, res, next) {
     const { name, slug, description, sort } = req.body
     const db = getDb()
 
-    const existing = db.prepare('SELECT id FROM categories WHERE id = ?').get(id)
+    const existing = db.prepare('SELECT id, slug FROM categories WHERE id = ?').get(id)
     if (!existing) {
       throw new AppError('分类不存在', 404)
     }
 
-    if (!name || !slug) {
-      throw new AppError('分类名称和别名不能为空', 400)
+    if (!name) {
+      throw new AppError('分类名称不能为空', 400)
     }
+
+    // slug 未提供时保留原值（与验证器的 optional 语义一致）
+    const newSlug = slug || existing.slug
 
     // 检查别名是否被其他分类使用
     const slugExists = db
       .prepare('SELECT id FROM categories WHERE slug = ? AND id != ?')
-      .get(slug, id)
+      .get(newSlug, id)
     if (slugExists) {
       throw new AppError('分类别名已存在', 400)
     }
 
     db.prepare(
       'UPDATE categories SET name = ?, slug = ?, description = ?, sort = ? WHERE id = ?'
-    ).run(name, slug, description || '', sort || 0, id)
+    ).run(name, newSlug, description || '', sort || 0, id)
 
     const category = db.prepare('SELECT * FROM categories WHERE id = ?').get(id)
 

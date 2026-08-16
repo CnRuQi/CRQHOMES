@@ -43,16 +43,9 @@ function parseTags(tags) {
     .filter(Boolean)
 }
 
-// 格式化日期
-function formatDate(date) {
-  if (!date) return null
-  return new Date(date).toISOString()
-}
-
 module.exports = {
   success,
   paginate,
   parsePagination,
   parseTags,
-  formatDate,
 }

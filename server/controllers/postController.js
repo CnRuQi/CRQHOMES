@@ -11,7 +11,21 @@ function normalizeIp(ip) {
 
 // 转义 LIKE 查询中的特殊字符
 function escapeLike(str) {
-  return str.replace(/[%_]/g, '\\$&')
+  return str.replace(/[\\%_]/g, '\\$&')
+}
+
+// 标准化置顶标记为 0/1（兼容字符串 "0"/"false" 等，避免真值判断误判）
+function normalizeTopFlag(value) {
+  return Number(value) === 1 || value === true ? 1 : 0
+}
+
+// 校验分类是否存在（避免外键冲突返回 500）
+function assertCategoryExists(db, categoryId) {
+  if (categoryId === undefined || categoryId === null || categoryId === '') return
+  const category = db.prepare('SELECT id FROM categories WHERE id = ?').get(categoryId)
+  if (!category) {
+    throw new AppError('所选分类不存在', 400)
+  }
 }
 
 // 生成 slug
@@ -49,11 +63,11 @@ function hasRecentlyViewed(db, ip, postId) {
   return !!record
 }
 
-// 记录浏览
+// 记录浏览（统一使用 ISO 时间字符串，与 hasRecentlyViewed/cleanupOldViews 的比较格式一致）
 function recordView(db, ip, postId) {
   db.prepare(
-    'INSERT OR REPLACE INTO view_tracking (ip_address, post_id, viewed_at) VALUES (?, ?, CURRENT_TIMESTAMP)'
-  ).run(ip, postId)
+    'INSERT OR REPLACE INTO view_tracking (ip_address, post_id, viewed_at) VALUES (?, ?, ?)'
+  ).run(ip, postId, new Date().toISOString())
 }
 
 // 清理过期浏览记录（保留最近24小时的记录）
@@ -191,6 +205,32 @@ function getPost(req, res, next) {
   }
 }
 
+// 获取单篇文章（后台管理，含草稿，不计数浏览量）
+function getPostForAdmin(req, res, next) {
+  try {
+    const { id } = req.params
+    const db = getDb()
+
+    const post = db
+      .prepare(
+        `SELECT p.*, c.name as category_name, c.slug as category_slug
+         FROM posts p LEFT JOIN categories c ON p.category_id = c.id
+         WHERE p.id = ?`
+      )
+      .get(id)
+
+    if (!post) {
+      throw new AppError('文章不存在', 404)
+    }
+
+    post.tags = parseTags(post.tags)
+
+    success(res, { post })
+  } catch (error) {
+    next(error)
+  }
+}
+
 // 获取所有文章（后台管理）
 function getAllPosts(req, res, next) {
   try {
@@ -228,15 +268,27 @@ function createPost(req, res, next) {
       throw new AppError('标题和内容不能为空', 400)
     }
 
+    if (!category_id) {
+      throw new AppError('请选择分类', 400)
+    }
+
     const db = getDb()
+    assertCategoryExists(db, category_id || null)
     const slug = ensureUniqueSlug(db, generateSlug(title))
     const tagsStr = Array.isArray(tags) ? tags.join(',') : tags || ''
+
+    // 新文章 sort_order 取当前最大值 +1，保证发布后排在列表最前可见
+    // （排序为 sort_order DESC，默认 0 会掉到所有手动排序文章之后）
+    const { maxSort } = db
+      .prepare('SELECT COALESCE(MAX(sort_order), 0) as maxSort FROM posts')
+      .get()
+    const sortOrder = maxSort + 1
 
     const result = db
       .prepare(
         `
-      INSERT INTO posts (title, slug, content, summary, cover_image, category_id, tags, is_top, status, published_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO posts (title, slug, content, summary, cover_image, category_id, tags, is_top, status, sort_order, published_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
       )
       .run(
@@ -247,8 +299,9 @@ function createPost(req, res, next) {
         cover_image || '',
         category_id || null,
         tagsStr,
-        is_top ? 1 : 0,
+        normalizeTopFlag(is_top),
         status !== undefined ? status : 1,
+        sortOrder,
         published_at || new Date().toISOString()
       )
 
@@ -277,6 +330,7 @@ function updatePost(req, res, next) {
       published_at,
     } = req.body
     const db = getDb()
+    assertCategoryExists(db, category_id || null)
 
     const existingPost = db.prepare('SELECT id, title, slug FROM posts WHERE id = ?').get(id)
     if (!existingPost) {
@@ -285,6 +339,10 @@ function updatePost(req, res, next) {
 
     if (!title || !content) {
       throw new AppError('标题和内容不能为空', 400)
+    }
+
+    if (!category_id) {
+      throw new AppError('请选择分类', 400)
     }
 
     // 如果标题变化，重新生成 slug
@@ -377,18 +435,18 @@ function getArchives(req, res, next) {
       .prepare(
         `
       SELECT 
-        id, slug, title, created_at, published_at
+        id, slug, title, published_at, created_at
       FROM posts 
       WHERE status = 1
-      ORDER BY created_at DESC
+      ORDER BY published_at DESC
     `
       )
       .all()
 
-    // 按年月分组
+    // 按年月分组（与列表按 published_at 排序保持一致）
     const archives = {}
     posts.forEach((post) => {
-      const date = new Date(post.created_at)
+      const date = new Date(post.published_at || post.created_at)
       const year = date.getFullYear()
       const month = date.getMonth() + 1
       const key = `${year}-${month.toString().padStart(2, '0')}`
@@ -509,6 +567,7 @@ function getStats(req, res, next) {
 module.exports = {
   getPosts,
   getPost,
+  getPostForAdmin,
   getAllPosts,
   createPost,
   updatePost,

@@ -2,7 +2,7 @@
  * require-auth-middleware
  *
  * POST/PUT/DELETE 路由必须包含 authenticate 中间件。
- * 登录路由（/login）除外。
+ * 登录路由（/login）、登出路由（/logout）除外。
  *
  * AGENT FIX: 在路由定义中添加 authenticate 中间件。
  * 参考: docs/tasks/new-api.md → 步骤 4
@@ -50,8 +50,8 @@ module.exports = {
             pathStr = pathArg.value
           }
 
-          // 登录路由豁免
-          if (pathStr === '/login') return
+          // 登录/登出路由豁免
+          if (pathStr === '/login' || pathStr === '/logout') return
 
           // 检查中间件中是否包含 authenticate
           const middlewares = args.slice(1)

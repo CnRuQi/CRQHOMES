@@ -1,30 +1,30 @@
 :root {
   /* 主色调 - 枯木冷茶 */
-  --color-primary: #A3A69C;
-  --color-primary-light: #C4C6BF;
-  --color-primary-dark: #82857C;
-  --color-accent: #DEDFD9;
+  --color-primary: #a3a69c;
+  --color-primary-light: #c4c6bf;
+  --color-primary-dark: #82857c;
+  --color-accent: #dedfd9;
 
   /* 功能色 - 同步降噪处理 */
-  --color-success: #9BA38E;
-  --color-warning: #C7B38D;
-  --color-danger: #B38F8F;
-  --color-info: #8FA1B3;
+  --color-success: #9ba38e;
+  --color-warning: #c7b38d;
+  --color-danger: #b38f8f;
+  --color-info: #8fa1b3;
 
   /* 背景色 - 宣纸/洗砚 */
-  --bg-primary: #F5F5F3;
-  --bg-secondary: #EBEBE8;
-  --bg-tertiary: #E0E0DD;
+  --bg-primary: #f5f5f3;
+  --bg-secondary: #ebebe8;
+  --bg-tertiary: #e0e0dd;
   --bg-card: rgba(255, 255, 255, 0.85);
   --bg-card-hover: rgba(255, 255, 255, 0.95);
   --bg-glass: rgba(255, 255, 255, 0.75);
   --bg-glass-hover: rgba(245, 245, 243, 0.9);
 
   /* 文字颜色 - 加深对比度 */
-  --text-primary: #2D2E2B;
-  --text-secondary: #4A4C48;
-  --text-muted: #6E706B;
-  --text-disabled: #9A9C97;
+  --text-primary: #2d2e2b;
+  --text-secondary: #4a4c48;
+  --text-muted: #6e706b;
+  --text-disabled: #9a9c97;
 
   /* 边框 - 增强可见度 */
   --border-color: rgba(120, 122, 116, 0.2);
@@ -49,8 +49,9 @@
   --spacing-2xl: 48px;
 
   /* 字体 - 宋体 + 黑体组合 */
-  --font-sans: 'Source Sans 3', 'Noto Sans SC', -apple-system, BlinkMacSystemFont,
-               'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-sans:
+    'Source Sans 3', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   --font-display: 'Playfair Display', 'Noto Serif SC', 'Songti SC', Georgia, serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 
@@ -72,18 +73,18 @@
 }
 
 /* 暗色模式 */
-[data-theme="dark"] {
+[data-theme='dark'] {
   /* 主色调 - 枯木冷茶（暗色版） */
-  --color-primary: #8A8D84;
-  --color-primary-light: #6E706B;
-  --color-primary-dark: #A3A69C;
-  --color-accent: #3D3E3B;
+  --color-primary: #8a8d84;
+  --color-primary-light: #6e706b;
+  --color-primary-dark: #a3a69c;
+  --color-accent: #3d3e3b;
 
   /* 功能色 */
-  --color-success: #7A8270;
-  --color-warning: #A89470;
+  --color-success: #7a8270;
+  --color-warning: #a89470;
   --color-danger: #947070;
-  --color-info: #6E8294;
+  --color-info: #6e8294;
 
   /* 背景色 - 夜空/墨石 */
   --bg-primary: #1a1a1a;

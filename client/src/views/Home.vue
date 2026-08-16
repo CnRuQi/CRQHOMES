@@ -31,37 +31,10 @@
               <PostCard v-for="(post, index) in posts" :key="post.id" :post="post" :index="index" />
             </div>
 
-            <div v-else class="empty">
-              <Icon name="article" :size="48" class="empty-icon" />
-              <p>暂无文章</p>
-            </div>
+            <EmptyState v-else icon="article" text="暂无文章" />
 
             <!-- 分页 -->
-            <div v-if="pagination.totalPages > 1" class="pagination">
-              <button
-                class="pagination-btn"
-                :disabled="pagination.page <= 1"
-                @click="changePage(pagination.page - 1)"
-              >
-                上一页
-              </button>
-              <button
-                v-for="page in displayPages"
-                :key="page"
-                class="pagination-btn"
-                :class="{ active: page === pagination.page }"
-                @click="changePage(page)"
-              >
-                {{ page }}
-              </button>
-              <button
-                class="pagination-btn"
-                :disabled="pagination.page >= pagination.totalPages"
-                @click="changePage(pagination.page + 1)"
-              >
-                下一页
-              </button>
-            </div>
+            <Pagination :pagination="pagination" @change="changePage" />
           </template>
         </section>
       </div>
@@ -70,15 +43,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted, nextTick } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { usePostStore } from '@/stores/post'
-import { getPageRange } from '@/assets/js/utils'
+import { restoreListScroll } from '@/assets/js/utils'
 import PostCard from '@/components/PostCard.vue'
 import SkeletonCard from '@/components/SkeletonCard.vue'
-import Icon from '@/components/Icon.vue'
+import Pagination from '@/components/Pagination.vue'
+import EmptyState from '@/components/EmptyState.vue'
 
 const route = useRoute()
+const router = useRouter()
 const postStore = usePostStore()
 
 const loading = ref(false)
@@ -88,10 +63,6 @@ const pagination = ref({
   page: 1,
   pageSize: 10,
   totalPages: 0,
-})
-
-const displayPages = computed(() => {
-  return getPageRange(pagination.value.totalPages, pagination.value.page)
 })
 
 async function fetchPosts(page = 1) {
@@ -104,6 +75,8 @@ async function fetchPosts(page = 1) {
     await postStore.fetchPosts(params)
     posts.value = postStore.posts
     pagination.value = postStore.pagination
+  } catch (error) {
+    console.error('获取文章列表失败:', error)
   } finally {
     loading.value = false
   }
@@ -111,18 +84,24 @@ async function fetchPosts(page = 1) {
 
 function changePage(page) {
   fetchPosts(page)
+  // 页码写入 URL：返回列表时才能加载相同页内容，滚动位置恢复才准确
+  const query = { ...route.query }
+  if (page > 1) {
+    query.page = page
+  } else {
+    delete query.page
+  }
+  router.replace({ query })
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-watch(
-  () => route.params.slug,
-  () => {
-    fetchPosts(1)
-  }
-)
-
-onMounted(() => {
-  fetchPosts()
+onMounted(async () => {
+  // 初始页码从 URL 读取（返回列表时恢复原页码内容）
+  const initPage = parseInt(route.query.page, 10) || 1
+  await fetchPosts(initPage)
+  await nextTick()
+  // 数据渲染完成后精确恢复滚动位置（修正骨架屏期间页面高度不足导致的错位）
+  restoreListScroll(route.fullPath)
 })
 </script>
 
@@ -207,6 +186,11 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
+  .hero {
+    padding: var(--spacing-xl) 0 var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+  }
+
   .hero-title {
     font-size: 1.8rem;
   }

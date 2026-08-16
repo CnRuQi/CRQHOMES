@@ -9,7 +9,7 @@
 
     <div class="filter-bar glass-card">
       <div class="filter-left">
-        <select v-model="filters.status" class="form-select" @change="fetchPosts">
+        <select v-model="filters.status" class="form-select" @change="fetchPosts()">
           <option value="">全部状态</option>
           <option value="1">已发布</option>
           <option value="0">草稿</option>
@@ -101,47 +101,24 @@
           </draggable>
         </table>
 
-        <div v-if="!posts.length" class="empty-state">
-          <p>暂无文章</p>
+        <EmptyState v-if="!posts.length" icon="article" text="暂无文章">
           <router-link to="/admin/posts/create" class="btn btn-primary mt-md"> 写文章 </router-link>
-        </div>
+        </EmptyState>
       </div>
 
-      <div v-if="pagination.totalPages > 1" class="pagination">
-        <button
-          class="pagination-btn"
-          :disabled="pagination.page <= 1"
-          @click="changePage(pagination.page - 1)"
-        >
-          上一页
-        </button>
-        <button
-          v-for="page in displayPages"
-          :key="page"
-          class="pagination-btn"
-          :class="{ active: page === pagination.page }"
-          @click="changePage(page)"
-        >
-          {{ page }}
-        </button>
-        <button
-          class="pagination-btn"
-          :disabled="pagination.page >= pagination.totalPages"
-          @click="changePage(pagination.page + 1)"
-        >
-          下一页
-        </button>
-      </div>
+      <Pagination :pagination="pagination" @change="changePage" />
     </template>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { getAllPosts, deletePost, toggleTop, updateSortOrder } from '@/api/post'
-import { formatDate, debounce, getPageRange } from '@/assets/js/utils'
+import { formatDate, debounce } from '@/assets/js/utils'
 import { useToast } from '@/composables/useToast'
 import Icon from '@/components/Icon.vue'
+import Pagination from '@/components/Pagination.vue'
+import EmptyState from '@/components/EmptyState.vue'
 import draggable from 'vuedraggable'
 
 const toast = useToast()
@@ -159,10 +136,6 @@ const filters = ref({
   keyword: '',
 })
 
-const displayPages = computed(() => {
-  return getPageRange(pagination.value.totalPages, pagination.value.page)
-})
-
 const debouncedFetch = debounce(() => {
   fetchPosts()
 }, 300)
@@ -178,6 +151,9 @@ async function fetchPosts(page = 1) {
     const res = await getAllPosts(params)
     posts.value = res.data.list
     pagination.value = res.data.pagination
+  } catch (error) {
+    console.error('获取文章列表失败:', error)
+    toast.error('加载文章失败')
   } finally {
     loading.value = false
   }
@@ -212,6 +188,14 @@ async function handleDelete(post) {
 }
 
 async function handleDragEnd() {
+  // 拖拽排序仅在第一页且无筛选时可用，避免只提交子集导致全局顺序错乱
+  const hasFilter = filters.value.status !== '' || filters.value.keyword !== ''
+  if (pagination.value.page !== 1 || hasFilter) {
+    toast.warning('排序仅在无筛选且第一页时可用')
+    fetchPosts(pagination.value.page)
+    return
+  }
+
   try {
     const sortData = posts.value.map((post, index) => ({
       id: post.id,
@@ -221,6 +205,7 @@ async function handleDragEnd() {
   } catch (error) {
     console.error('排序更新失败:', error)
     toast.error('排序更新失败')
+    fetchPosts(pagination.value.page)
   }
 }
 
@@ -232,13 +217,6 @@ onMounted(() => {
 <style scoped>
 .admin-posts {
   max-width: 1200px;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--spacing-xl);
 }
 
 .filter-bar {
@@ -329,23 +307,6 @@ tr:hover td {
   font-weight: 500;
 }
 
-.status-tag {
-  padding: 3px 12px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.status-tag.published {
-  background: rgba(155, 163, 142, 0.15);
-  color: #7b8370;
-}
-
-.status-tag.draft {
-  background: rgba(199, 179, 141, 0.15);
-  color: #a69570;
-}
-
 .top-btn {
   font-size: 1.1rem;
   padding: var(--spacing-xs);
@@ -366,12 +327,6 @@ tr:hover td {
 .actions {
   display: flex;
   gap: var(--spacing-sm);
-}
-
-.empty-state {
-  text-align: center;
-  padding: var(--spacing-2xl);
-  color: var(--text-muted);
 }
 
 /* 拖拽相关样式 */
@@ -416,6 +371,41 @@ tr:hover td {
   .filter-left .form-select,
   .filter-left .form-input {
     width: 100%;
+  }
+
+  /* 移动端隐藏次要列：分类、阅读、发布时间 */
+  .posts-table th:nth-child(3),
+  .posts-table td:nth-child(3),
+  .posts-table th:nth-child(6),
+  .posts-table td:nth-child(6),
+  .posts-table th:nth-child(7),
+  .posts-table td:nth-child(7) {
+    display: none;
+  }
+
+  .posts-table th,
+  .posts-table td {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .posts-table th {
+    font-size: 0.7rem;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .actions .btn {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  /* 超窄屏隐藏拖拽列（移动端拖拽排序不常用） */
+  .posts-table .drag-col {
+    display: none;
   }
 }
 </style>

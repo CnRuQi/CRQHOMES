@@ -11,18 +11,6 @@ const api = axios.create({
   withCredentials: true,
 })
 
-// 请求拦截器：添加 Token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-  },
-  (error) => Promise.reject(error)
-)
-
 // 响应拦截器
 api.interceptors.response.use(
   (response) => {
@@ -54,8 +42,11 @@ api.interceptors.response.use(
         }
 
         const authStore = useAuthStore()
-        authStore.logout()
-        router.push('/admin/login')
+        authStore.clearAuth()
+        // 避免在登录页重复跳转；带 redirect 以便登录后回跳原页面
+        if (currentPath !== '/admin/login') {
+          router.push({ name: 'AdminLogin', query: { redirect: currentPath } })
+        }
       }
 
       // 返回错误信息

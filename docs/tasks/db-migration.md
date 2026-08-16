@@ -40,7 +40,7 @@ function migrateV2(db) {
   
   if (!hasNewColumn) {
     db.exec('ALTER TABLE posts ADD COLUMN new_column TEXT DEFAULT ""')
-    console.log('✅ 添加 new_column 字段')
+    console.log('添加 new_column 字段')
   }
 }
 ```

@@ -23,11 +23,12 @@
         </div>
 
         <template v-else>
-          <div v-if="keyword && !posts.length" class="empty-state" data-aos="fade-up">
-            <Icon name="article" :size="48" class="empty-icon" />
-            <p>未找到相关文章</p>
-            <p class="empty-hint">试试其他关键词？</p>
-          </div>
+          <EmptyState
+            v-if="keyword && !posts.length"
+            icon="article"
+            text="未找到相关文章"
+            hint="试试其他关键词？"
+          />
 
           <div v-else-if="posts.length" class="search-results" data-aos="fade-up">
             <p class="results-count">找到 {{ total }} 篇相关文章</p>
@@ -42,31 +43,7 @@
             </div>
 
             <!-- 分页 -->
-            <div v-if="pagination.totalPages > 1" class="pagination">
-              <button
-                class="pagination-btn"
-                :disabled="pagination.page <= 1"
-                @click="changePage(pagination.page - 1)"
-              >
-                上一页
-              </button>
-              <button
-                v-for="page in displayPages"
-                :key="page"
-                class="pagination-btn"
-                :class="{ active: page === pagination.page }"
-                @click="changePage(page)"
-              >
-                {{ page }}
-              </button>
-              <button
-                class="pagination-btn"
-                :disabled="pagination.page >= pagination.totalPages"
-                @click="changePage(pagination.page + 1)"
-              >
-                下一页
-              </button>
-            </div>
+            <Pagination :pagination="pagination" @change="changePage" />
           </div>
 
           <div v-else class="search-hint" data-aos="fade-up">
@@ -80,13 +57,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { searchPosts } from '@/api/post'
-import { debounce, getPageRange } from '@/assets/js/utils'
+import { debounce, restoreListScroll } from '@/assets/js/utils'
 import { useToast } from '@/composables/useToast'
 import PostCard from '@/components/PostCard.vue'
 import SkeletonCard from '@/components/SkeletonCard.vue'
+import Pagination from '@/components/Pagination.vue'
+import EmptyState from '@/components/EmptyState.vue'
 import Icon from '@/components/Icon.vue'
 
 const route = useRoute()
@@ -104,11 +83,10 @@ const pagination = ref({
   totalPages: 0,
 })
 
-const displayPages = computed(() => {
-  return getPageRange(pagination.value.totalPages, pagination.value.page)
-})
+// 请求序号，用于丢弃过期的搜索响应（防竞态）
+let searchSeq = 0
 
-async function doSearch(page = 1) {
+async function doSearch(page = 1, { restore = false } = {}) {
   if (!keyword.value.trim()) {
     posts.value = []
     total.value = 0
@@ -116,6 +94,7 @@ async function doSearch(page = 1) {
     return
   }
 
+  const seq = ++searchSeq
   loading.value = true
   try {
     const res = await searchPosts({
@@ -123,17 +102,33 @@ async function doSearch(page = 1) {
       page,
       pageSize: 10,
     })
+    // 丢弃过期请求的响应
+    if (seq !== searchSeq) return
+
     posts.value = res.data.list
     total.value = res.data.pagination.total
     pagination.value = res.data.pagination
 
-    // 更新 URL
-    router.replace({ query: { q: keyword.value.trim() } })
+    // 更新 URL（带上页码，保持可分享/可后退）
+    const query = { q: keyword.value.trim() }
+    if (page > 1) {
+      query.page = page
+    }
+    await router.replace({ query })
+
+    // 仅「从文章详情返回」的初始加载才精确恢复滚动位置（输入搜索不触发恢复）
+    if (restore) {
+      await nextTick()
+      restoreListScroll(route.fullPath)
+    }
   } catch (error) {
+    if (seq !== searchSeq) return
     console.error('搜索失败:', error)
     toast.error('搜索失败')
   } finally {
-    loading.value = false
+    if (seq === searchSeq) {
+      loading.value = false
+    }
   }
 }
 
@@ -154,9 +149,9 @@ function clearSearch() {
   router.replace({ query: {} })
 }
 
-// 初始化搜索
+// 初始化搜索：页码从 URL 读取（保证返回时加载相同页内容，与保存的滚动位置一致）
 if (keyword.value) {
-  doSearch()
+  doSearch(parseInt(route.query.page, 10) || 1, { restore: true })
 }
 </script>
 
@@ -250,61 +245,15 @@ if (keyword.value) {
   margin-bottom: var(--spacing-2xl);
 }
 
-.empty-state,
 .search-hint {
   text-align: center;
   padding: var(--spacing-2xl);
   color: var(--text-muted);
 }
 
-.empty-icon,
 .hint-icon {
   margin-bottom: var(--spacing-md);
   opacity: 0.5;
-}
-
-.empty-hint {
-  font-size: 0.9rem;
-  margin-top: var(--spacing-sm);
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  gap: var(--spacing-sm);
-  margin-top: var(--spacing-xl);
-}
-
-.pagination-btn {
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
-  background: var(--bg-card);
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  transition: all var(--transition-fast);
-}
-
-.pagination-btn:hover:not(:disabled) {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-.pagination-btn.active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: white;
-}
-
-.pagination-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.loading {
-  display: flex;
-  justify-content: center;
-  padding: var(--spacing-2xl);
 }
 
 @media (max-width: 768px) {
@@ -314,6 +263,19 @@ if (keyword.value) {
 
   .search-input {
     font-size: 1rem;
+  }
+
+  .search-box {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .clear-btn {
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  .search-header {
+    margin-bottom: var(--spacing-xl);
   }
 }
 </style>

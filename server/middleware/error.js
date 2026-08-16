@@ -3,7 +3,6 @@ class AppError extends Error {
   constructor(message, statusCode) {
     super(message)
     this.statusCode = statusCode
-    this.isOperational = true
     Error.captureStackTrace(this, this.constructor)
   }
 }
@@ -23,6 +22,9 @@ function errorHandler(err, req, res, _next) {
   if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
     statusCode = 400
     message = '数据已存在'
+  } else if (err.code === 'SQLITE_CONSTRAINT_FOREIGNKEY') {
+    statusCode = 400
+    message = '关联数据不存在'
   }
 
   // JWT 错误
@@ -34,6 +36,11 @@ function errorHandler(err, req, res, _next) {
   if (err.name === 'TokenExpiredError') {
     statusCode = 401
     message = '认证令牌已过期'
+  }
+
+  // 非操作型错误（500）在生产环境不泄漏内部信息
+  if (statusCode >= 500 && process.env.NODE_ENV !== 'development') {
+    message = '服务器内部错误'
   }
 
   // 开发环境输出错误堆栈

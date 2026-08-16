@@ -21,8 +21,14 @@ const props = defineProps({
   },
 })
 
+// 预注册所有图标，构建时由 Vite 打包，避免动态 new URL 在生产构建中失效
+const iconModules = import.meta.glob('../assets/icons/*.svg', {
+  eager: true,
+  import: 'default',
+})
+
 const iconSrc = computed(() => {
-  return new URL(`../assets/icons/${props.name}.svg`, import.meta.url).href
+  return iconModules[`../assets/icons/${props.name}.svg`] || ''
 })
 </script>
 

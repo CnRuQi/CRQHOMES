@@ -53,11 +53,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import { getArchives } from '@/api/post'
-import { formatDate } from '@/assets/js/utils'
+import { formatDate, restoreListScroll } from '@/assets/js/utils'
 import { useToast } from '@/composables/useToast'
 
+const route = useRoute()
 const toast = useToast()
 const loading = ref(false)
 const archives = ref([])
@@ -73,6 +75,9 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+  // 数据渲染完成后精确恢复滚动位置
+  await nextTick()
+  restoreListScroll(route.fullPath)
 })
 </script>
 

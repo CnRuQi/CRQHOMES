@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import AOS from 'aos'
 import 'aos/dist/aos.css'
 import Toast from '@/components/Toast.vue'
@@ -28,17 +28,23 @@ import { useToast } from '@/composables/useToast'
 import { useTheme } from '@/composables/useTheme'
 
 const { toastState } = useToast()
-const { initTheme, watchSystemTheme } = useTheme()
+const { initTheme, watchSystemTheme, stopWatchSystemTheme } = useTheme()
 
 onMounted(() => {
   initTheme()
   watchSystemTheme()
   AOS.init({
-    duration: 600,
+    duration: 500,
     easing: 'ease-out',
     once: true,
     offset: 50,
+    // 用户偏好减少动态效果时禁用滚动动画
+    disable: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   })
+})
+
+onUnmounted(() => {
+  stopWatchSystemTheme()
 })
 </script>
 

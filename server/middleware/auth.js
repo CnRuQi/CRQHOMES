@@ -1,18 +1,31 @@
 const jwt = require('jsonwebtoken')
+const cookie = require('cookie')
 const config = require('../config')
 const { getDb } = require('../db')
 const { AppError } = require('./error')
 
+// 从请求中提取 token（优先 httpOnly cookie，其次 Authorization header）
+function extractToken(req) {
+  const cookies = cookie.parse(req.headers.cookie || '')
+  if (cookies[config.cookie.name]) {
+    return cookies[config.cookie.name]
+  }
+
+  const authHeader = req.headers.authorization
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.split(' ')[1]
+  }
+
+  return null
+}
+
 // 验证 JWT Token
 function authenticate(req, res, next) {
   try {
-    // 从请求头获取 token
-    const authHeader = req.headers.authorization
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const token = extractToken(req)
+    if (!token) {
       throw new AppError('未提供认证令牌', 401)
     }
-
-    const token = authHeader.split(' ')[1]
 
     // 验证 token
     const decoded = jwt.verify(token, config.jwt.secret)
@@ -43,30 +56,6 @@ function authenticate(req, res, next) {
   }
 }
 
-// 可选认证（不强制要求登录）
-function optionalAuth(req, res, next) {
-  try {
-    const authHeader = req.headers.authorization
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.split(' ')[1]
-      const decoded = jwt.verify(token, config.jwt.secret)
-
-      const db = getDb()
-      const user = db
-        .prepare('SELECT id, username, nickname, avatar FROM users WHERE id = ?')
-        .get(decoded.userId)
-
-      if (user) {
-        req.user = user
-      }
-    }
-  } catch (_error) {
-    // 忽略认证错误，继续处理请求
-  }
-  next()
-}
-
 module.exports = {
   authenticate,
-  optionalAuth,
 }

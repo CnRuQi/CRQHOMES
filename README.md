@@ -199,6 +199,8 @@ location /api/ {
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    # 必须：否则 req.protocol 取不到 https，sitemap.xml 会生成 http 链接
+    proxy_set_header X-Forwarded-Proto $scheme;
 }
 
 # 上传图片静态伺服（^~ 防止被图片缓存正则劫持）

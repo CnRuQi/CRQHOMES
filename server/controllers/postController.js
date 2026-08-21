@@ -120,7 +120,7 @@ function executePostListQuery(db, where, params, pageSize, offset) {
   `
   const { total } = db.prepare(countSql).get(...params)
 
-  const listSql = `
+  const listSqlBase = `
     SELECT 
       p.id, p.slug, p.title, p.summary, p.cover_image, p.tags, 
       p.is_top, p.status, p.views, p.sort_order, p.published_at, p.created_at, p.updated_at,
@@ -129,9 +129,11 @@ function executePostListQuery(db, where, params, pageSize, offset) {
     LEFT JOIN categories c ON p.category_id = c.id
     ${where}
     ORDER BY p.is_top DESC, p.sort_order DESC, p.published_at DESC
-    LIMIT ? OFFSET ?
   `
-  const list = db.prepare(listSql).all(...params, pageSize, offset)
+  const list =
+    pageSize === null
+      ? db.prepare(listSqlBase).all(...params)
+      : db.prepare(`${listSqlBase} LIMIT ? OFFSET ?`).all(...params, pageSize, offset)
 
   const formattedList = list.map((post) => ({
     ...post,

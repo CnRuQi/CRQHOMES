@@ -60,7 +60,10 @@ const postRules = {
   getById: [param('id').isInt().withMessage('文章ID必须是整数'), validate],
   list: [
     query('page').optional().isInt({ min: 1 }).withMessage('页码必须是正整数'),
-    query('pageSize').optional().isInt({ min: 1, max: 50 }).withMessage('每页数量必须在1-50之间'),
+    query('pageSize')
+      .optional()
+      .isInt({ min: 0, max: 50 })
+      .withMessage('每页数量必须在0-50之间（0表示不分页）'),
     query('status').optional({ checkFalsy: true }).isIn(['0', '1']).withMessage('状态值无效'),
     query('category').optional({ checkFalsy: true }).isString().withMessage('分类参数无效'),
     query('tag').optional({ checkFalsy: true }).isString().withMessage('标签参数无效'),

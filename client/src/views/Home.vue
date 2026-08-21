@@ -23,7 +23,7 @@
         <!-- 文章列表 -->
         <section class="posts-section">
           <div v-if="loading" class="posts-grid">
-            <SkeletonCard v-for="i in 6" :key="i" />
+            <SkeletonCard v-for="i in 18" :key="i" />
           </div>
 
           <template v-else>
@@ -61,14 +61,14 @@ const posts = ref([])
 const pagination = ref({
   total: 0,
   page: 1,
-  pageSize: 10,
+  pageSize: 18,
   totalPages: 0,
 })
 
 async function fetchPosts(page = 1) {
   loading.value = true
   try {
-    const params = { page, pageSize: 10 }
+    const params = { page, pageSize: 18 }
     if (route.params.slug) {
       params.category = route.params.slug
     }
@@ -181,8 +181,14 @@ onMounted(async () => {
 
 .posts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-xl);
+}
+
+@media (max-width: 1024px) {
+  .posts-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 768px) {

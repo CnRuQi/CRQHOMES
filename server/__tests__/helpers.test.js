@@ -22,9 +22,9 @@ describe('parsePagination', () => {
     expect(result.pageSize).toBe(50)
   })
 
-  it('defaults pageSize to 10 for zero value', () => {
+  it('treats pageSize 0 as no pagination (all)', () => {
     const result = parsePagination({ pageSize: '0' })
-    expect(result.pageSize).toBe(10)
+    expect(result).toEqual({ page: 1, pageSize: null, offset: 0 })
   })
 
   it('handles non-numeric values gracefully', () => {

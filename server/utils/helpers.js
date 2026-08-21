@@ -17,18 +17,24 @@ function paginate(res, { list, total, page, pageSize }) {
       pagination: {
         total,
         page,
-        pageSize,
-        totalPages: Math.ceil(total / pageSize),
+        pageSize: pageSize ?? 0,
+        totalPages: pageSize ? Math.ceil(total / pageSize) : 1,
       },
     },
   })
 }
 
-// 解析分页参数
+// 解析分页参数；pageSize=0 表示不分页（返回全部）
 function parsePagination(query) {
   const page = Math.max(1, parseInt(query.page, 10) || 1)
-  const pageSize = Math.min(50, Math.max(1, parseInt(query.pageSize, 10) || 10))
-  const offset = (page - 1) * pageSize
+  const rawPageSize = parseInt(query.pageSize, 10)
+  let pageSize
+  if (rawPageSize === 0) {
+    pageSize = null
+  } else {
+    pageSize = Math.min(50, Math.max(1, rawPageSize || 10))
+  }
+  const offset = pageSize ? (page - 1) * pageSize : 0
 
   return { page, pageSize, offset }
 }

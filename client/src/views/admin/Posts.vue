@@ -105,8 +105,6 @@
           <router-link to="/admin/posts/create" class="btn btn-primary mt-md"> 写文章 </router-link>
         </EmptyState>
       </div>
-
-      <Pagination :pagination="pagination" @change="changePage" />
     </template>
   </div>
 </template>
@@ -117,19 +115,12 @@ import { getAllPosts, deletePost, toggleTop, updateSortOrder } from '@/api/post'
 import { formatDate, debounce } from '@/assets/js/utils'
 import { useToast } from '@/composables/useToast'
 import Icon from '@/components/Icon.vue'
-import Pagination from '@/components/Pagination.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import draggable from 'vuedraggable'
 
 const toast = useToast()
 const loading = ref(false)
 const posts = ref([])
-const pagination = ref({
-  total: 0,
-  page: 1,
-  pageSize: 10,
-  totalPages: 0,
-})
 
 const filters = ref({
   status: '',
@@ -140,27 +131,22 @@ const debouncedFetch = debounce(() => {
   fetchPosts()
 }, 300)
 
-async function fetchPosts(page = 1) {
+async function fetchPosts() {
   loading.value = true
   try {
+    // pageSize=0 表示不分页，一次列出全部文章，保证拖拽排序可在任意文章间进行
     const params = {
-      page,
-      pageSize: 10,
+      pageSize: 0,
       ...filters.value,
     }
     const res = await getAllPosts(params)
     posts.value = res.data.list
-    pagination.value = res.data.pagination
   } catch (error) {
     console.error('获取文章列表失败:', error)
     toast.error('加载文章失败')
   } finally {
     loading.value = false
   }
-}
-
-function changePage(page) {
-  fetchPosts(page)
 }
 
 async function handleToggleTop(post) {
@@ -180,12 +166,7 @@ async function handleDelete(post) {
 
   try {
     await deletePost(post.id)
-    // 删除末页最后一条后回退一页，避免页码越界显示空列表
-    const targetPage =
-      posts.value.length === 1 && pagination.value.page > 1
-        ? pagination.value.page - 1
-        : pagination.value.page
-    fetchPosts(targetPage)
+    fetchPosts()
   } catch (error) {
     console.error('删除失败:', error)
     toast.error('删除失败')
@@ -193,11 +174,12 @@ async function handleDelete(post) {
 }
 
 async function handleDragEnd() {
-  // 拖拽排序仅在第一页且无筛选时可用，避免只提交子集导致全局顺序错乱
+  // 列表已不分页（列出全部文章），仅在无筛选时允许拖拽排序，
+  // 避免筛选出的子集提交后打乱全局顺序
   const hasFilter = filters.value.status !== '' || filters.value.keyword !== ''
-  if (pagination.value.page !== 1 || hasFilter) {
-    toast.warning('排序仅在无筛选且第一页时可用')
-    fetchPosts(pagination.value.page)
+  if (hasFilter) {
+    toast.warning('排序仅在无筛选时可用')
+    fetchPosts()
     return
   }
 
@@ -210,7 +192,7 @@ async function handleDragEnd() {
   } catch (error) {
     console.error('排序更新失败:', error)
     toast.error('排序更新失败')
-    fetchPosts(pagination.value.page)
+    fetchPosts()
   }
 }
 

@@ -47,3 +47,9 @@ data/*.db-shm
 *.tar.gz
 *.zip
 *.rar
+
+# Batch files (含个人启动配置)
+*.bat
+
+# Personal documents (docx 可能含个人信息)
+*.docx

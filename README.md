@@ -130,9 +130,7 @@ npm run db:import
 ### 启动开发
 
 ```bash
-# 方式一：Windows 一键启动（根目录双击 start.bat，自动打开两个窗口）
-
-# 方式二：手动启动
+#手动启动
 cd server && npm run dev     # 终端 1：后端
 cd client && npm run dev     # 终端 2：前端
 ```
@@ -188,7 +186,7 @@ cd ../server && pm2 start app.js --name blog-server && pm2 save
 
 #### 方式二：宝塔面板
 
-1. 上传源码（**不要上传** `node_modules`、`.env`、`data/`、`uploads/`）
+1. 上传源码
 2. Node 项目管理：启动 `server/app.js`（配置 `.env`）
 3. 网站：站点根目录指向 `client/dist`，Nginx 增加：
 
@@ -284,26 +282,10 @@ npm run lint:fix    # 自动修复 lint
 - 代码规范：`docs/conventions.md`；核心信念：`docs/core-beliefs.md`
 - AI Agent 开发指引：`AGENTS.md` + `docs/tasks/*.md`
 
-## 隐私与仓库提交
-
-以下内容已被 `.gitignore` 排除，**不会进入 git 仓库**：
-
-| 内容 | 规则 |
-|------|------|
-| `server/.env`（含 JWT_SECRET 等） | `.env` |
-| 数据库 `data/*.db(-wal/-shm)` | `data/*.db*` |
-| 上传图片 `server/uploads/*` | `server/uploads/*`（保留 `.gitkeep`） |
-| 依赖 `node_modules/`、构建产物 `client/dist/` | 对应目录规则 |
-| 部署打包产物 `*.tar.gz` 等 | `*.tar.gz` `*.zip` `*.rar` |
-
-提交前请确认：
-- [ ] `git status` 中**没有** `.env`、`*.db`、`uploads/` 下的图片
-- [ ] 生产服务器已轮换 `JWT_SECRET`（`openssl rand -hex 32`），不要复用示例/弱密钥
-- [ ] `server/db/import-data.js` 中的示例文章数据（含个人链接）确认可公开
 
 ## 更新日志
 
-各版本更新内容请查看 [GitHub Releases](https://github.com/CnRuQi/CnRuQi/releases)。
+各版本更新内容请查看 [[GitHub Releases]https://github.com/CnRuQi/CRQHOMES/releases]。
 
 ## 开源协议
 

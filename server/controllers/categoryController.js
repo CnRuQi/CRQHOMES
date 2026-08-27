@@ -63,7 +63,9 @@ function updateCategory(req, res, next) {
     const { name, slug, description, sort } = req.body
     const db = getDb()
 
-    const existing = db.prepare('SELECT id, slug FROM categories WHERE id = ?').get(id)
+    const existing = db
+      .prepare('SELECT id, slug, description, sort FROM categories WHERE id = ?')
+      .get(id)
     if (!existing) {
       throw new AppError('分类不存在', 404)
     }
@@ -83,9 +85,13 @@ function updateCategory(req, res, next) {
       throw new AppError('分类别名已存在', 400)
     }
 
+    // 半更新语义：未提供的字段保留原值，避免静默清空 description/sort
+    const newDescription = description !== undefined ? description : existing.description
+    const newSort = sort !== undefined ? sort : existing.sort
+
     db.prepare(
       'UPDATE categories SET name = ?, slug = ?, description = ?, sort = ? WHERE id = ?'
-    ).run(name, newSlug, description || '', sort || 0, id)
+    ).run(name, newSlug, newDescription ?? '', newSort ?? 0, id)
 
     const category = db.prepare('SELECT * FROM categories WHERE id = ?').get(id)
 

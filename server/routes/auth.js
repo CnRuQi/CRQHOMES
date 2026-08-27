@@ -31,6 +31,8 @@ const passwordLimiter = rateLimit({
     code: 429,
     message: '密码修改次数过多，请1小时后再试',
   },
+  standardHeaders: true,
+  legacyHeaders: false,
 })
 
 // POST /api/auth/login - 登录

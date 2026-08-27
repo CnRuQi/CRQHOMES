@@ -125,7 +125,7 @@ onMounted(async () => {
   try {
     const [statsRes, postsRes, categoriesRes] = await Promise.all([
       getStats(),
-      getAllPosts({ pageSize: 5 }),
+      getAllPosts({ pageSize: 5, sort: 'recent' }),
       getCategories(),
     ])
 

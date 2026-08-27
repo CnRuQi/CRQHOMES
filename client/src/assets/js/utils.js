@@ -5,16 +5,23 @@ import 'dayjs/locale/zh-cn'
 dayjs.extend(relativeTime)
 dayjs.locale('zh-cn')
 
+// SQLite CURRENT_TIMESTAMP 旧数据为无时区 UTC 格式，统一补 Z 避免按本地时区误解析
+function normalizeDate(date) {
+  if (!date) return date
+  const str = String(date)
+  return /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(str) ? str.replace(' ', 'T') + 'Z' : date
+}
+
 // 格式化日期
 export function formatDate(date, format = 'YYYY-MM-DD HH:mm') {
   if (!date) return ''
-  return dayjs(date).format(format)
+  return dayjs(normalizeDate(date)).format(format)
 }
 
 // 相对时间
 export function fromNow(date) {
   if (!date) return ''
-  return dayjs(date).fromNow()
+  return dayjs(normalizeDate(date)).fromNow()
 }
 
 // 截取摘要

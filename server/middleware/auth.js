@@ -28,7 +28,8 @@ function authenticate(req, res, next) {
     }
 
     // 验证 token
-    const decoded = jwt.verify(token, config.jwt.secret)
+    // 固定 HS256 算法，防算法混淆攻击
+    const decoded = jwt.verify(token, config.jwt.secret, { algorithms: ['HS256'] })
 
     // 查询用户是否存在
     const db = getDb()

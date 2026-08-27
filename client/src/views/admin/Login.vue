@@ -76,7 +76,14 @@ async function handleLogin() {
 
   try {
     await authStore.login(form.value.username, form.value.password)
-    const redirect = route.query.redirect || '/admin'
+    // redirect 仅允许站内路径（以 / 开头且非协议相对 //），防开放重定向
+    const rawRedirect = route.query.redirect
+    const redirect =
+      typeof rawRedirect === 'string' &&
+      rawRedirect.startsWith('/') &&
+      !rawRedirect.startsWith('//')
+        ? rawRedirect
+        : '/admin'
     router.push(redirect)
   } catch (err) {
     error.value = err.message || '登录失败'

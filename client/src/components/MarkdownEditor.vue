@@ -4,6 +4,7 @@
       v-model="content"
       :preview="true"
       :html-preview="false"
+      :sanitize="sanitizeHtml"
       :toolbars-exclude="['github', 'mermaid']"
       @on-upload-img="handleUploadImage"
     />
@@ -14,6 +15,7 @@
 import { computed } from 'vue'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
+import DOMPurify from 'dompurify'
 import { uploadImage } from '@/api/upload'
 import { useToast } from '@/composables/useToast'
 
@@ -28,6 +30,11 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
+
+// 预览 HTML 必须消毒，与前台 Post.vue 的 DOMPurify 约定保持一致（防 self-XSS）
+function sanitizeHtml(html) {
+  return DOMPurify.sanitize(html)
+}
 
 const content = computed({
   get: () => props.modelValue,

@@ -1,3 +1,5 @@
+const config = require('../config')
+
 // 自定义错误类
 class AppError extends Error {
   constructor(message, statusCode) {
@@ -39,19 +41,19 @@ function errorHandler(err, req, res, _next) {
   }
 
   // 非操作型错误（500）在生产环境不泄漏内部信息
-  if (statusCode >= 500 && process.env.NODE_ENV !== 'development') {
+  if (statusCode >= 500 && config.env !== 'development') {
     message = '服务器内部错误'
   }
 
   // 开发环境输出错误堆栈
-  if (process.env.NODE_ENV === 'development') {
+  if (config.env === 'development') {
     console.error('Error:', err)
   }
 
   res.status(statusCode).json({
     code: statusCode,
     message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    ...(config.env === 'development' && { stack: err.stack }),
   })
 }
 

@@ -19,6 +19,18 @@
     <meta property="og:site_name" content="披花沐雪" />
     
     <title>披花沐雪</title>
+    <script>
+      // 首屏前设置主题，避免暗色用户刷新时白屏闪烁（FOUC）
+      ;(function () {
+        try {
+          var saved = localStorage.getItem('theme')
+          var dark =
+            saved === 'dark' ||
+            (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          if (dark) document.documentElement.dataset.theme = 'dark'
+        } catch (e) {}
+      })()
+    </script>
     
     <!-- Google Fonts - 国内镜像加速 -->
     <link rel="preconnect" href="https://fonts.loli.net" crossorigin>

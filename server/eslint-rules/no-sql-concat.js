@@ -34,7 +34,32 @@ module.exports = {
     // 危险的拼接模式：表达式直接出现在 SQL 子句中
     const dangerousConcatPattern = /WHERE\s+.*\$\{|VALUES\s*\(.*\$\{|SET\s+.*\$\{|=.*\$\{/i
 
+    // 判断字符串字面量是否像 SQL 片段
+    function looksLikeSql(text) {
+      return sqlClausePattern.test(text)
+    }
+
     return {
+      // 检测字符串字面量与变量的 + 拼接（如 'SELECT ... WHERE id = ' + userId）
+      BinaryExpression(node) {
+        if (node.operator !== '+') return
+        const left = node.left
+        const right = node.right
+        const leftSql =
+          left.type === 'Literal' && typeof left.value === 'string' && looksLikeSql(left.value)
+        const rightSql =
+          right.type === 'Literal' && typeof right.value === 'string' && looksLikeSql(right.value)
+        const leftDynamic = left.type !== 'Literal'
+        const rightDynamic = right.type !== 'Literal'
+        // SQL 片段 + 动态值 或 动态值 + SQL 片段 均视为危险拼接
+        if ((leftSql && rightDynamic) || (rightSql && leftDynamic)) {
+          context.report({
+            node,
+            messageId: 'noSqlConcat',
+          })
+        }
+      },
+
       // 检测模板字符串中的危险 SQL 拼接
       TemplateLiteral(node) {
         const text = sourceCode.getText(node)

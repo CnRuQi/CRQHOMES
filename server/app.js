@@ -47,6 +47,7 @@ app.use(
   '/uploads',
   express.static(config.upload.dir, {
     maxAge: '30d',
+    immutable: true, // 文件名含随机串，可安全长期缓存
     etag: true,
     setHeaders(res) {
       res.setHeader('X-Content-Type-Options', 'nosniff')
@@ -103,11 +104,13 @@ setInterval(
   60 * 60 * 1000
 )
 
-// 优雅关闭
-process.on('SIGINT', () => {
+// 优雅关闭（SIGINT=Ctrl+C，SIGTERM=systemd/Docker 停止）
+function gracefulShutdown() {
   const { closeDb } = require('./db')
   closeDb()
   process.exit(0)
-})
+}
+process.on('SIGINT', gracefulShutdown)
+process.on('SIGTERM', gracefulShutdown)
 
 module.exports = app

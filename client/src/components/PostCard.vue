@@ -1,5 +1,9 @@
 <template>
-  <article class="post-card glass-card" data-aos="fade-up" :data-aos-delay="index * 100">
+  <article
+    class="post-card glass-card"
+    data-aos="fade-up"
+    :data-aos-delay="Math.min(index, 6) * 100"
+  >
     <router-link :to="`/post/${post.slug || post.id}`" class="card-link">
       <div v-if="post.cover_image" class="card-cover">
         <img :src="post.cover_image" :alt="post.title" loading="lazy" />

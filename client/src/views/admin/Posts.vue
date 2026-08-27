@@ -28,89 +28,88 @@
       <div class="spinner"></div>
     </div>
 
-    <template v-else>
-      <div class="posts-table glass-card">
-        <table>
-          <thead>
+    <div class="posts-table glass-card">
+      <table>
+        <thead>
+          <tr>
+            <th class="drag-col"></th>
+            <th>标题</th>
+            <th>分类</th>
+            <th>状态</th>
+            <th>置顶</th>
+            <th>阅读</th>
+            <th>发布时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <draggable
+          v-model="posts"
+          tag="tbody"
+          item-key="id"
+          handle=".drag-handle"
+          :disabled="hasFilter"
+          ghost-class="ghost-row"
+          @end="handleDragEnd"
+        >
+          <template #item="{ element: post }">
             <tr>
-              <th class="drag-col"></th>
-              <th>标题</th>
-              <th>分类</th>
-              <th>状态</th>
-              <th>置顶</th>
-              <th>阅读</th>
-              <th>发布时间</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <draggable
-            v-model="posts"
-            tag="tbody"
-            item-key="id"
-            handle=".drag-handle"
-            ghost-class="ghost-row"
-            @end="handleDragEnd"
-          >
-            <template #item="{ element: post }">
-              <tr>
-                <td class="drag-col">
-                  <span class="drag-handle">
-                    <Icon name="list" :size="16" />
-                  </span>
-                </td>
-                <td>
-                  <router-link :to="`/admin/posts/${post.id}/edit`" class="post-title">
-                    {{ post.title }}
-                  </router-link>
-                </td>
-                <td>
-                  <span v-if="post.category_name" class="category-tag">
-                    {{ post.category_name }}
-                  </span>
-                  <span v-else class="text-muted">未分类</span>
-                </td>
-                <td>
-                  <span :class="['status-tag', post.status ? 'published' : 'draft']">
-                    {{ post.status ? '已发布' : '草稿' }}
-                  </span>
-                </td>
-                <td>
-                  <button
-                    class="top-btn"
-                    :class="{ active: post.is_top }"
-                    @click="handleToggleTop(post)"
+              <td class="drag-col">
+                <span class="drag-handle">
+                  <Icon name="list" :size="16" />
+                </span>
+              </td>
+              <td>
+                <router-link :to="`/admin/posts/${post.id}/edit`" class="post-title">
+                  {{ post.title }}
+                </router-link>
+              </td>
+              <td>
+                <span v-if="post.category_name" class="category-tag">
+                  {{ post.category_name }}
+                </span>
+                <span v-else class="text-muted">未分类</span>
+              </td>
+              <td>
+                <span :class="['status-tag', post.status ? 'published' : 'draft']">
+                  {{ post.status ? '已发布' : '草稿' }}
+                </span>
+              </td>
+              <td>
+                <button
+                  class="top-btn"
+                  :class="{ active: post.is_top }"
+                  @click="handleToggleTop(post)"
+                >
+                  <Icon :name="post.is_top ? 'pinyes' : 'pinno'" :size="18" />
+                </button>
+              </td>
+              <td>{{ post.views }}</td>
+              <td>{{ formatDate(post.published_at || post.created_at) }}</td>
+              <td>
+                <div class="actions">
+                  <router-link
+                    :to="`/admin/posts/${post.id}/edit`"
+                    class="btn btn-sm btn-secondary"
                   >
-                    <Icon :name="post.is_top ? 'pinyes' : 'pinno'" :size="18" />
-                  </button>
-                </td>
-                <td>{{ post.views }}</td>
-                <td>{{ formatDate(post.published_at || post.created_at) }}</td>
-                <td>
-                  <div class="actions">
-                    <router-link
-                      :to="`/admin/posts/${post.id}/edit`"
-                      class="btn btn-sm btn-secondary"
-                    >
-                      编辑
-                    </router-link>
-                    <button class="btn btn-sm btn-danger" @click="handleDelete(post)">删除</button>
-                  </div>
-                </td>
-              </tr>
-            </template>
-          </draggable>
-        </table>
+                    编辑
+                  </router-link>
+                  <button class="btn btn-sm btn-danger" @click="handleDelete(post)">删除</button>
+                </div>
+              </td>
+            </tr>
+          </template>
+        </draggable>
+      </table>
 
-        <EmptyState v-if="!posts.length" icon="article" text="暂无文章">
-          <router-link to="/admin/posts/create" class="btn btn-primary mt-md"> 写文章 </router-link>
-        </EmptyState>
-      </div>
-    </template>
+      <EmptyState v-if="!loading && !posts.length" icon="article" text="暂无文章">
+        <router-link to="/admin/posts/create" class="btn btn-primary mt-md"> 写文章 </router-link>
+      </EmptyState>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { getAllPosts, deletePost, toggleTop, updateSortOrder } from '@/api/post'
 import { formatDate, debounce } from '@/assets/js/utils'
 import { useToast } from '@/composables/useToast'
@@ -131,7 +130,14 @@ const debouncedFetch = debounce(() => {
   fetchPosts()
 }, 300)
 
+// 请求序号：丢弃过期响应（快速输入/切换筛选时先发的慢响应不覆盖后发结果）
+let fetchSeq = 0
+
+// 筛选状态下禁用拖拽排序
+const hasFilter = computed(() => filters.value.status !== '' || filters.value.keyword !== '')
+
 async function fetchPosts() {
+  const seq = ++fetchSeq
   loading.value = true
   try {
     // pageSize=0 表示不分页，一次列出全部文章，保证拖拽排序可在任意文章间进行
@@ -140,19 +146,22 @@ async function fetchPosts() {
       ...filters.value,
     }
     const res = await getAllPosts(params)
+    if (seq !== fetchSeq) return
     posts.value = res.data.list
   } catch (error) {
     console.error('获取文章列表失败:', error)
     toast.error('加载文章失败')
   } finally {
-    loading.value = false
+    if (seq === fetchSeq) loading.value = false
   }
 }
 
 async function handleToggleTop(post) {
   try {
-    await toggleTop(post.id)
-    post.is_top = post.is_top ? 0 : 1
+    // 以服务端返回值为准，避免本地翻转与服务端规范化逻辑漂移
+    const res = await toggleTop(post.id)
+    post.is_top = res.data.is_top
+    toast.success(post.is_top ? '已置顶' : '已取消置顶')
   } catch (error) {
     console.error('切换置顶失败:', error)
     toast.error('切换置顶失败')
@@ -166,7 +175,8 @@ async function handleDelete(post) {
 
   try {
     await deletePost(post.id)
-    fetchPosts()
+    await fetchPosts()
+    toast.success('删除成功')
   } catch (error) {
     console.error('删除失败:', error)
     toast.error('删除失败')
@@ -176,9 +186,26 @@ async function handleDelete(post) {
 async function handleDragEnd() {
   // 列表已不分页（列出全部文章），仅在无筛选时允许拖拽排序，
   // 避免筛选出的子集提交后打乱全局顺序
-  const hasFilter = filters.value.status !== '' || filters.value.keyword !== ''
-  if (hasFilter) {
+  if (hasFilter.value) {
     toast.warning('排序仅在无筛选时可用')
+    fetchPosts()
+    return
+  }
+
+  // 置顶文章固定显示在最前（服务端 is_top DESC 优先）：
+  // 拖拽后若置顶组与非置顶组发生交错，说明跨组拖动，回滚并提示
+  let sawNonTop = false
+  let groupBroken = false
+  for (const post of posts.value) {
+    if (!post.is_top) {
+      sawNonTop = true
+    } else if (sawNonTop) {
+      groupBroken = true
+      break
+    }
+  }
+  if (groupBroken) {
+    toast.warning('置顶文章固定显示在最前，不能拖到未置顶文章之后')
     fetchPosts()
     return
   }

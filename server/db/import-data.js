@@ -228,58 +228,63 @@ function importData() {
   const db = getDb()
 
   try {
-    // 清空现有数据（保留用户）
-    console.log('清空现有文章和分类数据...')
-    db.prepare('DELETE FROM posts').run()
-    db.prepare('DELETE FROM categories').run()
+    // 整个导入放入事务：中途失败整体回滚，避免半导入状态
+    const runImport = db.transaction(() => {
+      // 清空现有数据（保留用户）
+      console.log('清空现有文章和分类数据...')
+      db.prepare('DELETE FROM posts').run()
+      db.prepare('DELETE FROM categories').run()
 
-    // 导入分类
-    console.log('导入分类...')
-    const insertCategory = db.prepare(
-      'INSERT INTO categories (id, name, slug, description) VALUES (?, ?, ?, ?)'
-    )
-
-    for (const cat of categories) {
-      insertCategory.run(cat.id, cat.name, cat.slug, cat.description)
-      console.log(`  ✓ 分类: ${cat.name}`)
-    }
-
-    // 导入文章
-    console.log('\n导入文章...')
-    const insertPost = db.prepare(`
-      INSERT INTO posts (id, title, slug, content, summary, cover_image, category_id, is_top, status, views)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `)
-
-    for (const post of posts) {
-      insertPost.run(
-        post.id,
-        post.title,
-        post.slug,
-        post.content,
-        post.summary,
-        post.cover_image,
-        post.category_id,
-        post.is_top,
-        post.status,
-        post.views
+      // 导入分类
+      console.log('导入分类...')
+      const insertCategory = db.prepare(
+        'INSERT INTO categories (id, name, slug, description) VALUES (?, ?, ?, ?)'
       )
-      console.log(`  ✓ 文章: ${post.title}`)
-    }
 
-    // 重置自增 ID
-    db.prepare(
-      "UPDATE sqlite_sequence SET seq = (SELECT MAX(id) FROM posts) WHERE name = 'posts'"
-    ).run()
-    db.prepare(
-      "UPDATE sqlite_sequence SET seq = (SELECT MAX(id) FROM categories) WHERE name = 'categories'"
-    ).run()
+      for (const cat of categories) {
+        insertCategory.run(cat.id, cat.name, cat.slug, cat.description)
+        console.log(`  ✓ 分类: ${cat.name}`)
+      }
+
+      // 导入文章
+      console.log('\n导入文章...')
+      const insertPost = db.prepare(`
+        INSERT INTO posts (id, title, slug, content, summary, cover_image, category_id, is_top, status, views)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `)
+
+      for (const post of posts) {
+        insertPost.run(
+          post.id,
+          post.title,
+          post.slug,
+          post.content,
+          post.summary,
+          post.cover_image,
+          post.category_id,
+          post.is_top,
+          post.status,
+          post.views
+        )
+        console.log(`  ✓ 文章: ${post.title}`)
+      }
+
+      // 重置自增 ID
+      db.prepare(
+        "UPDATE sqlite_sequence SET seq = (SELECT MAX(id) FROM posts) WHERE name = 'posts'"
+      ).run()
+      db.prepare(
+        "UPDATE sqlite_sequence SET seq = (SELECT MAX(id) FROM categories) WHERE name = 'categories'"
+      ).run()
+    })
+    runImport()
 
     console.log('\n✅ 数据导入完成！')
     console.log(`   - 分类: ${categories.length} 个`)
     console.log(`   - 文章: ${posts.length} 篇`)
   } catch (error) {
     console.error('导入失败:', error.message)
+    process.exitCode = 1
   } finally {
     closeDb()
   }

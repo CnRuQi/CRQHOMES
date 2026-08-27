@@ -19,6 +19,17 @@ function normalizeTopFlag(value) {
   return Number(value) === 1 || value === true ? 1 : 0
 }
 
+// 规范化时间为 UTC ISO 8601（兼容 SQLite CURRENT_TIMESTAMP 的无时区 UTC 格式）
+function toIso(value) {
+  if (!value) return value
+  const str = String(value)
+  const normalized = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(str)
+    ? str.replace(' ', 'T') + 'Z'
+    : str
+  const date = new Date(normalized)
+  return Number.isNaN(date.getTime()) ? value : date.toISOString()
+}
+
 // 校验分类是否存在（避免外键冲突返回 500）
 function assertCategoryExists(db, categoryId) {
   if (categoryId === undefined || categoryId === null || categoryId === '') return
@@ -110,8 +121,8 @@ function buildPostQueryConditions(query, options = {}) {
   return { where, params }
 }
 
-// 执行文章列表查询
-function executePostListQuery(db, where, params, pageSize, offset) {
+// 执行文章列表查询（orderBy: 'default'=置顶优先排序 | 'recent'=按发布时间）
+function executePostListQuery(db, where, params, pageSize, offset, orderBy = 'default') {
   const countSql = `
     SELECT COUNT(*) as total
     FROM posts p
@@ -120,6 +131,10 @@ function executePostListQuery(db, where, params, pageSize, offset) {
   `
   const { total } = db.prepare(countSql).get(...params)
 
+  const orderClause =
+    orderBy === 'recent'
+      ? 'ORDER BY julianday(p.published_at) DESC'
+      : 'ORDER BY p.is_top DESC, p.sort_order DESC, julianday(p.published_at) DESC'
   const listSqlBase = `
     SELECT 
       p.id, p.slug, p.title, p.summary, p.cover_image, p.tags, 
@@ -128,7 +143,7 @@ function executePostListQuery(db, where, params, pageSize, offset) {
     FROM posts p
     LEFT JOIN categories c ON p.category_id = c.id
     ${where}
-    ORDER BY p.is_top DESC, p.sort_order DESC, p.published_at DESC
+    ${orderClause}
   `
   const list =
     pageSize === null
@@ -137,6 +152,9 @@ function executePostListQuery(db, where, params, pageSize, offset) {
 
   const formattedList = list.map((post) => ({
     ...post,
+    published_at: toIso(post.published_at),
+    created_at: toIso(post.created_at),
+    updated_at: toIso(post.updated_at),
     tags: parseTags(post.tags),
   }))
 
@@ -167,25 +185,23 @@ function getPost(req, res, next) {
   try {
     const { idOrSlug } = req.params
     const db = getDb()
-    const isNumeric = /^\d+$/.test(idOrSlug)
 
-    let post
-    if (isNumeric) {
+    // 先按 slug 查询（纯数字标题生成的 slug 如 "123" 也能访问），再回退 id 兼容旧链接
+    let post = db
+      .prepare(
+        `SELECT p.*, c.name as category_name, c.slug as category_slug
+         FROM posts p LEFT JOIN categories c ON p.category_id = c.id
+         WHERE p.slug = ? AND p.status = 1`
+      )
+      .get(idOrSlug)
+    if (!post && /^\d+$/.test(idOrSlug)) {
       post = db
         .prepare(
           `SELECT p.*, c.name as category_name, c.slug as category_slug
            FROM posts p LEFT JOIN categories c ON p.category_id = c.id
            WHERE p.id = ? AND p.status = 1`
         )
-        .get(idOrSlug)
-    } else {
-      post = db
-        .prepare(
-          `SELECT p.*, c.name as category_name, c.slug as category_slug
-           FROM posts p LEFT JOIN categories c ON p.category_id = c.id
-           WHERE p.slug = ? AND p.status = 1`
-        )
-        .get(idOrSlug)
+        .get(Number(idOrSlug))
     }
 
     if (!post) {
@@ -199,6 +215,9 @@ function getPost(req, res, next) {
       post.views += 1
       recordView(db, clientIp, post.id)
     }
+    post.published_at = toIso(post.published_at)
+    post.created_at = toIso(post.created_at)
+    post.updated_at = toIso(post.updated_at)
     post.tags = parseTags(post.tags)
 
     success(res, { post })
@@ -225,6 +244,9 @@ function getPostForAdmin(req, res, next) {
       throw new AppError('文章不存在', 404)
     }
 
+    post.published_at = toIso(post.published_at)
+    post.created_at = toIso(post.created_at)
+    post.updated_at = toIso(post.updated_at)
     post.tags = parseTags(post.tags)
 
     success(res, { post })
@@ -237,13 +259,14 @@ function getPostForAdmin(req, res, next) {
 function getAllPosts(req, res, next) {
   try {
     const { page, pageSize, offset } = parsePagination(req.query)
+    const orderBy = req.query.sort === 'recent' ? 'recent' : 'default'
     const db = getDb()
 
     const { where, params } = buildPostQueryConditions(req.query, {
       includeStatus: true,
     })
 
-    const { list, total } = executePostListQuery(db, where, params, pageSize, offset)
+    const { list, total } = executePostListQuery(db, where, params, pageSize, offset, orderBy)
 
     paginate(res, { list, total, page, pageSize })
   } catch (error) {
@@ -266,8 +289,12 @@ function createPost(req, res, next) {
       published_at,
     } = req.body
 
-    if (!title || !content) {
-      throw new AppError('标题和内容不能为空', 400)
+    if (!title) {
+      throw new AppError('标题不能为空', 400)
+    }
+    // 草稿（status=0）允许正文为空，发布时必须非空
+    if (Number(status) !== 0 && !content) {
+      throw new AppError('内容不能为空', 400)
     }
 
     if (!category_id) {
@@ -286,11 +313,16 @@ function createPost(req, res, next) {
       .get()
     const sortOrder = maxSort + 1
 
+    const postStatus = status !== undefined ? status : 1
+    const nowIso = new Date().toISOString()
+    // 草稿不写发布时间（保留 NULL），发布时间在真正发布时才确定
+    const publishedAt = Number(postStatus) === 1 ? published_at || nowIso : null
+
     const result = db
       .prepare(
         `
-      INSERT INTO posts (title, slug, content, summary, cover_image, category_id, tags, is_top, status, sort_order, published_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO posts (title, slug, content, summary, cover_image, category_id, tags, is_top, status, sort_order, published_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
       )
       .run(
@@ -302,9 +334,10 @@ function createPost(req, res, next) {
         category_id || null,
         tagsStr,
         normalizeTopFlag(is_top),
-        status !== undefined ? status : 1,
+        postStatus,
         sortOrder,
-        published_at || new Date().toISOString()
+        publishedAt,
+        nowIso
       )
 
     const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(result.lastInsertRowid)
@@ -334,13 +367,19 @@ function updatePost(req, res, next) {
     const db = getDb()
     assertCategoryExists(db, category_id || null)
 
-    const existingPost = db.prepare('SELECT id, title, slug FROM posts WHERE id = ?').get(id)
+    const existingPost = db
+      .prepare('SELECT id, title, slug, published_at FROM posts WHERE id = ?')
+      .get(id)
     if (!existingPost) {
       throw new AppError('文章不存在', 404)
     }
 
-    if (!title || !content) {
-      throw new AppError('标题和内容不能为空', 400)
+    if (!title) {
+      throw new AppError('标题不能为空', 400)
+    }
+    // 草稿（status=0）允许正文为空，发布时必须非空
+    if (Number(status) !== 0 && !content) {
+      throw new AppError('内容不能为空', 400)
     }
 
     if (!category_id) {
@@ -355,12 +394,18 @@ function updatePost(req, res, next) {
 
     const tagsStr = Array.isArray(tags) ? tags.join(',') : tags || ''
 
+    const postStatus = status !== undefined ? status : 1
+    const nowIso = new Date().toISOString()
+    // 草稿不写发布时间；发布时保留原发布时间（未设置则取当前时间）
+    const publishedAt =
+      Number(postStatus) === 1 ? published_at || existingPost.published_at || nowIso : null
+
     db.prepare(
       `
       UPDATE posts 
       SET title = ?, slug = ?, content = ?, summary = ?, cover_image = ?, 
           category_id = ?, tags = ?, is_top = ?, status = ?, published_at = ?,
-          updated_at = CURRENT_TIMESTAMP
+          updated_at = ?
       WHERE id = ?
     `
     ).run(
@@ -371,9 +416,10 @@ function updatePost(req, res, next) {
       cover_image || '',
       category_id || null,
       tagsStr,
-      is_top ? 1 : 0,
-      status !== undefined ? status : 1,
-      published_at || new Date().toISOString(),
+      normalizeTopFlag(is_top),
+      postStatus,
+      publishedAt,
+      nowIso,
       id
     )
 
@@ -446,7 +492,7 @@ function getArchives(req, res, next) {
     // 按年月分组（与列表按 published_at 排序保持一致）
     const archives = {}
     posts.forEach((post) => {
-      const date = new Date(post.published_at || post.created_at)
+      const date = new Date(toIso(post.published_at || post.created_at))
       const year = date.getFullYear()
       const month = date.getMonth() + 1
       const key = `${year}-${month.toString().padStart(2, '0')}`
@@ -471,7 +517,7 @@ function searchPosts(req, res, next) {
     const db = getDb()
 
     if (!keyword || keyword.trim() === '') {
-      return success(res, { list: [], pagination: { total: 0, page, pageSize, totalPages: 0 } })
+      return paginate(res, { list: [], total: 0, page, pageSize })
     }
 
     const searchKeyword = `%${escapeLike(keyword.trim())}%`
@@ -494,16 +540,18 @@ function searchPosts(req, res, next) {
       FROM posts p
       LEFT JOIN categories c ON p.category_id = c.id
       WHERE p.status = 1 AND (p.title LIKE ? ESCAPE '\\' OR p.summary LIKE ? ESCAPE '\\' OR p.content LIKE ? ESCAPE '\\')
-      ORDER BY p.published_at DESC
+      ORDER BY julianday(p.published_at) DESC
       LIMIT ? OFFSET ?
     `
     const list = db
       .prepare(listSql)
       .all(searchKeyword, searchKeyword, searchKeyword, pageSize, offset)
 
-    // 解析标签
+    // 解析标签并规范化时间
     const formattedList = list.map((post) => ({
       ...post,
+      published_at: toIso(post.published_at),
+      created_at: toIso(post.created_at),
       tags: parseTags(post.tags),
     }))
 
@@ -518,6 +566,16 @@ function updateSortOrder(req, res, next) {
   try {
     const { posts } = req.body
     const db = getDb()
+
+    // 校验所有文章 id 存在，避免部分 id 静默 no-op 造成「排序成功但未生效」
+    const ids = posts.map((item) => item.id)
+    // 使用 json_each 完全参数化，避免动态拼占位符
+    const { c: foundCount } = db
+      .prepare('SELECT COUNT(*) as c FROM posts WHERE id IN (SELECT value FROM json_each(?))')
+      .get(JSON.stringify(ids))
+    if (foundCount !== ids.length) {
+      throw new AppError('排序数据中包含不存在的文章', 400)
+    }
 
     // 排序属于元数据操作，不改变内容，不应刷新「最后更新于」
     const updateStmt = db.prepare('UPDATE posts SET sort_order = ? WHERE id = ?')
@@ -541,6 +599,7 @@ function getStats(req, res, next) {
   try {
     const db = getDb()
 
+    // 注意：totalPosts 为全部文章数（含草稿），如需「已发布数」请按 status = 1 统计
     const stats = db
       .prepare(
         `

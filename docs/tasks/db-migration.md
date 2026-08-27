@@ -30,7 +30,7 @@ CREATE INDEX IF NOT EXISTS idx_new_table_name ON new_table(name);
 
 ### 2. 创建迁移脚本
 
-在 `server/db/migrate.js` 中添加迁移逻辑：
+在 `server/db/index.js` 的 `initDb()` 中添加迁移逻辑（migrate.js 已移除，迁移内联在 initDb 中）：
 
 ```javascript
 function migrateV2(db) {
@@ -81,7 +81,7 @@ const post = db.prepare('SELECT id, title, new_column FROM posts WHERE id = ?').
 ## 检查清单
 
 - [ ] schema.sql 已更新
-- [ ] migrate.js 有幂等检查（可重复执行）
+- [ ] 迁移逻辑有幂等检查（可重复执行，参考 initDb 中的 slug 字段迁移）
 - [ ] 新字段有合理的默认值
 - [ ] 高频查询字段已添加索引
 - [ ] Controller 已更新使用新字段

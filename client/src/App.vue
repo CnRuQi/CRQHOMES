@@ -30,21 +30,34 @@ import { useTheme } from '@/composables/useTheme'
 const { toastState } = useToast()
 const { initTheme, watchSystemTheme, stopWatchSystemTheme } = useTheme()
 
-onMounted(() => {
-  initTheme()
-  watchSystemTheme()
+const reduceMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+function initAos() {
   AOS.init({
     duration: 500,
     easing: 'ease-out',
     once: true,
     offset: 50,
     // 用户偏好减少动态效果时禁用滚动动画
-    disable: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    disable: reduceMotionQuery.matches,
   })
+}
+
+onMounted(() => {
+  initTheme()
+  watchSystemTheme()
+  initAos()
+  // 会话中切换系统「减少动态效果」时即时生效
+  if (reduceMotionQuery.addEventListener) {
+    reduceMotionQuery.addEventListener('change', initAos)
+  }
 })
 
 onUnmounted(() => {
   stopWatchSystemTheme()
+  if (reduceMotionQuery.removeEventListener) {
+    reduceMotionQuery.removeEventListener('change', initAos)
+  }
 })
 </script>
 

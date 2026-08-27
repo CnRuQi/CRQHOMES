@@ -9,7 +9,7 @@
         <span class="logo-text">披花沐雪</span>
       </router-link>
 
-      <nav class="navbar-menu" :class="{ active: isMenuOpen }">
+      <nav id="navbar-menu" class="navbar-menu" :class="{ active: isMenuOpen }">
         <router-link to="/" class="nav-link" @click="closeMenu"> 首页 </router-link>
         <router-link
           v-for="cat in postStore.categories"
@@ -37,7 +37,13 @@
         >
           <Icon :name="isDark ? 'sun' : 'moon'" :size="20" />
         </button>
-        <button class="menu-toggle" @click="toggleMenu">
+        <button
+          class="menu-toggle"
+          :aria-label="isMenuOpen ? '关闭菜单' : '打开菜单'"
+          :aria-expanded="isMenuOpen"
+          aria-controls="navbar-menu"
+          @click="toggleMenu"
+        >
           <span :class="{ active: isMenuOpen }"></span>
         </button>
       </div>

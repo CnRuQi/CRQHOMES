@@ -11,6 +11,7 @@
               type="text"
               class="search-input"
               placeholder="输入关键词搜索文章..."
+              aria-label="搜索文章"
               autofocus
               @input="debouncedSearch"
             />
@@ -57,7 +58,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { searchPosts } from '@/api/post'
 import { debounce, restoreListScroll } from '@/assets/js/utils'
@@ -142,9 +143,12 @@ function changePage(page) {
 }
 
 function clearSearch() {
+  // 使在途请求过期，避免清除后旧响应把结果回填
+  searchSeq++
   keyword.value = ''
   posts.value = []
   total.value = 0
+  loading.value = false
   pagination.value = { total: 0, page: 1, pageSize: 10, totalPages: 0 }
   router.replace({ query: {} })
 }
@@ -153,6 +157,25 @@ function clearSearch() {
 if (keyword.value) {
   doSearch(parseInt(route.query.page, 10) || 1, { restore: true })
 }
+
+// 浏览器前进/后退（同路径仅 query 变化，组件不重挂载）时同步搜索状态
+watch(
+  () => route.query.q,
+  (q) => {
+    const newKeyword = typeof q === 'string' ? q : ''
+    if (newKeyword === keyword.value) return
+    keyword.value = newKeyword
+    if (newKeyword) {
+      doSearch(parseInt(route.query.page, 10) || 1)
+    } else {
+      searchSeq++
+      posts.value = []
+      total.value = 0
+      loading.value = false
+      pagination.value = { total: 0, page: 1, pageSize: 10, totalPages: 0 }
+    }
+  }
+)
 </script>
 
 <style scoped>

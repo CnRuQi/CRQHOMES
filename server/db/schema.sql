@@ -5,8 +5,8 @@ CREATE TABLE IF NOT EXISTS users (
     password TEXT NOT NULL,
     nickname TEXT,
     avatar TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at DATETIME DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 
 -- 分类表
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS categories (
     slug TEXT UNIQUE NOT NULL,
     description TEXT,
     sort INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 
 -- 文章表
@@ -33,9 +33,9 @@ CREATE TABLE IF NOT EXISTS posts (
     status INTEGER DEFAULT 1,
     views INTEGER DEFAULT 0,
     sort_order INTEGER DEFAULT 0,
-    published_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    published_at DATETIME DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    created_at DATETIME DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at DATETIME DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
 );
 
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS view_tracking (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     ip_address TEXT NOT NULL,
     post_id INTEGER NOT NULL,
-    viewed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    viewed_at DATETIME DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
     UNIQUE(ip_address, post_id)
 );
 

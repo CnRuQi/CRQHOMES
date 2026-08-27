@@ -6,8 +6,9 @@
  *
  * AGENT FIX: 在路由定义中添加 authenticate 中间件。
  * 参考: docs/tasks/new-api.md → 步骤 4
+ * 注意：本规则为启发式检测（识别裸标识符 authenticate / 数组形式），
+ * 别名导入、router.use(authenticate) 等写法可能漏报，代码审查时需人工复核。
  */
-
 module.exports = {
   meta: {
     type: 'problem',

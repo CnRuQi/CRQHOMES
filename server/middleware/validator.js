@@ -23,7 +23,12 @@ const postRules = {
       .withMessage('标题不能为空')
       .isLength({ max: 200 })
       .withMessage('标题不能超过200个字符'),
-    body('content').notEmpty().withMessage('内容不能为空'),
+    body('content').custom((value, { req }) => {
+      // 草稿（status=0）允许正文为空，发布时必须非空
+      if (String(req.body.status) === '0') return true
+      if (!value || !String(value).trim()) throw new Error('内容不能为空')
+      return true
+    }),
     body('summary').optional().isLength({ max: 500 }).withMessage('摘要不能超过500个字符'),
     body('category_id')
       .notEmpty()
@@ -32,6 +37,12 @@ const postRules = {
       .isInt()
       .withMessage('分类ID必须是整数'),
     body('tags').optional().isString().withMessage('标签必须是字符串'),
+    body('cover_image')
+      .optional({ checkFalsy: true })
+      .isString()
+      .withMessage('封面图必须是字符串')
+      .matches(/^(https?:\/\/|\/uploads\/)/)
+      .withMessage('封面图必须是 http(s) 链接或 /uploads/ 路径'),
     body('is_top').optional().isIn([0, 1, true, false]).withMessage('置顶值无效'),
     body('status').optional().isIn([0, 1]).withMessage('状态值无效'),
     validate,
@@ -44,7 +55,12 @@ const postRules = {
       .withMessage('标题不能为空')
       .isLength({ max: 200 })
       .withMessage('标题不能超过200个字符'),
-    body('content').notEmpty().withMessage('内容不能为空'),
+    body('content').custom((value, { req }) => {
+      // 草稿（status=0）允许正文为空，发布时必须非空
+      if (String(req.body.status) === '0') return true
+      if (!value || !String(value).trim()) throw new Error('内容不能为空')
+      return true
+    }),
     body('summary').optional().isLength({ max: 500 }).withMessage('摘要不能超过500个字符'),
     body('category_id')
       .notEmpty()
@@ -53,6 +69,12 @@ const postRules = {
       .isInt()
       .withMessage('分类ID必须是整数'),
     body('tags').optional().isString().withMessage('标签必须是字符串'),
+    body('cover_image')
+      .optional({ checkFalsy: true })
+      .isString()
+      .withMessage('封面图必须是字符串')
+      .matches(/^(https?:\/\/|\/uploads\/)/)
+      .withMessage('封面图必须是 http(s) 链接或 /uploads/ 路径'),
     body('is_top').optional().isIn([0, 1, true, false]).withMessage('置顶值无效'),
     body('status').optional().isIn([0, 1]).withMessage('状态值无效'),
     validate,
@@ -67,6 +89,7 @@ const postRules = {
     query('status').optional({ checkFalsy: true }).isIn(['0', '1']).withMessage('状态值无效'),
     query('category').optional({ checkFalsy: true }).isString().withMessage('分类参数无效'),
     query('tag').optional({ checkFalsy: true }).isString().withMessage('标签参数无效'),
+    query('sort').optional({ checkFalsy: true }).isIn(['recent']).withMessage('排序参数无效'),
     query('keyword')
       .optional({ checkFalsy: true })
       .isString()
@@ -75,7 +98,9 @@ const postRules = {
     validate,
   ],
   sortOrder: [
-    body('posts').isArray({ min: 1 }).withMessage('排序数据必须是非空数组'),
+    body('posts')
+      .isArray({ min: 1, max: 1000 })
+      .withMessage('排序数据必须是非空数组且不超过1000条'),
     body('posts.*.id').isInt({ min: 1 }).withMessage('文章ID必须是正整数'),
     body('posts.*.sort_order').isInt().withMessage('排序值必须是整数'),
     validate,
@@ -167,6 +192,12 @@ const categoryRules = {
       .withMessage('分类别名只能包含小写字母、数字和连字符')
       .isLength({ max: 50 })
       .withMessage('分类别名不能超过50个字符'),
+    body('description')
+      .optional()
+      .isString()
+      .isLength({ max: 200 })
+      .withMessage('分类描述不能超过200个字符'),
+    body('sort').optional({ checkFalsy: true }).isInt().withMessage('排序值必须是整数'),
     validate,
   ],
   delete: [param('id').isInt().withMessage('分类ID必须是整数'), validate],

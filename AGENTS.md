@@ -17,7 +17,7 @@ server/          Express 后端
   controllers/   业务逻辑（auth、post、category）
   routes/        路由定义 → 调用 controller
   middleware/    auth.js(认证)、error.js(错误)、validator.js(验证)
-  db/            schema.sql、init.js、migrate.js
+  db/            schema.sql、init.js（迁移逻辑内联于 index.js）
   config/        环境变量读取
 client/          Vue 3 前端
   src/api/       Axios 封装（auth、post、category、upload）

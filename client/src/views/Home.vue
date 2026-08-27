@@ -43,7 +43,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, watch, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePostStore } from '@/stores/post'
 import { restoreListScroll } from '@/assets/js/utils'
@@ -65,7 +65,16 @@ const pagination = ref({
   totalPages: 0,
 })
 
+// 请求序号：连续翻页时丢弃过期响应，避免内容与 URL 页码脱节
+let fetchSeq = 0
+let requestedPage = 0
+
 async function fetchPosts(page = 1) {
+  // 越界页码 clamp 到有效范围（如直接访问 ?page=999）
+  const totalPages = pagination.value.totalPages
+  if (totalPages > 0) page = Math.min(Math.max(1, page), totalPages)
+  const seq = ++fetchSeq
+  requestedPage = page
   loading.value = true
   try {
     const params = { page, pageSize: 18 }
@@ -73,12 +82,13 @@ async function fetchPosts(page = 1) {
       params.category = route.params.slug
     }
     await postStore.fetchPosts(params)
+    if (seq !== fetchSeq) return
     posts.value = postStore.posts
     pagination.value = postStore.pagination
   } catch (error) {
     console.error('获取文章列表失败:', error)
   } finally {
-    loading.value = false
+    if (seq === fetchSeq) loading.value = false
   }
 }
 
@@ -103,6 +113,15 @@ onMounted(async () => {
   // 数据渲染完成后精确恢复滚动位置（修正骨架屏期间页面高度不足导致的错位）
   restoreListScroll(route.fullPath)
 })
+
+// 浏览器前进/后退翻页时同步（changePage 已先更新 requestedPage，不会重复请求）
+watch(
+  () => route.query.page,
+  (page) => {
+    const target = parseInt(page, 10) || 1
+    if (target !== requestedPage) fetchPosts(target)
+  }
+)
 </script>
 
 <style scoped>

@@ -39,7 +39,8 @@ router.get('/', (req, res) => {
     })
 
     posts.forEach((post) => {
-      const lastmod = post.updated_at || post.published_at
+      // lastmod 已由控制器规范化为 UTC ISO 8601（W3C sitemap 要求）
+      const lastmod = post.lastmod || post.updated_at || post.published_at
       xml += `
   <url>
     <loc>${escapeXml(siteUrl)}/post/${escapeXml(post.slug)}</loc>

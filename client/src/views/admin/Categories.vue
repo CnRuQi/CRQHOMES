@@ -193,7 +193,14 @@ async function handleDelete(category) {
     await fetchCategories()
     toast.success('分类删除成功')
   } catch (error) {
-    toast.error('删除失败: ' + (error.message || '未知错误'))
+    const msg = error.message || '未知错误'
+    // 分类下有文章时引导用户去文章管理筛选并转移
+    const countMatch = String(msg).match(/该分类下还有 (\d+) 篇文章/)
+    if (countMatch) {
+      toast.warning(`该分类下还有 ${countMatch[1]} 篇文章，请先在「文章管理」搜索该分类并转移文章`)
+    } else {
+      toast.error('删除失败: ' + msg)
+    }
   }
 }
 

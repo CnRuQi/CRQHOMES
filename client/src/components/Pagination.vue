@@ -12,6 +12,7 @@
       :key="page"
       class="pagination-btn"
       :class="{ active: page === pagination.page }"
+      :aria-current="page === pagination.page ? 'page' : undefined"
       @click="changePage(page)"
     >
       {{ page }}

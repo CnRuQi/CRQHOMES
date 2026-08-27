@@ -1,7 +1,8 @@
 <template>
   <img
     :src="iconSrc"
-    :alt="name"
+    alt=""
+    aria-hidden="true"
     class="icon"
     :style="{ width: size + 'px', height: size + 'px' }"
   />

@@ -35,8 +35,9 @@ const iconName = computed(() => {
 })
 
 watch(
-  () => props.visible,
-  (val) => {
+  // 同时监听 message：已显示时再次触发 show() 也重置计时，避免第二条一闪而过
+  [() => props.visible, () => props.message],
+  ([val]) => {
     if (timer.value) {
       clearTimeout(timer.value)
       timer.value = null

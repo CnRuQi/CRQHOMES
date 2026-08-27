@@ -138,8 +138,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { createPost, updatePost, getPostForAdmin } from '@/api/post'
 import { getCategories } from '@/api/category'
 import { uploadImage } from '@/api/upload'
@@ -155,8 +155,18 @@ const isEdit = computed(() => !!route.params.id)
 
 const loading = ref(false)
 const saving = ref(false)
+const dirty = ref(false) // 是否有未保存修改
 const categories = ref([])
 const coverMode = ref('upload') // 'upload' 或 'link'
+
+// 表单任一字段变化即标记未保存
+watch(
+  form,
+  () => {
+    dirty.value = true
+  },
+  { deep: true }
+)
 
 const form = ref({
   title: '',
@@ -283,6 +293,7 @@ async function handlePublish() {
 }
 
 async function savePost() {
+  if (saving.value) return // 防止双击重复提交
   saving.value = true
   try {
     const data = {
@@ -297,6 +308,7 @@ async function savePost() {
     }
 
     toast.success(isEdit.value ? '文章更新成功' : '文章创建成功')
+    dirty.value = false
     router.push('/admin/posts')
   } catch (error) {
     console.error('保存失败:', error)
@@ -306,10 +318,36 @@ async function savePost() {
   }
 }
 
-onMounted(() => {
-  fetchCategories()
-  fetchPost()
+onMounted(async () => {
+  await Promise.allSettled([fetchCategories(), fetchPost()])
+  // 加载回填（含默认分类兜底）不算用户修改
+  dirty.value = false
+  window.addEventListener('beforeunload', handleBeforeUnload)
 })
+
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload)
+})
+
+// 路由离开拦截（含「取消」按钮与侧边栏切换）
+onBeforeRouteLeave((to, from, next) => {
+  if (!dirty.value || saving.value || to.path === '/admin/login') {
+    next()
+    return
+  }
+  if (window.confirm('当前编辑内容尚未保存，确定离开吗？')) {
+    next()
+  } else {
+    next(false)
+  }
+})
+
+// 关闭标签页/刷新提示
+function handleBeforeUnload(e) {
+  if (!dirty.value) return
+  e.preventDefault()
+  e.returnValue = ''
+}
 </script>
 
 <style scoped>

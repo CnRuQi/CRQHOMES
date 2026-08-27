@@ -73,10 +73,42 @@ import { useToast } from '@/composables/useToast'
 import { formatDate } from '@/assets/js/utils'
 import { marked } from 'marked'
 import { markedHighlight } from 'marked-highlight'
-import hljs from 'highlight.js'
+// 按需注册常用语言，避免全量引入 highlight.js（约 1MB）
+import hljs from 'highlight.js/lib/core'
+import javascript from 'highlight.js/lib/languages/javascript'
+import typescript from 'highlight.js/lib/languages/typescript'
+import css from 'highlight.js/lib/languages/css'
+import xml from 'highlight.js/lib/languages/xml'
+import json from 'highlight.js/lib/languages/json'
+import bash from 'highlight.js/lib/languages/bash'
+import python from 'highlight.js/lib/languages/python'
+import sql from 'highlight.js/lib/languages/sql'
+import java from 'highlight.js/lib/languages/java'
+import c from 'highlight.js/lib/languages/c'
+import cpp from 'highlight.js/lib/languages/cpp'
+import go from 'highlight.js/lib/languages/go'
+import rust from 'highlight.js/lib/languages/rust'
+import markdown from 'highlight.js/lib/languages/markdown'
+import plaintext from 'highlight.js/lib/languages/plaintext'
 import DOMPurify from 'dompurify'
 import 'highlight.js/styles/github-dark.css'
 import Icon from '@/components/Icon.vue'
+
+hljs.registerLanguage('javascript', javascript)
+hljs.registerLanguage('typescript', typescript)
+hljs.registerLanguage('css', css)
+hljs.registerLanguage('xml', xml)
+hljs.registerLanguage('json', json)
+hljs.registerLanguage('bash', bash)
+hljs.registerLanguage('python', python)
+hljs.registerLanguage('sql', sql)
+hljs.registerLanguage('java', java)
+hljs.registerLanguage('c', c)
+hljs.registerLanguage('cpp', cpp)
+hljs.registerLanguage('go', go)
+hljs.registerLanguage('rust', rust)
+hljs.registerLanguage('markdown', markdown)
+hljs.registerLanguage('plaintext', plaintext)
 
 const route = useRoute()
 const router = useRouter()
@@ -85,6 +117,16 @@ const toast = useToast()
 
 const loading = ref(false)
 const post = ref(null)
+
+// setup 顶层调用：随数据响应式更新，组件卸载时自动清理 SEO meta
+useSeo({
+  title: computed(() => post.value?.title || ''),
+  description: computed(() => post.value?.summary || post.value?.title || ''),
+  keywords: computed(() => (post.value?.tags || []).join(',')),
+  image: computed(() => post.value?.cover_image || ''),
+  url: computed(() => window.location.href),
+  type: 'article',
+})
 
 // 配置 marked + 语法高亮
 marked.use(
@@ -106,12 +148,19 @@ marked.use({ breaks: true, gfm: true })
 
 const renderedContent = computed(() => {
   if (!post.value?.content) return ''
-  return DOMPurify.sanitize(marked(post.value.content))
+  return DOMPurify.sanitize(marked(post.value.content), {
+    afterSanitizeAttributes: (node) => {
+      // 新窗口打开的链接补 rel，防 tabnabbing
+      if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
+        node.setAttribute('rel', 'noopener noreferrer')
+      }
+    },
+  })
 })
 
 function goBack() {
   // 无历史记录（直接访问/新标签页打开）时回首页，避免按钮无效
-  if (window.history.length > 1) {
+  if (router.options.history.state.back) {
     router.back()
   } else {
     router.push('/')
@@ -123,18 +172,6 @@ onMounted(async () => {
   try {
     const res = await postStore.fetchPost(route.params.slug)
     post.value = res.data.post
-
-    // 设置 SEO
-    if (post.value) {
-      useSeo({
-        title: post.value.title,
-        description: post.value.summary || post.value.title,
-        keywords: post.value.tags ? post.value.tags.join(',') : '',
-        image: post.value.cover_image || '',
-        type: 'article',
-        url: window.location.href,
-      })
-    }
   } catch (error) {
     console.error('获取文章失败:', error)
     toast.error('加载文章失败')

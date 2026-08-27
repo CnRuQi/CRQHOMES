@@ -29,20 +29,42 @@ function verifyFileType(filePath, claimedMimetype) {
   let fd
   try {
     fd = fs.openSync(filePath, 'r')
-    const buffer = Buffer.alloc(12)
-    fs.readSync(fd, buffer, 0, 12, 0)
+    const stat = fs.fstatSync(fd)
+    if (stat.size < 12) return false
+
+    // 读取整个文件（受 MAX_FILE_SIZE 限制，安全）：
+    // 头部魔数 + 尾部结构校验，拦截「合法头部 + 任意 payload」的 polyglot 文件
+    const buffer = Buffer.alloc(stat.size)
+    fs.readSync(fd, buffer, 0, stat.size, 0)
 
     if (!expected.every((byte, i) => buffer[i] === byte)) {
       return false
     }
 
-    // webp 需额外校验第 8-12 字节为 "WEBP"，避免任意 RIFF 容器（WAV/AVI）绕过
-    if (claimedMimetype === 'image/webp') {
-      const webpMagic = [0x57, 0x45, 0x42, 0x50] // "WEBP"
-      return webpMagic.every((byte, i) => buffer[8 + i] === byte)
+    switch (claimedMimetype) {
+      case 'image/jpeg':
+        // JPEG 必须以 EOI 标记 FFD9 结尾（拦截尾部追加 HTML/PHP 的 polyglot）
+        return stat.size >= 4 && buffer[stat.size - 2] === 0xff && buffer[stat.size - 1] === 0xd9
+      case 'image/png':
+        // PNG 必须以 IEND 块结尾: 00 00 00 00 49 45 4E 44 AE 42 60 82
+        return (
+          stat.size >= 12 &&
+          buffer[stat.size - 12] === 0x00 &&
+          buffer.subarray(stat.size - 8, stat.size - 4).toString('latin1') === 'IEND'
+        )
+      case 'image/gif':
+        // GIF 必须以 0x3B（trailer）结尾
+        return buffer[stat.size - 1] === 0x3b
+      case 'image/webp': {
+        // webp: RIFF + 文件长度字段 + WEBP 容器头，长度与文件大小必须一致
+        const riffSize = buffer.readUInt32LE(4)
+        const webpMagic = [0x57, 0x45, 0x42, 0x50] // "WEBP"
+        const hasWebpHeader = webpMagic.every((byte, i) => buffer[8 + i] === byte)
+        return hasWebpHeader && riffSize === stat.size - 8
+      }
+      default:
+        return false
     }
-
-    return true
   } finally {
     if (fd !== undefined) {
       fs.closeSync(fd)
@@ -127,12 +149,19 @@ function uploadImage(req, res, next) {
   }
 }
 
-// Multer 错误处理
+// Multer 错误处理：所有 MulterError 统一映射为 400，避免落到 500
 function handleMulterError(error, req, res, next) {
   if (error instanceof multer.MulterError) {
-    if (error.code === 'LIMIT_FILE_SIZE') {
-      return next(new AppError(`文件大小不能超过 ${config.upload.maxSize / 1024 / 1024}MB`, 400))
+    const messages = {
+      LIMIT_FILE_SIZE: `文件大小不能超过 ${config.upload.maxSize / 1024 / 1024}MB`,
+      LIMIT_FILE_COUNT: '上传文件数量过多',
+      LIMIT_UNEXPECTED_FILE: '上传了不允许的文件字段',
+      LIMIT_PART_COUNT: '上传表单字段过多',
+      LIMIT_FIELD_KEY: '上传字段名过长',
+      LIMIT_FIELD_VALUE: '上传字段值过长',
+      LIMIT_FIELD_COUNT: '上传字段数量过多',
     }
+    return next(new AppError(messages[error.code] || `上传失败: ${error.code}`, 400))
   }
   next(error)
 }

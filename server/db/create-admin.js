@@ -17,12 +17,17 @@ async function createAdmin() {
   try {
     console.log('=== 创建管理员账号 ===\n')
 
-    const username = await question('请输入用户名: ')
+    const username = (await question('请输入用户名: ')).trim()
     const password = await question('请输入密码: ')
-    const nickname = await question('请输入昵称 (可选，直接回车跳过): ')
+    const nickname = (await question('请输入昵称 (可选，直接回车跳过): ')).trim()
 
     if (!username || !password) {
       console.error('用户名和密码不能为空！')
+      process.exit(1)
+    }
+    // 与登录验证器（min 6）保持一致，避免创建出永远无法登录的短密码账号
+    if (password.length < 6) {
+      console.error('密码长度不能少于 6 位！')
       process.exit(1)
     }
 

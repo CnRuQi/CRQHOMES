@@ -417,10 +417,8 @@ function toggleTop(req, res, next) {
     }
 
     const newIsTop = post.is_top ? 0 : 1
-    db.prepare('UPDATE posts SET is_top = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(
-      newIsTop,
-      id
-    )
+    // 置顶属于元数据操作，不改变内容，不应刷新「最后更新于」
+    db.prepare('UPDATE posts SET is_top = ? WHERE id = ?').run(newIsTop, id)
 
     success(res, { is_top: newIsTop }, newIsTop ? '已置顶' : '已取消置顶')
   } catch (error) {
@@ -521,9 +519,8 @@ function updateSortOrder(req, res, next) {
     const { posts } = req.body
     const db = getDb()
 
-    const updateStmt = db.prepare(
-      'UPDATE posts SET sort_order = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-    )
+    // 排序属于元数据操作，不改变内容，不应刷新「最后更新于」
+    const updateStmt = db.prepare('UPDATE posts SET sort_order = ? WHERE id = ?')
 
     const transaction = db.transaction((items) => {
       for (const item of items) {

@@ -159,15 +159,6 @@ const dirty = ref(false) // 是否有未保存修改
 const categories = ref([])
 const coverMode = ref('upload') // 'upload' 或 'link'
 
-// 表单任一字段变化即标记未保存
-watch(
-  form,
-  () => {
-    dirty.value = true
-  },
-  { deep: true }
-)
-
 const form = ref({
   title: '',
   content: '',
@@ -179,6 +170,15 @@ const form = ref({
   status: 1,
   published_at: '',
 })
+
+// 表单任一字段变化即标记未保存（必须在 form 定义之后）
+watch(
+  form,
+  () => {
+    dirty.value = true
+  },
+  { deep: true }
+)
 
 function goBack() {
   // 无历史记录（刷新后直接访问编辑页）时回文章列表

@@ -17,6 +17,11 @@ function notFound(req, res, next) {
 
 // 错误处理中间件
 function errorHandler(err, req, res, _next) {
+  // 响应已开始发送后再 status() 会抛 ERR_HTTP_HEADERS_SENT，转交 Express 默认处理
+  if (res.headersSent) {
+    return _next(err)
+  }
+
   let statusCode = err.statusCode || 500
   let message = err.message || '服务器内部错误'
 
@@ -27,6 +32,9 @@ function errorHandler(err, req, res, _next) {
   } else if (err.code === 'SQLITE_CONSTRAINT_FOREIGNKEY') {
     statusCode = 400
     message = '关联数据不存在'
+  } else if (err.code === 'SQLITE_CONSTRAINT_NOTNULL') {
+    statusCode = 400
+    message = '必填字段缺失'
   }
 
   // JWT 错误

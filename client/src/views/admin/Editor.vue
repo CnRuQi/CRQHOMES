@@ -243,6 +243,9 @@ async function fetchPost() {
     }
   } catch (error) {
     console.error('获取文章失败:', error)
+    // 会话过期时用户在拦截器里点了「取消」：留在当前页，让用户自行处理（如复制内容）
+    if (error?.code === 401) return
+    toast.error('文章不存在或加载失败')
     router.push('/admin/posts')
   } finally {
     loading.value = false
@@ -273,6 +276,13 @@ async function handleSaveDraft() {
   if (!form.value.title.trim()) {
     toast.warning('请输入文章标题')
     return
+  }
+  // 已发布文章转草稿是破坏性操作：文章立即下线且服务端会清空 published_at，必须明确确认
+  if (isEdit.value && form.value.status === 1) {
+    const confirmed = window.confirm(
+      '已发布的文章转为草稿后会立即下线，且原发布时间会被清除。确定继续吗？'
+    )
+    if (!confirmed) return
   }
   form.value.status = 0
   await savePost()

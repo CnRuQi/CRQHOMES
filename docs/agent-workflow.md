@@ -30,7 +30,7 @@
 ### 修改数据库
 1. 阅读 `docs/tasks/db-migration.md`
 2. 更新 `db/schema.sql`
-3. 更新 `db/migrate.js`（幂等检查）
+3. 迁移逻辑内联于 `server/db/index.js` 的 `initDb()`（保持幂等检查）
 4. SQL 必须使用 `?` 参数化查询
 
 ### 修复安全问题

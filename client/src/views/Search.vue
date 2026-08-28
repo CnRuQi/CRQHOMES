@@ -86,8 +86,11 @@ const pagination = ref({
 
 // 请求序号，用于丢弃过期的搜索响应（防竞态）
 let searchSeq = 0
+// 已请求的页码：浏览器前进/后退触发 watch 时区分「新翻页」与「本次翻页自己的 URL 回写」
+let requestedPage = 1
 
 async function doSearch(page = 1, { restore = false } = {}) {
+  requestedPage = page
   if (!keyword.value.trim()) {
     posts.value = []
     total.value = 0
@@ -159,20 +162,30 @@ if (keyword.value) {
 }
 
 // 浏览器前进/后退（同路径仅 query 变化，组件不重挂载）时同步搜索状态
+// q 与 page 都要监听：关键词未变而页码变化时同样需重新加载，否则结果与 URL 脱节
 watch(
-  () => route.query.q,
-  (q) => {
+  () => [route.query.q, route.query.page],
+  ([q, page]) => {
     const newKeyword = typeof q === 'string' ? q : ''
-    if (newKeyword === keyword.value) return
-    keyword.value = newKeyword
-    if (newKeyword) {
-      doSearch(parseInt(route.query.page, 10) || 1)
-    } else {
-      searchSeq++
-      posts.value = []
-      total.value = 0
-      loading.value = false
-      pagination.value = { total: 0, page: 1, pageSize: 10, totalPages: 0 }
+    const targetPage = parseInt(page, 10) || 1
+
+    if (newKeyword !== keyword.value) {
+      keyword.value = newKeyword
+      if (newKeyword) {
+        doSearch(targetPage)
+      } else {
+        searchSeq++
+        posts.value = []
+        total.value = 0
+        loading.value = false
+        pagination.value = { total: 0, page: 1, pageSize: 10, totalPages: 0 }
+      }
+      return
+    }
+
+    // 关键词未变、仅页码变化（前进/后退翻页）；changePage 的 URL 回写走不到这里
+    if (newKeyword && targetPage !== requestedPage) {
+      doSearch(targetPage)
     }
   }
 )

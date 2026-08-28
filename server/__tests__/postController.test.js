@@ -206,4 +206,32 @@ describe('createPost', () => {
     expect(created.status).toBe(0)
     expect(created.published_at).toBeNull()
   })
+
+  it('草稿请求体省略 content 字段时不报错且落库为空串', () => {
+    db.prepare('INSERT INTO categories (name, slug) VALUES (?, ?)').run('草稿分类2', 'draft-cat-2')
+    const cat = db.prepare("SELECT id FROM categories WHERE slug = 'draft-cat-2'").get()
+    const res = makeRes()
+    let nextError = null
+    let created = null
+    res.json = (payload) => {
+      created = payload.data.post
+    }
+    createPost(
+      {
+        body: {
+          title: '无正文字段草稿',
+          category_id: cat.id,
+          status: 0,
+        },
+      },
+      res,
+      (error) => {
+        nextError = error
+      }
+    )
+    expect(nextError).toBeNull()
+    expect(created).not.toBeNull()
+    const row = db.prepare('SELECT content FROM posts WHERE id = ?').get(created.id)
+    expect(row.content).toBe('')
+  })
 })

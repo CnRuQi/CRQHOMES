@@ -328,7 +328,7 @@ function createPost(req, res, next) {
       .run(
         title,
         slug,
-        content,
+        content || '',
         summary || '',
         cover_image || '',
         category_id || null,
@@ -411,7 +411,7 @@ function updatePost(req, res, next) {
     ).run(
       title,
       slug,
-      content,
+      content || '',
       summary || '',
       cover_image || '',
       category_id || null,

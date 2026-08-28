@@ -46,6 +46,7 @@
 import { ref, watch, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePostStore } from '@/stores/post'
+import { useToast } from '@/composables/useToast'
 import { restoreListScroll } from '@/assets/js/utils'
 import PostCard from '@/components/PostCard.vue'
 import SkeletonCard from '@/components/SkeletonCard.vue'
@@ -55,6 +56,7 @@ import EmptyState from '@/components/EmptyState.vue'
 const route = useRoute()
 const router = useRouter()
 const postStore = usePostStore()
+const toast = useToast()
 
 const loading = ref(false)
 const posts = ref([])
@@ -87,6 +89,8 @@ async function fetchPosts(page = 1) {
     pagination.value = postStore.pagination
   } catch (error) {
     console.error('获取文章列表失败:', error)
+    // 失败与「真的没有文章」语义不同，不能让用户看到误导性的空态
+    toast.error('加载文章失败，请稍后重试')
   } finally {
     if (seq === fetchSeq) loading.value = false
   }

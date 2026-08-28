@@ -162,6 +162,9 @@ async function handleToggleTop(post) {
     const res = await toggleTop(post.id)
     post.is_top = res.data.is_top
     toast.success(post.is_top ? '已置顶' : '已取消置顶')
+    // 服务端 is_top DESC 优先排序，置顶/取消中部文章后本地行序已失效，
+    // 不刷新会让 handleDragEnd 的置顶分组校验误判
+    await fetchPosts()
   } catch (error) {
     console.error('切换置顶失败:', error)
     toast.error('切换置顶失败')

@@ -144,15 +144,19 @@ const authRules = {
     validate,
   ],
   updateProfile: [
-    body('nickname').optional().isLength({ max: 50 }).withMessage('昵称不能超过50个字符'),
-    body('avatar')
+    body('nickname')
       .optional()
-      .custom((value) => {
-        if (!value || value.trim() === '') return true
-        if (value.includes('..')) throw new Error('路径不允许包含 ..')
-        if (value.startsWith('/') || value.startsWith('./')) return true
-        throw new Error('头像必须是相对路径')
-      }),
+      .trim()
+      .isLength({ max: 50 })
+      .withMessage('昵称不能超过50个字符'),
+    // 仅允许站内 /uploads/ 路径：放行任意 / 开头会连 //evil.com 这类协议相对 URL 一起通过
+    body('avatar')
+      .optional({ checkFalsy: true })
+      .isString()
+      .isLength({ max: 500 })
+      .withMessage('头像路径过长')
+      .matches(/^\/uploads\//)
+      .withMessage('头像必须是 /uploads/ 下的站内路径'),
     validate,
   ],
 }

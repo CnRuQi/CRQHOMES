@@ -93,7 +93,7 @@ server.on('error', (error) => {
 // 每小时清理一次过期浏览记录
 const { cleanupOldViews } = require('./controllers/postController')
 const { getDb } = require('./db')
-setInterval(
+const viewCleanupTimer = setInterval(
   () => {
     try {
       cleanupOldViews(getDb())
@@ -104,11 +104,23 @@ setInterval(
   60 * 60 * 1000
 )
 
-// 优雅关闭（SIGINT=Ctrl+C，SIGTERM=systemd/Docker 停止）
-function gracefulShutdown() {
-  const { closeDb } = require('./db')
-  closeDb()
-  process.exit(0)
+// 优雅关闭（SIGINT=Ctrl+C，SIGTERM=systemd/Docker 停止）：
+// 先停接新请求并断开 keep-alive，等在途请求处理完再关库退出
+function gracefulShutdown(signal) {
+  console.log(`收到 ${signal}，正在关闭服务器...`)
+  clearInterval(viewCleanupTimer)
+  server.closeIdleConnections?.()
+  server.close(() => {
+    const { closeDb } = require('./db')
+    closeDb()
+    process.exit(0)
+  })
+  // 兜底：在途请求长时间未结束时强制退出（closeDb 幂等，连接已关闭时是 no-op）
+  setTimeout(() => {
+    const { closeDb } = require('./db')
+    closeDb()
+    process.exit(0)
+  }, 10 * 1000).unref()
 }
 process.on('SIGINT', gracefulShutdown)
 process.on('SIGTERM', gracefulShutdown)

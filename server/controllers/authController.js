@@ -100,10 +100,9 @@ async function changePassword(req, res, next) {
     const salt = await bcrypt.genSalt(10)
     const hashedPassword = await bcrypt.hash(newPassword, salt)
 
-    db.prepare('UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(
-      hashedPassword,
-      req.user.id
-    )
+    db.prepare(
+      "UPDATE users SET password = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?"
+    ).run(hashedPassword, req.user.id)
 
     success(res, null, '密码修改成功')
   } catch (error) {
@@ -117,11 +116,12 @@ async function updateProfile(req, res, next) {
     const { nickname, avatar } = req.body
     const db = getDb()
 
-    const newNickname = nickname !== undefined && nickname !== '' ? nickname : req.user.nickname
-    const newAvatar = avatar !== undefined && avatar !== '' ? avatar : req.user.avatar
+    // undefined = 未提供（保留原值）；空串 = 清空该字段（与分类的半更新语义一致）
+    const newNickname = nickname !== undefined ? nickname : req.user.nickname
+    const newAvatar = avatar !== undefined ? avatar : req.user.avatar
 
     db.prepare(
-      'UPDATE users SET nickname = ?, avatar = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+      "UPDATE users SET nickname = ?, avatar = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?"
     ).run(newNickname, newAvatar, req.user.id)
 
     const updatedUser = db

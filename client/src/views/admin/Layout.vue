@@ -91,7 +91,8 @@
       <main class="admin-content">
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
-            <component :is="Component" />
+            <!-- :key 强制跨路由重建实例：create 与 edit 共用 Editor，复用会残留旧文章表单 -->
+            <component :is="Component" :key="route.path" />
           </transition>
         </router-view>
       </main>
@@ -100,7 +101,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import Icon from '@/components/Icon.vue'
@@ -141,6 +142,9 @@ async function handleLogout() {
   await authStore.logout()
   router.push('/admin/login')
 }
+
+// 卸载时释放滚动锁（如移动端菜单开着时被 401 踢出），防止残留 overflow:hidden 让登录页无法滚动
+onUnmounted(() => setBodyScrollLock(false))
 </script>
 
 <style scoped>

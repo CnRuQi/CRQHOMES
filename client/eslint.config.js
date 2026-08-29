@@ -9,7 +9,8 @@ export default [
   {
     rules: {
       'vue/multi-word-component-names': 'off',
-      'no-console': 'warn',
+      // 允许 warn/error：catch 块中的错误诊断日志需保留，仅拦截 console.log 调试残留
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-unused-vars': ['error', { argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
       'vue/no-v-html': 'error',
       'vue/require-default-prop': 'off',

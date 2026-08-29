@@ -30,7 +30,10 @@ const loginLimiter = rateLimit({
 const loginUsernameLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15分钟
   limit: 5,
-  keyGenerator: (req) => String(req.body?.username || '').trim().toLowerCase(),
+  keyGenerator: (req) =>
+    String(req.body?.username || '')
+      .trim()
+      .toLowerCase(),
   // 只统计失败尝试，正常登录不消耗次数
   skipSuccessfulRequests: true,
   message: {

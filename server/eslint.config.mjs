@@ -39,7 +39,8 @@ export default [
       },
     },
     rules: {
-      'no-console': 'warn',
+      // 允许 warn/error/info：这些是错误诊断与启动信息，仅拦截 console.log 之类的调试残留
+      'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
       'no-unused-vars': ['error', { argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
       'no-eval': 'error',
       'no-implied-eval': 'error',
@@ -61,6 +62,13 @@ export default [
       'custom-rules/require-input-validation': 'error',
       'custom-rules/no-sql-concat': 'error',
       'custom-rules/require-auth-middleware': 'error',
+    },
+  },
+  {
+    // CLI 脚本：console 是面向终端的程序输出（提示与结果），不是调试日志
+    files: ['db/create-admin.js', 'db/import-data.js', 'db/init.js'],
+    rules: {
+      'no-console': 'off',
     },
   },
   {

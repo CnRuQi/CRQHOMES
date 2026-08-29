@@ -144,11 +144,7 @@ const authRules = {
     validate,
   ],
   updateProfile: [
-    body('nickname')
-      .optional()
-      .trim()
-      .isLength({ max: 50 })
-      .withMessage('昵称不能超过50个字符'),
+    body('nickname').optional().trim().isLength({ max: 50 }).withMessage('昵称不能超过50个字符'),
     // 仅允许站内 /uploads/ 路径：放行任意 / 开头会连 //evil.com 这类协议相对 URL 一起通过
     body('avatar')
       .optional({ checkFalsy: true })

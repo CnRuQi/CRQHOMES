@@ -77,8 +77,8 @@ app.use(errorHandler)
 
 // 启动服务器（监听端口占用等错误，避免进程异常崩溃）
 const server = app.listen(config.port, () => {
-  console.log(`服务器运行在 http://localhost:${config.port}`)
-  console.log(`环境: ${config.env}`)
+  console.info(`服务器运行在 http://localhost:${config.port}`)
+  console.info(`环境: ${config.env}`)
 })
 
 server.on('error', (error) => {
@@ -107,7 +107,7 @@ const viewCleanupTimer = setInterval(
 // 优雅关闭（SIGINT=Ctrl+C，SIGTERM=systemd/Docker 停止）：
 // 先停接新请求并断开 keep-alive，等在途请求处理完再关库退出
 function gracefulShutdown(signal) {
-  console.log(`收到 ${signal}，正在关闭服务器...`)
+  console.info(`收到 ${signal}，正在关闭服务器...`)
   clearInterval(viewCleanupTimer)
   server.closeIdleConnections?.()
   server.close(() => {

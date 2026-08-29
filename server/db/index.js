@@ -35,17 +35,17 @@ function initDb() {
     const columns = database.prepare('PRAGMA table_info(posts)').all()
     const columnNames = columns.map((col) => col.name)
     if (columnNames.includes('id') && !columnNames.includes('slug')) {
-      console.log('添加 slug 字段...')
+      console.info('添加 slug 字段...')
       database.exec('ALTER TABLE posts ADD COLUMN slug TEXT')
       database.exec("UPDATE posts SET slug = 'post-' || id WHERE slug IS NULL OR slug = ''")
-      console.log('  ✓ slug 字段已添加')
+      console.info('  ✓ slug 字段已添加')
     }
   } catch (_e) {
     // 表可能还不存在，忽略错误
   }
 
   database.exec(schema)
-  console.log('数据库初始化完成')
+  console.info('数据库初始化完成')
 
   return database
 }
@@ -54,7 +54,7 @@ function closeDb() {
   if (db) {
     db.close()
     db = null
-    console.log('数据库连接已关闭')
+    console.info('数据库连接已关闭')
   }
 }
 

@@ -49,6 +49,7 @@ npm run lint:fix      # 自动修复
 - 新增 Vue 组件 → `docs/tasks/new-component.md`
 - 数据库迁移   → `docs/tasks/db-migration.md`
 - 安全修复     → `docs/tasks/security-fix.md`
+- 打包升级文件 → `docs/tasks/packaging.md`
 
 ## 禁止事项
 - 禁止 `v-html`（防 XSS），使用 Vue 模板绑定

@@ -53,3 +53,7 @@ data/*.db-shm
 
 # Personal documents (docx 可能含个人信息)
 *.docx
+
+# Editor / Agent directories (本地工具与 AI 记忆目录，不上传仓库)
+.zcode/
+.workbuddy/

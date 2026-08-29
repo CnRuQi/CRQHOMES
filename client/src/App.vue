@@ -15,6 +15,7 @@
       :message="toastState.message"
       :type="toastState.type"
       :duration="toastState.duration"
+      :seq="toastState.seq"
     />
   </div>
 </template>

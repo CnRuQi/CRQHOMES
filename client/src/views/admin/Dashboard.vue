@@ -6,7 +6,7 @@
           <Icon name="article" :size="32" />
         </div>
         <div class="stat-info">
-          <div class="stat-value">{{ totalPosts.value }}</div>
+          <div class="stat-value">{{ totalPosts }}</div>
           <div class="stat-label">文章总数</div>
         </div>
       </div>
@@ -16,7 +16,7 @@
           <Icon name="category" :size="32" />
         </div>
         <div class="stat-info">
-          <div class="stat-value">{{ totalCategories.value }}</div>
+          <div class="stat-value">{{ totalCategories }}</div>
           <div class="stat-label">分类数量</div>
         </div>
       </div>
@@ -26,7 +26,7 @@
           <Icon name="views" :size="32" />
         </div>
         <div class="stat-info">
-          <div class="stat-value">{{ totalViews.value }}</div>
+          <div class="stat-value">{{ totalViews }}</div>
           <div class="stat-label">总阅读量</div>
         </div>
       </div>
@@ -36,7 +36,7 @@
           <Icon name="pinyes" :size="32" />
         </div>
         <div class="stat-info">
-          <div class="stat-value">{{ topPosts.value }}</div>
+          <div class="stat-value">{{ topPosts }}</div>
           <div class="stat-label">置顶文章</div>
         </div>
       </div>

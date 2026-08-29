@@ -9,7 +9,12 @@
 
     <div class="filter-bar glass-card">
       <div class="filter-left">
-        <select v-model="filters.status" class="form-select" @change="fetchPosts()">
+        <select
+          v-model="filters.status"
+          class="form-select"
+          aria-label="按状态筛选"
+          @change="fetchPosts()"
+        >
           <option value="">全部状态</option>
           <option value="1">已发布</option>
           <option value="0">草稿</option>
@@ -19,6 +24,7 @@
           type="text"
           class="form-input"
           placeholder="搜索文章..."
+          aria-label="搜索文章"
           @input="debouncedFetch"
         />
       </div>

@@ -145,8 +145,14 @@ router.beforeEach(async (to, from, next) => {
   if (to.meta.requiresAuth && !authStore.user) {
     try {
       await authStore.fetchUser()
-    } catch (_error) {
-      next({ name: 'AdminLogin', query: { redirect: to.fullPath } })
+    } catch (error) {
+      // 只有确认未登录（401）才按「请重新登录」处理。网络错误或服务端 5xx
+      // 时带上 offline 标记，让登录页说明是连不上服务器，避免看起来像被登出
+      const unauthorized = error?.response?.status === 401
+      next({
+        name: 'AdminLogin',
+        query: { redirect: to.fullPath, ...(unauthorized ? {} : { reason: 'offline' }) },
+      })
       return
     }
   }

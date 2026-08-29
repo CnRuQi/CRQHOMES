@@ -26,6 +26,7 @@
               type="text"
               class="title-input"
               placeholder="请输入文章标题"
+              aria-label="文章标题"
             />
           </div>
 

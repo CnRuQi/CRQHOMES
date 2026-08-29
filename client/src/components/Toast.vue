@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <Transition name="toast">
-      <div v-if="visible" :class="['toast', `toast-${type}`]">
+      <div v-if="visible" :class="['toast', `toast-${type}`]" role="status" aria-live="polite">
         <Icon :name="iconName" :size="18" />
         <span>{{ message }}</span>
       </div>
@@ -18,6 +18,8 @@ const props = defineProps({
   type: { type: String, default: 'info' }, // info, success, warning, error
   duration: { type: Number, default: 3000 },
   visible: { type: Boolean, default: false },
+  // 每次 show() 递增：相同文案连续触发时，靠它区分「又一次触发」
+  seq: { type: Number, default: 0 },
 })
 
 const emit = defineEmits(['update:visible'])
@@ -35,8 +37,8 @@ const iconName = computed(() => {
 })
 
 watch(
-  // 同时监听 message：已显示时再次触发 show() 也重置计时，避免第二条一闪而过
-  [() => props.visible, () => props.message],
+  // 监听 message 覆盖「显示中换成另一句文案」，监听 seq 覆盖「显示中再次触发相同文案」
+  [() => props.visible, () => props.message, () => props.seq],
   ([val]) => {
     if (timer.value) {
       clearTimeout(timer.value)

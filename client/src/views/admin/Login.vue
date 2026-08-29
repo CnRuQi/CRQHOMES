@@ -10,6 +10,10 @@
           <p class="login-subtitle">管理后台登录</p>
         </div>
 
+        <div v-if="offlineNotice" class="offline-notice">
+          {{ offlineNotice }}
+        </div>
+
         <form class="login-form" @submit.prevent="handleLogin">
           <div class="form-group">
             <label class="form-label">用户名</label>
@@ -53,7 +57,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import Icon from '@/components/Icon.vue'
@@ -70,9 +74,19 @@ const form = ref({
 const loading = ref(false)
 const error = ref('')
 
+// 由路由守卫带上：不是「请重新登录」，而是后端暂时连不上
+const offlineNotice = computed(() =>
+  route.query.reason === 'offline' ? '无法连接服务器，请稍后重试' : ''
+)
+
 async function handleLogin() {
   loading.value = true
   error.value = ''
+
+  // 用户已开始尝试，离线提示不再有意义，顺手把标记从地址栏摘掉
+  if (route.query.reason) {
+    router.replace({ query: { redirect: route.query.redirect } })
+  }
 
   try {
     await authStore.login(form.value.username, form.value.password)
@@ -145,6 +159,22 @@ async function handleLogin() {
   border-radius: var(--border-radius-sm);
   color: #9a7272;
   font-size: 0.9rem;
+}
+
+.offline-notice {
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(186, 117, 23, 0.1);
+  border: 1px solid rgba(186, 117, 23, 0.25);
+  border-radius: var(--border-radius-sm);
+  color: #8a6410;
+  font-size: 0.9rem;
+}
+
+[data-theme='dark'] .offline-notice {
+  background: rgba(224, 181, 88, 0.12);
+  border-color: rgba(224, 181, 88, 0.28);
+  color: #e0b558;
 }
 
 .login-btn {

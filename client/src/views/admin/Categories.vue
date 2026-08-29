@@ -48,7 +48,7 @@
           <div class="modal glass-card">
             <div class="modal-header">
               <h3>{{ editingCategory ? '编辑分类' : '新建分类' }}</h3>
-              <button class="close-btn" @click="closeModal">✕</button>
+              <button class="close-btn" aria-label="关闭" @click="closeModal">✕</button>
             </div>
 
             <form class="modal-body" @submit.prevent="handleSubmit">
@@ -109,7 +109,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { getCategories, createCategory, updateCategory, deleteCategory } from '@/api/category'
 import Icon from '@/components/Icon.vue'
 import EmptyState from '@/components/EmptyState.vue'
@@ -204,8 +204,27 @@ async function handleDelete(category) {
   }
 }
 
+// Esc 是键盘用户唯一的退出方式：模态打开期间才挂监听，避免常驻全局
+function handleKeydown(e) {
+  if (e.key === 'Escape') {
+    closeModal()
+  }
+}
+
+watch(showModal, (open) => {
+  if (open) {
+    document.addEventListener('keydown', handleKeydown)
+  } else {
+    document.removeEventListener('keydown', handleKeydown)
+  }
+})
+
 onMounted(() => {
   fetchCategories()
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown)
 })
 </script>
 

@@ -27,12 +27,13 @@
       </nav>
 
       <div class="navbar-actions">
-        <router-link to="/search" class="search-toggle" title="搜索">
+        <router-link to="/search" class="search-toggle" title="搜索" aria-label="搜索">
           <Icon name="search" :size="20" />
         </router-link>
         <button
           class="theme-toggle"
           :title="isDark ? '切换到亮色模式' : '切换到暗色模式'"
+          :aria-label="isDark ? '切换到亮色模式' : '切换到暗色模式'"
           @click="toggle"
         >
           <Icon :name="isDark ? 'sun' : 'moon'" :size="20" />

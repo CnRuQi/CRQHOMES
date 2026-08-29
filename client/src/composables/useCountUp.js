@@ -40,5 +40,6 @@ export function useCountUp(target, { duration = 600 } = {}) {
     if (raf) cancelAnimationFrame(raf)
   })
 
-  return { value }
+  // 直接返回 ref 本体：模板会自动解包，调用方无需写 .value
+  return value
 }

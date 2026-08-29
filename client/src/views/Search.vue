@@ -15,7 +15,9 @@
               autofocus
               @input="debouncedSearch"
             />
-            <button v-if="keyword" class="clear-btn" @click="clearSearch">✕</button>
+            <button v-if="keyword" class="clear-btn" aria-label="清除搜索" @click="clearSearch">
+              ✕
+            </button>
           </div>
         </section>
 

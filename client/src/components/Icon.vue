@@ -1,5 +1,6 @@
 <template>
   <img
+    v-if="iconSrc"
     :src="iconSrc"
     alt=""
     aria-hidden="true"

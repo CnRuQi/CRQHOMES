@@ -5,6 +5,8 @@ CREATE TABLE IF NOT EXISTS users (
     password TEXT NOT NULL,
     nickname TEXT,
     avatar TEXT,
+    -- 改密时自增：JWT 里带签发时的 tv，落后于当前值即视为失效
+    token_version INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
     updated_at DATETIME DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );

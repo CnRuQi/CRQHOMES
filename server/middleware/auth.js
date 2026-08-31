@@ -34,15 +34,22 @@ function authenticate(req, res, next) {
     // 查询用户是否存在
     const db = getDb()
     const user = db
-      .prepare('SELECT id, username, nickname, avatar FROM users WHERE id = ?')
+      .prepare('SELECT id, username, nickname, avatar, token_version FROM users WHERE id = ?')
       .get(decoded.userId)
 
     if (!user) {
       throw new AppError('用户不存在', 401)
     }
 
-    // 将用户信息挂载到请求对象
-    req.user = user
+    // 改密后 token_version 会递增，token 里签发时的 tv 落后即视为失效。
+    // 旧 token 没有 tv 字段时按 0 处理，因此加这个字段不会强制已登录用户重新登录
+    const { token_version: tokenVersion, ...safeUser } = user
+    if (Number(decoded.tv ?? 0) !== Number(tokenVersion ?? 0)) {
+      throw new AppError('认证令牌已失效，请重新登录', 401)
+    }
+
+    // 挂载用户信息（剔除 token_version，它只是内部校验字段，无需暴露给上层）
+    req.user = safeUser
     next()
   } catch (error) {
     if (error instanceof AppError) {

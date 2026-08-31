@@ -278,11 +278,10 @@ async function handleSaveDraft() {
     toast.warning('请输入文章标题')
     return
   }
-  // 已发布文章转草稿是破坏性操作：文章立即下线且服务端会清空 published_at，必须明确确认
+  // 已发布文章转草稿会让文章立即下线，需明确确认。
+  // 发布时间不再被清除（服务端保留原值，转回发布态时恢复），所以提示里不再提这一条
   if (isEdit.value && form.value.status === 1) {
-    const confirmed = window.confirm(
-      '已发布的文章转为草稿后会立即下线，且原发布时间会被清除。确定继续吗？'
-    )
+    const confirmed = window.confirm('已发布的文章转为草稿后会立即下线。确定继续吗？')
     if (!confirmed) return
   }
   form.value.status = 0
@@ -307,9 +306,17 @@ async function savePost() {
   if (saving.value) return // 防止双击重复提交
   saving.value = true
   try {
+    // datetime-local 给的是「本地时间、无时区」串（如 2026-08-29T22:30）。
+    // 直接提交会让服务端按服务器自己的时区去解析，跨时区部署就会整体偏移。
+    // 这里先转成带时区的 ISO 串，服务端才能还原成用户选定的那个时刻
+    const publishedAt = form.value.published_at
+      ? new Date(form.value.published_at).toISOString()
+      : ''
+
     const data = {
       ...form.value,
       is_top: form.value.is_top ? 1 : 0,
+      published_at: publishedAt,
     }
 
     if (isEdit.value) {

@@ -147,8 +147,10 @@ router.beforeEach(async (to, from, next) => {
       await authStore.fetchUser()
     } catch (error) {
       // 只有确认未登录（401）才按「请重新登录」处理。网络错误或服务端 5xx
-      // 时带上 offline 标记，让登录页说明是连不上服务器，避免看起来像被登出
-      const unauthorized = error?.response?.status === 401
+      // 时带上 offline 标记，让登录页说明是连不上服务器，避免看起来像被登出。
+      // 注意读 error.code 而不是 error.response.status：api/index.js 的响应拦截器
+      // 把错误归一成了 { code, message } 普通对象，没有 response 字段
+      const unauthorized = error?.code === 401
       next({
         name: 'AdminLogin',
         query: { redirect: to.fullPath, ...(unauthorized ? {} : { reason: 'offline' }) },

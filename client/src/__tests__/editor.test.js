@@ -143,7 +143,7 @@ describe('admin Layout 跨路由重建 Editor（防止实例复用导致表单�
   })
 })
 
-describe('已发布文章转草稿需确认（防止静默下线并清空发布时间）', () => {
+describe('已发布文章转草稿需确认（防止静默下线）', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -184,6 +184,27 @@ describe('已发布文章转草稿需确认（防止静默下线并清空发布�
 
     expect(updatePost).toHaveBeenCalledTimes(1)
     expect(updatePost).toHaveBeenCalledWith('1', expect.objectContaining({ status: 0 }))
+    confirmSpy.mockRestore()
+    wrapper.unmount()
+  })
+
+  // 发布时间以「带时区的 ISO 串」提交，服务端才能还原成用户选定的时刻。
+  // 若直接提交 datetime-local 的本地时间串，跨时区部署会整体偏移。
+  // 回填（本地）→ 提交（UTC）是一次往返，因此这里能反推出原始值
+  it('提交时把发布时间转成带时区的 ISO 串（转草稿也保留原时间）', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const wrapper = await mountEditPage()
+
+    await findDraftButton(wrapper).trigger('click')
+    await flushPromises()
+
+    expect(updatePost).toHaveBeenCalledWith(
+      '1',
+      expect.objectContaining({
+        status: 0,
+        published_at: '2026-01-01T00:00:00.000Z',
+      })
+    )
     confirmSpy.mockRestore()
     wrapper.unmount()
   })

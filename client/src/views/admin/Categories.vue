@@ -111,6 +111,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { getCategories, createCategory, updateCategory, deleteCategory } from '@/api/category'
+import { setBodyScrollLock } from '@/assets/js/utils'
 import Icon from '@/components/Icon.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import { useToast } from '@/composables/useToast'
@@ -194,10 +195,10 @@ async function handleDelete(category) {
     toast.success('分类删除成功')
   } catch (error) {
     const msg = error.message || '未知错误'
-    // 分类下有文章时引导用户去文章管理筛选并转移
-    const countMatch = String(msg).match(/该分类下还有 (\d+) 篇文章/)
-    if (countMatch) {
-      toast.warning(`该分类下还有 ${countMatch[1]} 篇文章，请先在「文章管理」搜索该分类并转移文章`)
+    // 优先读后端给的结构化字段；正则只作旧版本降级，避免把中文文案当成接口契约
+    const count = error?.data?.postCount ?? String(msg).match(/该分类下还有 (\d+) 篇文章/)?.[1]
+    if (count !== undefined && count !== null && count !== '') {
+      toast.warning(`该分类下还有 ${count} 篇文章，请先在「文章管理」搜索该分类并转移文章`)
     } else {
       toast.error('删除失败: ' + msg)
     }
@@ -211,7 +212,9 @@ function handleKeydown(e) {
   }
 }
 
+// 模态打开期间：挂 Esc 监听 + 锁背景滚动（与移动端菜单的做法保持一致）
 watch(showModal, (open) => {
+  setBodyScrollLock(open)
   if (open) {
     document.addEventListener('keydown', handleKeydown)
   } else {
@@ -225,6 +228,8 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
+  // 模态开着时被 401 踢走或路由跳走，必须释放滚动锁，否则页面再也滚不动
+  setBodyScrollLock(false)
 })
 </script>
 

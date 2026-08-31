@@ -131,3 +131,12 @@ export function restoreListScroll(key) {
     clearListScroll(key)
   }
 }
+
+// 锁定/释放页面滚动（html + body 双锁，兼容 iOS Safari）。
+// 移动端菜单与后台模态框共用：打开时锁定，关闭或组件卸载时必须释放，
+// 否则残留的 overflow:hidden 会让整个页面再也滚不动
+export function setBodyScrollLock(locked) {
+  const overflow = locked ? 'hidden' : ''
+  document.documentElement.style.overflow = overflow
+  document.body.style.overflow = overflow
+}

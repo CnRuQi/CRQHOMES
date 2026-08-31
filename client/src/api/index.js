@@ -59,10 +59,12 @@ api.interceptors.response.use(
         }, 1500)
       }
 
-      // 返回错误信息
+      // 返回错误信息。data 是后端 AppError 携带的结构化附加信息
+      // （如「该分类下还有几篇文章」），前端应优先读字段而不是解析 message
       return Promise.reject({
         code: status,
         message: data?.message || '请求失败',
+        data: data?.data,
       })
     }
 

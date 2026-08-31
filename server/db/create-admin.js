@@ -11,6 +11,9 @@ const rl = readline.createInterface({
 const USERNAME_MIN = 3
 const USERNAME_MAX = 30
 const PASSWORD_MIN = 6
+// bcrypt 只取前 72 字节，超出部分会被静默忽略。
+// 前后端行为一致（都能正常登录），但应明确告知，避免用户以为自己设了超长密码
+const PASSWORD_MAX_BYTES = 72
 
 function question(prompt) {
   return new Promise((resolve) => {
@@ -19,15 +22,24 @@ function question(prompt) {
 }
 
 // 密码输入不回显：临时屏蔽 readline 的输出（提示符与键入字符都由它写出），
-// 提示符改由 stdout 直接输出，输完再补一个换行
+// 提示符改由 stdout 直接输出，输完再补一个换行。
+// _writeToOutput 是 readline 的私有 API，Node 升级后可能不存在；
+// 不存在时降级为「正常回显」，而不是让脚本崩溃
 function questionHidden(prompt) {
   return new Promise((resolve) => {
+    const hasPrivateApi = typeof rl._writeToOutput === 'function'
     const writeToOutput = rl._writeToOutput
-    rl._writeToOutput = () => {}
-    process.stdout.write(prompt)
-    rl.question('', (answer) => {
-      rl._writeToOutput = writeToOutput
-      process.stdout.write('\n')
+
+    if (hasPrivateApi) {
+      rl._writeToOutput = () => {}
+      process.stdout.write(prompt)
+    }
+
+    rl.question(hasPrivateApi ? '' : prompt, (answer) => {
+      if (hasPrivateApi) {
+        rl._writeToOutput = writeToOutput
+        process.stdout.write('\n')
+      }
       resolve(answer)
     })
   })
@@ -41,17 +53,18 @@ async function createAdmin() {
     const password = await questionHidden('请输入密码: ')
     const nickname = (await question('请输入昵称 (可选，直接回车跳过): ')).trim()
 
+    // 用 throw 而不是 process.exit()：后者会跳过 finally 的 closeDb() 与 rl.close()
     if (!username || !password) {
-      console.error('用户名和密码不能为空！')
-      process.exit(1)
+      throw new Error('用户名和密码不能为空！')
     }
     if (username.length < USERNAME_MIN || username.length > USERNAME_MAX) {
-      console.error(`用户名长度必须在 ${USERNAME_MIN}-${USERNAME_MAX} 之间！`)
-      process.exit(1)
+      throw new Error(`用户名长度必须在 ${USERNAME_MIN}-${USERNAME_MAX} 之间！`)
     }
     if (password.length < PASSWORD_MIN) {
-      console.error(`密码长度不能少于 ${PASSWORD_MIN} 位！`)
-      process.exit(1)
+      throw new Error(`密码长度不能少于 ${PASSWORD_MIN} 位！`)
+    }
+    if (Buffer.byteLength(password, 'utf8') > PASSWORD_MAX_BYTES) {
+      throw new Error(`密码不能超过 ${PASSWORD_MAX_BYTES} 个字节（bcrypt 会忽略超出部分）`)
     }
 
     // 初始化数据库
@@ -61,8 +74,7 @@ async function createAdmin() {
     // 检查用户是否已存在
     const existingUser = db.prepare('SELECT id FROM users WHERE username = ?').get(username)
     if (existingUser) {
-      console.error(`用户 "${username}" 已存在！`)
-      process.exit(1)
+      throw new Error(`用户 "${username}" 已存在！`)
     }
 
     // 加密密码
@@ -80,7 +92,8 @@ async function createAdmin() {
     console.log(`昵称: ${nickname || username}`)
   } catch (error) {
     console.error('创建管理员失败:', error.message)
-    process.exit(1)
+    // exitCode 而非 exit()：让 finally 有机会关闭数据库连接与 readline
+    process.exitCode = 1
   } finally {
     closeDb()
     rl.close()

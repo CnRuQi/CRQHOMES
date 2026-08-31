@@ -14,6 +14,7 @@ let updateSortOrder
 let toggleTop
 let updatePost
 let createPost
+let getAllPosts
 let dbModulePath
 let originalDbModule = null
 
@@ -39,6 +40,7 @@ beforeAll(() => {
   toggleTop = controller.toggleTop
   updatePost = controller.updatePost
   createPost = controller.createPost
+  getAllPosts = controller.getAllPosts
 })
 
 afterAll(() => {
@@ -175,6 +177,98 @@ describe('updatePost', () => {
     expect(after.title).toBe('编辑后的标题')
     expect(after.updated_at).not.toBe('2020-01-01 00:00:00')
   })
+
+  it('转草稿保留 published_at，重新发布时恢复原时间', () => {
+    db.prepare('INSERT INTO categories (name, slug) VALUES (?, ?)').run('时间分类', 'time-cat')
+    const cat = db.prepare("SELECT id FROM categories WHERE slug = 'time-cat'").get()
+    const post = insertPost({ updatedAt: '2026-01-01 00:00:00' })
+    const original = '2026-05-01T10:00:00.000Z'
+    db.prepare('UPDATE posts SET published_at = ? WHERE id = ?').run(original, post.id)
+
+    const body = {
+      title: post.title,
+      content: '正文',
+      category_id: cat.id,
+      is_top: 0,
+    }
+
+    // 转草稿：发布时间属于文章固有属性，不得清空
+    let nextError = null
+    updatePost({ params: { id: post.id }, body: { ...body, status: 0 } }, makeRes(), (e) => {
+      nextError = e
+    })
+    expect(nextError).toBeNull()
+    let row = db.prepare('SELECT published_at FROM posts WHERE id = ?').get(post.id)
+    expect(row.published_at).toBe(original)
+
+    // 重新发布：恢复原时间，而不是重置为当前时间
+    updatePost({ params: { id: post.id }, body: { ...body, status: 1 } }, makeRes(), (e) => {
+      nextError = e
+    })
+    expect(nextError).toBeNull()
+    row = db.prepare('SELECT published_at FROM posts WHERE id = ?').get(post.id)
+    expect(row.published_at).toBe(original)
+  })
+
+  it('省略 status 时保留原状态（草稿不会被静默发布）', () => {
+    db.prepare('INSERT INTO categories (name, slug) VALUES (?, ?)').run('状态分类', 'status-cat')
+    const cat = db.prepare("SELECT id FROM categories WHERE slug = 'status-cat'").get()
+    const post = insertPost({ updatedAt: '2026-01-01 00:00:00' })
+    db.prepare('UPDATE posts SET status = 0, published_at = NULL WHERE id = ?').run(post.id)
+
+    let nextError = null
+    // 请求体不含 status：验证器把 status 标为 optional，省略是合法请求，
+    // 此时必须保留草稿状态。若缺省为 1，草稿会被静默公开且不可逆
+    updatePost(
+      {
+        params: { id: post.id },
+        body: {
+          title: '草稿改标题',
+          content: '正文',
+          category_id: cat.id,
+          is_top: 0,
+        },
+      },
+      makeRes(),
+      (error) => {
+        nextError = error
+      }
+    )
+    expect(nextError).toBeNull()
+
+    const after = db.prepare('SELECT status, published_at FROM posts WHERE id = ?').get(post.id)
+    expect(after.status).toBe(0)
+    expect(after.published_at).toBeNull()
+  })
+
+  it('草稿更新省略 status 时允许正文为空', () => {
+    db.prepare('INSERT INTO categories (name, slug) VALUES (?, ?)').run('状态分类2', 'status-cat-2')
+    const cat = db.prepare("SELECT id FROM categories WHERE slug = 'status-cat-2'").get()
+    const post = insertPost({ updatedAt: '2026-01-01 00:00:00' })
+    db.prepare('UPDATE posts SET status = 0 WHERE id = ?').run(post.id)
+
+    let nextError = null
+    // 省略 status 时，空内容校验必须沿用「文章本是草稿」这一事实
+    updatePost(
+      {
+        params: { id: post.id },
+        body: {
+          title: '草稿改标题2',
+          category_id: cat.id,
+          is_top: 0,
+        },
+      },
+      makeRes(),
+      (error) => {
+        nextError = error
+      }
+    )
+    expect(nextError).toBeNull()
+
+    const after = db.prepare('SELECT status, content FROM posts WHERE id = ?').get(post.id)
+    expect(after.status).toBe(0)
+    expect(after.content).toBe('')
+  })
 })
 
 describe('createPost', () => {
@@ -233,5 +327,74 @@ describe('createPost', () => {
     expect(created).not.toBeNull()
     const row = db.prepare('SELECT content FROM posts WHERE id = ?').get(created.id)
     expect(row.content).toBe('')
+  })
+
+  it('published_at 落库前统一转为 UTC ISO 8601', () => {
+    db.prepare('INSERT INTO categories (name, slug) VALUES (?, ?)').run('ISO分类', 'iso-cat')
+    const cat = db.prepare("SELECT id FROM categories WHERE slug = 'iso-cat'").get()
+    const res = makeRes()
+    let created = null
+    res.json = (payload) => {
+      created = payload.data.post
+    }
+    // 前端 datetime-local 提交的是「本地时间、无时区」串
+    const localInput = '2026-08-29T22:30'
+    let nextError = null
+    createPost(
+      {
+        body: {
+          title: '时间规范化文章',
+          content: '内容',
+          category_id: cat.id,
+          status: 1,
+          published_at: localInput,
+        },
+      },
+      res,
+      (error) => {
+        nextError = error
+      }
+    )
+    expect(nextError).toBeNull()
+
+    const row = db.prepare('SELECT published_at FROM posts WHERE id = ?').get(created.id)
+    // 必须是带 Z 的 UTC 串，且能还原出用户选定的同一时刻（断言与时区无关）
+    expect(row.published_at).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/)
+    expect(row.published_at).toBe(new Date(localInput).toISOString())
+  })
+})
+
+describe('getAllPosts', () => {
+  it('published_at 缺失的文章按 created_at 参与排序，不会被甩到末尾', () => {
+    // A：没有发布时间，但创建时间更晚
+    const a = insertPost({ updatedAt: '2026-06-01 00:00:00' })
+    db.prepare('UPDATE posts SET published_at = NULL, created_at = ? WHERE id = ?').run(
+      '2026-06-01T00:00:00.000Z',
+      a.id
+    )
+    // B：发布时间更早
+    const b = insertPost({ updatedAt: '2026-01-01 00:00:00' })
+    db.prepare('UPDATE posts SET published_at = ?, created_at = ? WHERE id = ?').run(
+      '2026-01-01T00:00:00.000Z',
+      '2026-01-01T00:00:00.000Z',
+      b.id
+    )
+
+    const res = makeRes()
+    let payload = null
+    res.json = (p) => {
+      payload = p
+    }
+    let nextError = null
+    getAllPosts({ query: { sort: 'recent', pageSize: '0' } }, res, (error) => {
+      nextError = error
+    })
+    expect(nextError).toBeNull()
+
+    const ids = payload.data.list.map((p) => p.id)
+    // 若排序直接用 julianday(p.published_at)，A 的 NULL 会被甩到末尾，此断言失败。
+    // 与归档接口（getArchives）的 COALESCE 语义保持一致
+    expect(ids.indexOf(a.id)).toBeGreaterThanOrEqual(0)
+    expect(ids.indexOf(a.id)).toBeLessThan(ids.indexOf(b.id))
   })
 })

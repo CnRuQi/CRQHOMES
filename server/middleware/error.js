@@ -2,9 +2,12 @@ const config = require('../config')
 
 // 自定义错误类
 class AppError extends Error {
-  constructor(message, statusCode) {
+  constructor(message, statusCode, data = null) {
     super(message)
     this.statusCode = statusCode
+    // 结构化附加信息（如「该分类下还有几篇文章」）。
+    // 前端应读字段判断，而不是去正则匹配 message 里的中文文案
+    this.data = data
     Error.captureStackTrace(this, this.constructor)
   }
 }
@@ -61,6 +64,9 @@ function errorHandler(err, req, res, _next) {
   res.status(statusCode).json({
     code: statusCode,
     message,
+    // 结构化附加数据也透传给前端。它不是内部错误细节，而是前端需要的业务信息，
+    // 因此生产环境同样保留（只有 stack 才按环境裁剪）
+    ...(err.data ? { data: err.data } : {}),
     ...(config.env === 'development' && { stack: err.stack }),
   })
 }

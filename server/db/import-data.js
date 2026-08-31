@@ -1,4 +1,5 @@
 const { getDb, initDb, closeDb } = require('./index')
+const readline = require('readline')
 
 // 分类数据
 const categories = [
@@ -24,6 +25,7 @@ const posts = [
     category_id: 1,
     status: 1,
     views: 0,
+    published_at: '2026-01-05T10:00:00.000Z',
   },
   {
     id: 2,
@@ -52,6 +54,7 @@ const posts = [
     category_id: 2,
     status: 1,
     views: 0,
+    published_at: '2026-02-14T10:00:00.000Z',
   },
   {
     id: 3,
@@ -74,6 +77,7 @@ const posts = [
     category_id: 2,
     status: 1,
     views: 0,
+    published_at: '2026-03-20T10:00:00.000Z',
   },
   {
     id: 4,
@@ -96,6 +100,7 @@ const posts = [
     category_id: 2,
     status: 1,
     views: 0,
+    published_at: '2026-04-11T10:00:00.000Z',
   },
   {
     id: 5,
@@ -118,6 +123,7 @@ const posts = [
     category_id: 2,
     status: 1,
     views: 0,
+    published_at: '2026-05-09T10:00:00.000Z',
   },
   {
     id: 6,
@@ -148,6 +154,7 @@ const posts = [
     category_id: 2,
     status: 1,
     views: 0,
+    published_at: '2026-06-13T10:00:00.000Z',
   },
   {
     id: 7,
@@ -182,6 +189,7 @@ const posts = [
     category_id: 3,
     status: 1,
     views: 0,
+    published_at: '2026-07-18T10:00:00.000Z',
   },
   {
     id: 8,
@@ -218,22 +226,66 @@ const posts = [
     category_id: 3,
     status: 1,
     views: 0,
+    published_at: '2026-08-15T10:00:00.000Z',
   },
 ]
 
-function importData() {
+// 清空全站文章是不可逆操作（脚本自身不备份），执行前必须确认。
+// 要求输入站点名而不是简单的 y/N，避免无脑回车或连击
+const CONFIRM_PHRASE = '披花沐雪'
+
+function question(prompt) {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
+  return new Promise((resolve) => {
+    rl.question(prompt, (answer) => {
+      rl.close()
+      resolve(answer)
+    })
+  })
+}
+
+async function confirmDestructiveImport() {
+  // 生产环境一律拒绝：这里没有备份机制，误执行就是全站文章不可恢复
+  if (process.env.NODE_ENV === 'production') {
+    console.error('拒绝执行：NODE_ENV=production。本脚本会清空全部文章与分类，且不可恢复。')
+    return false
+  }
+  // 非交互环境无法确认，直接拒绝而不是挂起等待输入
+  if (!process.stdin.isTTY) {
+    if (process.env.IMPORT_FORCE === '1') {
+      console.log('IMPORT_FORCE=1：已跳过确认（请确保已自行备份）。')
+      return true
+    }
+    console.error('拒绝执行：当前不是交互式终端，无法确认清空操作。')
+    console.error('如需在自动化环境执行，请先备份数据库，再显式设置 IMPORT_FORCE=1。')
+    return false
+  }
+  console.log('⚠️  警告：本操作将清空全部文章与分类，且不可恢复。')
+  const answer = await question(`请输入站点名「${CONFIRM_PHRASE}」以确认: `)
+  return answer.trim() === CONFIRM_PHRASE
+}
+
+async function importData() {
+  if (!(await confirmDestructiveImport())) {
+    console.log('已取消，未做任何改动。')
+    return
+  }
+
   console.log('开始导入数据...\n')
 
-  initDb()
-  const db = getDb()
-
   try {
+    // initDb() 一并放进 try：它自身也可能失败，且失败后同样需要 closeDb() 收尾
+    initDb()
+    const db = getDb()
+
     // 整个导入放入事务：中途失败整体回滚，避免半导入状态
     const runImport = db.transaction(() => {
       // 清空现有数据（保留用户）
       console.log('清空现有文章和分类数据...')
       db.prepare('DELETE FROM posts').run()
       db.prepare('DELETE FROM categories').run()
+      // view_tracking.post_id 没有外键级联，文章清空后需手动清理孤儿记录
+      db.prepare('DELETE FROM view_tracking').run()
 
       // 导入分类
       console.log('导入分类...')
@@ -249,8 +301,8 @@ function importData() {
       // 导入文章
       console.log('\n导入文章...')
       const insertPost = db.prepare(`
-        INSERT INTO posts (id, title, slug, content, summary, cover_image, category_id, is_top, status, views)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO posts (id, title, slug, content, summary, cover_image, category_id, is_top, status, views, published_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
 
       for (const post of posts) {
@@ -264,7 +316,10 @@ function importData() {
           post.category_id,
           post.is_top,
           post.status,
-          post.views
+          post.views,
+          // 未显式提供时回退到导入时刻，但必须转成 UTC ISO 串，
+          // 保证 published_at 列始终只有一种格式（归档分组与排序都依赖它）
+          post.published_at || new Date().toISOString()
         )
         console.log(`  ✓ 文章: ${post.title}`)
       }

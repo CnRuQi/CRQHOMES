@@ -5,6 +5,11 @@ const { getDb } = require('../db')
 const { AppError } = require('../middleware/error')
 const { success } = require('../utils/helpers')
 
+// 用户不存在时也要跑一次 bcrypt.compare，让「用户不存在」与「密码错误」的
+// 响应时间一致，避免通过耗时差异枚举用户名。这里比对的是一个预计算的哑哈希，
+// 结果必然为 false，只用它的耗时
+const TIMING_DUMMY_HASH = '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy'
+
 // 登录
 async function login(req, res, next) {
   try {
@@ -18,6 +23,8 @@ async function login(req, res, next) {
     const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username)
 
     if (!user) {
+      // 不提前返回：用哑哈希消耗与真实校验相当的 CPU 时间后再报同样的错
+      await bcrypt.compare(password, TIMING_DUMMY_HASH)
       throw new AppError('用户名或密码错误', 401)
     }
 
@@ -27,9 +34,14 @@ async function login(req, res, next) {
     }
 
     // 生成 JWT
-    const token = jwt.sign({ userId: user.id, username: user.username }, config.jwt.secret, {
-      expiresIn: config.jwt.expiresIn,
-    })
+    // tv = 签发时的 token_version，改密后该值会递增，旧 token 随即失效
+    const token = jwt.sign(
+      { userId: user.id, username: user.username, tv: Number(user.token_version ?? 0) },
+      config.jwt.secret,
+      {
+        expiresIn: config.jwt.expiresIn,
+      }
+    )
 
     // 通过 httpOnly cookie 下发 token，前端 JS 无法读取，防 XSS 窃取
     res.cookie(config.cookie.name, token, config.cookie.options)
@@ -100,9 +112,23 @@ async function changePassword(req, res, next) {
     const salt = await bcrypt.genSalt(10)
     const hashedPassword = await bcrypt.hash(newPassword, salt)
 
+    // token_version 自增：其他设备上 tv 落后的旧 token 会被 authenticate 拒绝。
+    // 旧 token 没有 tv 字段时按 0 处理，所以升级本身不会踢掉既有登录态
+    const nextTokenVersion = Number(user.token_version ?? 0) + 1
+
     db.prepare(
-      "UPDATE users SET password = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?"
-    ).run(hashedPassword, req.user.id)
+      "UPDATE users SET password = ?, token_version = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?"
+    ).run(hashedPassword, nextTokenVersion, req.user.id)
+
+    // 重新下发带新 tv 的 cookie：当前会话保持登录，其他设备被踢下线
+    const token = jwt.sign(
+      { userId: req.user.id, username: req.user.username, tv: nextTokenVersion },
+      config.jwt.secret,
+      {
+        expiresIn: config.jwt.expiresIn,
+      }
+    )
+    res.cookie(config.cookie.name, token, config.cookie.options)
 
     success(res, null, '密码修改成功')
   } catch (error) {

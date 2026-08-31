@@ -116,7 +116,11 @@ function deleteCategory(req, res, next) {
       .prepare('SELECT COUNT(*) as count FROM posts WHERE category_id = ?')
       .get(id)
     if (count > 0) {
-      throw new AppError(`该分类下还有 ${count} 篇文章，请先移除或转移文章`, 400)
+      // 同时给出结构化的 postCount：前端应读 data 字段判断，
+      // 不要去正则匹配 message 里的中文文案（文案一改就断）
+      throw new AppError(`该分类下还有 ${count} 篇文章，请先移除或转移文章`, 400, {
+        postCount: count,
+      })
     }
 
     db.prepare('DELETE FROM categories WHERE id = ?').run(id)

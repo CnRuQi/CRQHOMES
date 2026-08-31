@@ -104,6 +104,7 @@
 import { ref, computed, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { setBodyScrollLock } from '@/assets/js/utils'
 import Icon from '@/components/Icon.vue'
 
 const route = useRoute()
@@ -129,13 +130,6 @@ function toggleSidebar() {
 function closeMobileSidebar() {
   isMobileOpen.value = false
   setBodyScrollLock(false)
-}
-
-// 锁定/释放页面滚动（html + body 双锁，兼容 iOS Safari）
-function setBodyScrollLock(locked) {
-  const overflow = locked ? 'hidden' : ''
-  document.documentElement.style.overflow = overflow
-  document.body.style.overflow = overflow
 }
 
 async function handleLogout() {

@@ -14,71 +14,49 @@ function validate(req, res, next) {
   next()
 }
 
+// 文章字段规则：create 与 update 共用同一份，避免两处规则各自漂移
+// （历史上曾出现「新建校验了、编辑没校验」的缺口，去重是治本手段）
+const postFieldRules = [
+  body('title')
+    .trim()
+    .notEmpty()
+    .withMessage('标题不能为空')
+    .isLength({ max: 200 })
+    .withMessage('标题不能超过200个字符'),
+  body('content').custom((value, { req }) => {
+    // 草稿（status=0）允许正文为空，发布时必须非空
+    if (String(req.body.status) === '0') return true
+    if (!value || !String(value).trim()) throw new Error('内容不能为空')
+    return true
+  }),
+  body('summary').optional().isLength({ max: 500 }).withMessage('摘要不能超过500个字符'),
+  body('category_id')
+    .notEmpty()
+    .withMessage('请选择分类')
+    .bail()
+    .isInt()
+    .withMessage('分类ID必须是整数'),
+  body('tags').optional().isString().withMessage('标签必须是字符串'),
+  body('cover_image')
+    .optional({ checkFalsy: true })
+    .isString()
+    .withMessage('封面图必须是字符串')
+    .matches(/^(https?:\/\/|\/uploads\/)/)
+    .withMessage('封面图必须是 http(s) 链接或 /uploads/ 路径'),
+  body('is_top').optional().isIn([0, 1, true, false]).withMessage('置顶值无效'),
+  body('status').optional().isIn([0, 1]).withMessage('状态值无效'),
+  // 发布时间必须可解析，否则 julianday() 排序、归档分组、sitemap lastmod 会连锁出错。
+  // 控制器落库前会统一转成 UTC ISO 8601，这里只负责拦截完全无法解析的值
+  body('published_at')
+    .optional({ checkFalsy: true })
+    .isISO8601()
+    .withMessage('发布时间必须是合法的 ISO 8601 时间'),
+]
+
 // 文章验证规则
 const postRules = {
-  create: [
-    body('title')
-      .trim()
-      .notEmpty()
-      .withMessage('标题不能为空')
-      .isLength({ max: 200 })
-      .withMessage('标题不能超过200个字符'),
-    body('content').custom((value, { req }) => {
-      // 草稿（status=0）允许正文为空，发布时必须非空
-      if (String(req.body.status) === '0') return true
-      if (!value || !String(value).trim()) throw new Error('内容不能为空')
-      return true
-    }),
-    body('summary').optional().isLength({ max: 500 }).withMessage('摘要不能超过500个字符'),
-    body('category_id')
-      .notEmpty()
-      .withMessage('请选择分类')
-      .bail()
-      .isInt()
-      .withMessage('分类ID必须是整数'),
-    body('tags').optional().isString().withMessage('标签必须是字符串'),
-    body('cover_image')
-      .optional({ checkFalsy: true })
-      .isString()
-      .withMessage('封面图必须是字符串')
-      .matches(/^(https?:\/\/|\/uploads\/)/)
-      .withMessage('封面图必须是 http(s) 链接或 /uploads/ 路径'),
-    body('is_top').optional().isIn([0, 1, true, false]).withMessage('置顶值无效'),
-    body('status').optional().isIn([0, 1]).withMessage('状态值无效'),
-    validate,
-  ],
-  update: [
-    param('id').isInt().withMessage('文章ID必须是整数'),
-    body('title')
-      .trim()
-      .notEmpty()
-      .withMessage('标题不能为空')
-      .isLength({ max: 200 })
-      .withMessage('标题不能超过200个字符'),
-    body('content').custom((value, { req }) => {
-      // 草稿（status=0）允许正文为空，发布时必须非空
-      if (String(req.body.status) === '0') return true
-      if (!value || !String(value).trim()) throw new Error('内容不能为空')
-      return true
-    }),
-    body('summary').optional().isLength({ max: 500 }).withMessage('摘要不能超过500个字符'),
-    body('category_id')
-      .notEmpty()
-      .withMessage('请选择分类')
-      .bail()
-      .isInt()
-      .withMessage('分类ID必须是整数'),
-    body('tags').optional().isString().withMessage('标签必须是字符串'),
-    body('cover_image')
-      .optional({ checkFalsy: true })
-      .isString()
-      .withMessage('封面图必须是字符串')
-      .matches(/^(https?:\/\/|\/uploads\/)/)
-      .withMessage('封面图必须是 http(s) 链接或 /uploads/ 路径'),
-    body('is_top').optional().isIn([0, 1, true, false]).withMessage('置顶值无效'),
-    body('status').optional().isIn([0, 1]).withMessage('状态值无效'),
-    validate,
-  ],
+  create: [...postFieldRules, validate],
+  update: [param('id').isInt().withMessage('文章ID必须是整数'), ...postFieldRules, validate],
   getById: [param('id').isInt().withMessage('文章ID必须是整数'), validate],
   list: [
     query('page').optional().isInt({ min: 1 }).withMessage('页码必须是正整数'),

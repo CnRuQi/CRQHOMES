@@ -57,6 +57,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePostStore } from '@/stores/post'
 import { useTheme } from '@/composables/useTheme'
+import { setBodyScrollLock } from '@/assets/js/utils'
 import Icon from '@/components/Icon.vue'
 
 const route = useRoute()
@@ -78,13 +79,6 @@ function toggleMenu() {
 function closeMenu() {
   isMenuOpen.value = false
   setBodyScrollLock(false)
-}
-
-// 锁定/释放页面滚动（html + body 双锁，兼容 iOS Safari）
-function setBodyScrollLock(locked) {
-  const overflow = locked ? 'hidden' : ''
-  document.documentElement.style.overflow = overflow
-  document.body.style.overflow = overflow
 }
 
 // 路由变化时自动关闭菜单（浏览器前进/后退），释放 body 滚动锁

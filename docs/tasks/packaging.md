@@ -131,6 +131,36 @@ tar -xzf dist.tar.gz                # 3. 解压覆盖站点 dist/
 
 ---
 
+## 文件级最小增量升级（可选）
+
+适用于带宽紧张且只改了少量后端源文件的场景。
+
+**前提**：用 `git diff --name-only <上一发版commit> -- server/` 拿到准确的改动清单，
+不要凭记忆列。**前端不存在文件级增量**——构建产物带内容 hash，文件名随内容变，
+必须用完整 `dist.tar.gz` 覆盖。
+
+### 后端增量
+
+```bash
+# 本地：按改动清单打小包，保持 server/ 路径结构，服务器解压即落到对应位置
+tar -czf server-incremental.tar.gz \
+  server/db/schema.sql server/db/index.js server/middleware/auth.js
+
+# 服务器（站点根目录）：覆盖后重启触发 initDb() 迁移
+tar -xzf server-incremental.tar.gz
+pm2 restart blog-server
+```
+
+**规则**：
+
+1. 相互依赖的文件必须同时到位。例如 `schema.sql` 与 `db/index.js`（迁移逻辑）分开传，
+   中途状态会让新库建表缺列
+2. 有 schema 变更时，覆盖后必须重启触发迁移，并按第 7 步先备份数据库
+3. 拿不准就退回标准全量包——它对 `data/`、`uploads/`、`.env` 同样零接触，
+   且第 6 步的条目 diff 可以防漏传
+
+---
+
 ## 常见坑
 
 | 现象 | 原因与处理 |

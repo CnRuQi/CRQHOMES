@@ -1,5 +1,5 @@
 <template>
-  <div class="markdown-editor">
+  <div ref="editorRoot" class="markdown-editor">
     <MdEditorV3
       v-model="content"
       :preview="true"
@@ -12,7 +12,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import DOMPurify from 'dompurify'
@@ -21,6 +21,7 @@ import { useToast } from '@/composables/useToast'
 
 const MdEditorV3 = MdEditor
 const toast = useToast()
+const editorRoot = ref(null)
 
 const props = defineProps({
   modelValue: {
@@ -67,15 +68,31 @@ async function handleUploadImage(files, callback) {
     callback([])
   }
 }
+
+onMounted(() => {
+  // CodeMirror owns the editable node, so label it after md-editor-v3 mounts.
+  const root = editorRoot.value
+  const input = root?.querySelector('.cm-content')
+  if (input) input.setAttribute('aria-label', '文章内容')
+
+  const toolbar = root?.querySelector('.md-editor-toolbar-wrapper')
+  if (toolbar) {
+    toolbar.setAttribute('tabindex', '0')
+    toolbar.setAttribute('role', 'region')
+    toolbar.setAttribute('aria-label', 'Markdown 编辑器工具栏')
+  }
+})
 </script>
 
 <style scoped>
 .markdown-editor {
+  min-width: 0;
+  max-width: 100%;
   border-radius: 16px;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
-  background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(163, 166, 156, 0.15);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
 }
 
 /* 覆盖 md-editor-v3 的默认 CSS 变量 */
@@ -89,18 +106,37 @@ async function handleUploadImage(files, callback) {
   background-color: transparent !important;
   color: var(--text-secondary) !important;
   border: none !important;
+  width: 100% !important;
+  max-width: 100%;
+  min-width: 0;
 }
 
 /* 工具栏 - 宣纸色背景 */
 .markdown-editor :deep(.md-editor-toolbar) {
   background-color: var(--bg-secondary) !important;
   border-bottom: 1px solid var(--border-color) !important;
+  min-width: max-content;
+}
+
+.markdown-editor :deep(.md-editor-toolbar-wrapper) {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.markdown-editor :deep(.md-editor-toolbar-wrapper:focus-visible) {
+  outline: 3px solid var(--color-primary);
+  outline-offset: -3px;
 }
 
 /* 工具栏图标 - 使用 color 属性 */
 .markdown-editor :deep(.md-editor-toolbar-item) {
   color: var(--text-secondary) !important;
-  transition: all 0.2s ease;
+  flex: 0 0 auto;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .markdown-editor :deep(.md-editor-toolbar-item:hover) {
@@ -122,6 +158,14 @@ async function handleUploadImage(files, callback) {
 /* 内容区域 */
 .markdown-editor :deep(.md-editor-content) {
   background-color: transparent !important;
+  width: 100%;
+  min-width: 0;
+}
+
+.markdown-editor :deep(.md-editor-content-wrapper),
+.markdown-editor :deep(.md-editor-input-wrapper),
+.markdown-editor :deep(.md-editor-preview-wrapper) {
+  min-width: 0;
 }
 
 /* 编辑区 */
@@ -134,7 +178,7 @@ async function handleUploadImage(files, callback) {
 /* 预览区 */
 .markdown-editor :deep(.md-editor-preview-wrapper) {
   border-left: 1px solid var(--border-color) !important;
-  background: rgba(255, 255, 255, 0.4) !important;
+  background: var(--bg-glass) !important;
 }
 
 .markdown-editor :deep(.md-editor-preview) {
@@ -156,13 +200,13 @@ async function handleUploadImage(files, callback) {
 }
 
 .markdown-editor :deep(.md-editor-preview code) {
-  background-color: rgba(163, 166, 156, 0.1) !important;
+  background-color: color-mix(in srgb, var(--color-accent) 65%, transparent) !important;
   color: var(--text-secondary) !important;
   border-radius: 4px;
 }
 
 .markdown-editor :deep(.md-editor-preview pre) {
-  background-color: rgba(163, 166, 156, 0.06) !important;
+  background-color: var(--bg-tertiary) !important;
   border-radius: 8px;
   border: 1px solid var(--border-color);
 }
@@ -173,8 +217,8 @@ async function handleUploadImage(files, callback) {
 
 .markdown-editor :deep(.md-editor-preview blockquote) {
   border-left-color: var(--color-primary) !important;
-  background-color: rgba(163, 166, 156, 0.05) !important;
-  color: var(--text-disabled) !important;
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-secondary) !important;
 }
 
 .markdown-editor :deep(.md-editor-preview table th) {
@@ -192,7 +236,7 @@ async function handleUploadImage(files, callback) {
 }
 
 .markdown-editor :deep(.md-editor-preview hr) {
-  border-color: rgba(163, 166, 156, 0.15) !important;
+  border-color: var(--border-color) !important;
 }
 
 /* 滚动条样式 */
@@ -206,6 +250,23 @@ async function handleUploadImage(files, callback) {
 .markdown-editor :deep(.md-editor-preview-wrapper::-webkit-scrollbar-thumb) {
   background: rgba(163, 166, 156, 0.25);
   border-radius: 3px;
+}
+
+@media (max-width: 768px) {
+  .markdown-editor :deep(.md-editor-content-wrapper) {
+    flex-direction: column;
+  }
+
+  .markdown-editor :deep(.md-editor-input-wrapper),
+  .markdown-editor :deep(.md-editor-preview-wrapper) {
+    width: 100% !important;
+    flex: 1 1 50%;
+  }
+
+  .markdown-editor :deep(.md-editor-preview-wrapper) {
+    border-top: 1px solid var(--border-color) !important;
+    border-left: none !important;
+  }
 }
 
 .markdown-editor :deep(.md-editor-input::-webkit-scrollbar-track),

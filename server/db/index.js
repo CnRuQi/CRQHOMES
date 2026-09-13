@@ -29,38 +29,63 @@ function getDb() {
   return db
 }
 
-function initDb() {
-  const database = getDb()
-  const schemaPath = path.join(__dirname, 'schema.sql')
-  const schema = fs.readFileSync(schemaPath, 'utf-8')
+function migrateLegacySchema(database) {
+  const runMigrations = database.transaction(() => {
+    const postColumns = database.prepare('PRAGMA table_info(posts)').all()
+    const postColumnNames = postColumns.map((column) => column.name)
 
-  // 先检查 posts 表是否有 slug 列，如果没有则添加
-  try {
-    const columns = database.prepare('PRAGMA table_info(posts)').all()
-    const columnNames = columns.map((col) => col.name)
-    if (columnNames.includes('id') && !columnNames.includes('slug')) {
-      console.info('添加 slug 字段...')
-      database.exec('ALTER TABLE posts ADD COLUMN slug TEXT')
-      database.exec("UPDATE posts SET slug = 'post-' || id WHERE slug IS NULL OR slug = ''")
-      console.info('  ✓ slug 字段已添加')
+    if (postColumnNames.includes('id')) {
+      if (!postColumnNames.includes('slug')) {
+        console.info('添加 slug 字段...')
+        database.exec('ALTER TABLE posts ADD COLUMN slug TEXT')
+      }
+
+      const posts = database.prepare('SELECT id, slug FROM posts ORDER BY id ASC').all()
+      const usedSlugs = new Set()
+      const updateSlug = database.prepare('UPDATE posts SET slug = ? WHERE id = ?')
+
+      for (const post of posts) {
+        const existingSlug = post.slug === null || post.slug === undefined ? '' : String(post.slug)
+        const baseSlug = existingSlug.trim() || `post-${post.id}`
+        let slug = baseSlug
+        let suffix = 1
+        while (usedSlugs.has(slug)) {
+          slug = `${baseSlug}-${suffix}`
+          suffix++
+        }
+        usedSlugs.add(slug)
+
+        if (post.slug !== slug) {
+          updateSlug.run(slug, post.id)
+        }
+      }
+
+      // 旧版本创建的是非唯一 idx_posts_slug；重建为唯一索引前先清理两种历史名称。
+      database.exec('DROP INDEX IF EXISTS idx_posts_slug')
+      database.exec('DROP INDEX IF EXISTS idx_posts_slug_unique')
+      database.exec('CREATE UNIQUE INDEX idx_posts_slug_unique ON posts(slug)')
+      console.info('  ✓ slug 字段及唯一索引已就绪')
     }
-  } catch (_e) {
-    // 表可能还不存在，忽略错误
-  }
 
-  // 迁移：users 表加 token_version（改密后用于让旧 token 失效）
-  try {
-    const columns = database.prepare('PRAGMA table_info(users)').all()
-    const columnNames = columns.map((col) => col.name)
-    if (columnNames.includes('id') && !columnNames.includes('token_version')) {
+    const userColumns = database.prepare('PRAGMA table_info(users)').all()
+    const userColumnNames = userColumns.map((column) => column.name)
+    if (userColumnNames.includes('id') && !userColumnNames.includes('token_version')) {
       console.info('添加 users.token_version 字段...')
       database.exec('ALTER TABLE users ADD COLUMN token_version INTEGER DEFAULT 0')
       database.exec('UPDATE users SET token_version = 0 WHERE token_version IS NULL')
       console.info('  ✓ token_version 字段已添加')
     }
-  } catch (_e) {
-    // 表可能还不存在，忽略错误
-  }
+  })
+
+  runMigrations()
+}
+
+function initDb(database = getDb()) {
+  const schemaPath = path.join(__dirname, 'schema.sql')
+  const schema = fs.readFileSync(schemaPath, 'utf-8')
+
+  // 旧库迁移必须在 schema 建表前完成，失败直接抛出，避免启动在半迁移状态下继续运行。
+  migrateLegacySchema(database)
 
   database.exec(schema)
   console.info('数据库初始化完成')

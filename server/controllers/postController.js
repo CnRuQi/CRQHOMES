@@ -1,10 +1,6 @@
 const { getDb } = require('../db')
 const { AppError } = require('../middleware/error')
-const { success, paginate, parsePagination, parseTags } = require('../utils/helpers')
-
-// 归档接口一次性返回的文章上限。
-// 个人博客远达不到这个量级，设限只为兜住文章数增长后的全量加载（无分页的一次性 SELECT）
-const ARCHIVE_MAX_POSTS = 500
+const { success, paginate, parsePagination, normalizeTags, parseTags } = require('../utils/helpers')
 
 // 排序用的时间表达式：published_at 缺失时回退 created_at。
 // 列表与归档必须用同一套语义，否则同一批数据在两处的先后次序会对不上
@@ -26,6 +22,20 @@ function escapeLike(str) {
 // 标准化置顶标记为 0/1（兼容字符串 "0"/"false" 等，避免真值判断误判）
 function normalizeTopFlag(value) {
   return Number(value) === 1 || value === true ? 1 : 0
+}
+
+function assertOptionalString(value, field) {
+  if (value !== undefined && typeof value !== 'string') {
+    throw new AppError(`${field}必须是字符串`, 400)
+  }
+}
+
+function normalizeTagsForStorage(tags) {
+  try {
+    return normalizeTags(tags).join(',')
+  } catch (error) {
+    throw new AppError(error.message, 400)
+  }
 }
 
 // 规范化时间为 UTC ISO 8601（兼容 SQLite CURRENT_TIMESTAMP 的无时区 UTC 格式）
@@ -189,7 +199,7 @@ function executePostListQuery(db, where, params, pageSize, offset, orderBy = 'de
 // 获取文章列表（前台）
 function getPosts(req, res, next) {
   try {
-    const { page, pageSize, offset } = parsePagination(req.query)
+    const { page, pageSize, offset } = parsePagination(req.query, { allowUnbounded: false })
     const db = getDb()
 
     const { where, params } = buildPostQueryConditions(req.query, {
@@ -302,7 +312,7 @@ function getPostForAdmin(req, res, next) {
 // 获取所有文章（后台管理）
 function getAllPosts(req, res, next) {
   try {
-    const { page, pageSize, offset } = parsePagination(req.query)
+    const { page, pageSize, offset } = parsePagination(req.query, { allowUnbounded: true })
     const orderBy = req.query.sort === 'recent' ? 'recent' : 'default'
     const db = getDb()
 
@@ -333,11 +343,18 @@ function createPost(req, res, next) {
       published_at,
     } = req.body
 
-    if (!title) {
+    assertOptionalString(title, '标题')
+    assertOptionalString(content, '正文')
+    assertOptionalString(summary, '摘要')
+    assertOptionalString(cover_image, '封面图')
+    assertOptionalString(tags, '标签')
+    assertOptionalString(published_at, '发布时间')
+
+    if (!title || !title.trim()) {
       throw new AppError('标题不能为空', 400)
     }
     // 草稿（status=0）允许正文为空，发布时必须非空
-    if (Number(status) !== 0 && !content) {
+    if (Number(status) !== 0 && (!content || !content.trim())) {
       throw new AppError('内容不能为空', 400)
     }
 
@@ -348,7 +365,7 @@ function createPost(req, res, next) {
     const db = getDb()
     assertCategoryExists(db, category_id || null)
     const slug = ensureUniqueSlug(db, generateSlug(title))
-    const tagsStr = Array.isArray(tags) ? tags.join(',') : tags || ''
+    const tagsStr = normalizeTagsForStorage(tags)
 
     // 新文章 sort_order 取当前最大值 +1，保证发布后排在列表最前可见
     // （排序为 sort_order DESC，默认 0 会掉到所有手动排序文章之后）
@@ -375,9 +392,9 @@ function createPost(req, res, next) {
       .run(
         title,
         slug,
-        content || '',
-        summary || '',
-        cover_image || '',
+        content ?? '',
+        summary ?? '',
+        cover_image ?? '',
         category_id || null,
         tagsStr,
         normalizeTopFlag(is_top),
@@ -411,19 +428,35 @@ function updatePost(req, res, next) {
       status,
       published_at,
     } = req.body
+
+    assertOptionalString(title, '标题')
+    assertOptionalString(content, '正文')
+    assertOptionalString(summary, '摘要')
+    assertOptionalString(cover_image, '封面图')
+    assertOptionalString(tags, '标签')
+    assertOptionalString(published_at, '发布时间')
+
     const db = getDb()
-    assertCategoryExists(db, category_id || null)
 
     const existingPost = db
-      .prepare('SELECT id, title, slug, status, published_at FROM posts WHERE id = ?')
+      .prepare(
+        'SELECT id, title, slug, content, summary, cover_image, category_id, tags, status, is_top, published_at FROM posts WHERE id = ?'
+      )
       .get(id)
     if (!existingPost) {
       throw new AppError('文章不存在', 404)
     }
 
-    if (!title) {
+    if (!title || !title.trim()) {
       throw new AppError('标题不能为空', 400)
     }
+
+    const hasValue = (value) => value !== undefined
+    const nextContent = hasValue(content) ? content : existingPost.content
+    const nextSummary = hasValue(summary) ? summary : (existingPost.summary ?? '')
+    const nextCover = hasValue(cover_image) ? cover_image : (existingPost.cover_image ?? '')
+    const nextCategory = hasValue(category_id) ? category_id : existingPost.category_id
+    const nextTags = hasValue(tags) ? normalizeTagsForStorage(tags) : existingPost.tags || ''
 
     // 未提供 status 时保留原值，与分类 updateCategory、个人资料 updateProfile 的
     // 「半更新语义」保持一致。这里若缺省为 1，则「省略 status 的更新」会把草稿
@@ -431,14 +464,15 @@ function updatePost(req, res, next) {
     // 省略它是完全合法的请求
     const postStatus = status !== undefined ? status : existingPost.status
 
-    // 草稿（postStatus=0）允许正文为空，发布时必须非空。
-    // 必须用生效后的 postStatus 判断，否则 status 省略时会误要求草稿补正文
-    if (Number(postStatus) !== 0 && !content) {
-      throw new AppError('内容不能为空', 400)
+    assertCategoryExists(db, nextCategory)
+    if (!nextCategory) {
+      throw new AppError('请选择分类', 400)
     }
 
-    if (!category_id) {
-      throw new AppError('请选择分类', 400)
+    // 草稿（postStatus=0）允许正文为空，发布时必须非空。
+    // 必须用生效后的 postStatus 判断，否则 status 省略时会误要求草稿补正文
+    if (Number(postStatus) !== 0 && (!nextContent || !nextContent.trim())) {
+      throw new AppError('内容不能为空', 400)
     }
 
     // 如果标题变化，重新生成 slug
@@ -447,16 +481,14 @@ function updatePost(req, res, next) {
       slug = ensureUniqueSlug(db, generateSlug(title), id)
     }
 
-    const tagsStr = Array.isArray(tags) ? tags.join(',') : tags || ''
-
     const nowIso = new Date().toISOString()
     // 转草稿不再清空 published_at：发布时间是文章的固有属性，重新发布时应恢复原值，
     // 否则归档分组与 sitemap 的 lastmod 会跳变。
     // 优先级：本次显式提交 > 原有发布时间 > 发布态兜底为当前时间
-    const publishedAt =
-      normalizePublishedAt(published_at) ||
-      normalizePublishedAt(existingPost.published_at) ||
-      (Number(postStatus) === 1 ? nowIso : null)
+    const publishedAt = hasValue(published_at)
+      ? normalizePublishedAt(published_at) || (Number(postStatus) === 1 ? nowIso : null)
+      : normalizePublishedAt(existingPost.published_at) ||
+        (Number(postStatus) === 1 ? nowIso : null)
 
     db.prepare(
       `
@@ -469,12 +501,14 @@ function updatePost(req, res, next) {
     ).run(
       title,
       slug,
-      content || '',
-      summary || '',
-      cover_image || '',
-      category_id || null,
-      tagsStr,
-      normalizeTopFlag(is_top),
+      nextContent,
+      nextSummary,
+      nextCover,
+      nextCategory,
+      nextTags,
+      // 未提供 is_top 时保留原值，与 status 的「半更新语义」一致。
+      // 否则省略 is_top 的合法请求（验证器标为 optional）会静默取消置顶
+      is_top !== undefined ? normalizeTopFlag(is_top) : existingPost.is_top,
       postStatus,
       publishedAt,
       nowIso,
@@ -540,6 +574,9 @@ function toggleTop(req, res, next) {
 function getArchives(req, res, next) {
   try {
     const db = getDb()
+    const { page, pageSize, offset } = parsePagination(req.query, { defaultPageSize: 50 })
+
+    const { total } = db.prepare('SELECT COUNT(*) as total FROM posts WHERE status = 1').get()
 
     // 排序用 julianday() 而非裸列：裸列是字符串比较，一旦列内混有
     // 「无时区的 datetime-local 串」与「带 Z 的 UTC 串」，跨格式比较结果就是错的。
@@ -552,10 +589,11 @@ function getArchives(req, res, next) {
       FROM posts p
       WHERE p.status = 1
       ORDER BY ${TIME_ORDER_EXPR} DESC
-      LIMIT ?
+      , p.id DESC
+      LIMIT ? OFFSET ?
     `
       )
-      .all(ARCHIVE_MAX_POSTS)
+      .all(pageSize, offset)
 
     // 按年月分组（与列表按 published_at 排序保持一致）
     const archives = {}
@@ -571,7 +609,15 @@ function getArchives(req, res, next) {
       archives[key].posts.push(post)
     })
 
-    success(res, { archives: Object.values(archives) })
+    success(res, {
+      archives: Object.values(archives),
+      pagination: {
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    })
   } catch (error) {
     next(error)
   }
@@ -580,7 +626,7 @@ function getArchives(req, res, next) {
 // 搜索文章（标题+摘要+正文）
 function searchPosts(req, res, next) {
   try {
-    const { page, pageSize, offset } = parsePagination(req.query)
+    const { page, pageSize, offset } = parsePagination(req.query, { allowUnbounded: false })
     const db = getDb()
 
     // 验证器已保证 keyword 是字符串（?keyword=a&keyword=b 这类数组形式会被 isString 拦下）

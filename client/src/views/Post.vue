@@ -1,6 +1,6 @@
 <template>
   <div class="post-detail">
-    <main class="main-content">
+    <div class="view-content">
       <div class="container">
         <div v-if="loading" class="loading">
           <div class="spinner"></div>
@@ -34,12 +34,21 @@
 
             <!-- 封面图 -->
             <div v-if="post.cover_image" class="article-cover">
-              <img :src="post.cover_image" :alt="post.title" />
+              <img
+                v-if="!coverImageFailed"
+                :src="post.cover_image"
+                :alt="post.title"
+                @error="handleCoverError"
+              />
+              <div v-else class="image-fallback" role="img" aria-label="封面图片加载失败">
+                <Icon name="camera" :size="32" />
+                <span>封面图片加载失败</span>
+              </div>
             </div>
 
-            <!-- 文章内容 (v-html is safe: rendered from sanitized markdown) -->
-            <!-- eslint-disable-next-line vue/no-v-html -->
-            <div class="article-content" v-html="renderedContent"></div>
+            <div class="article-content">
+              <MarkdownContent :source="post.content" />
+            </div>
 
             <!-- 文章底部 -->
             <footer class="article-footer">
@@ -60,7 +69,7 @@
           <router-link to="/" class="btn btn-primary mt-md"> 返回首页 </router-link>
         </div>
       </div>
-    </main>
+    </div>
   </div>
 </template>
 
@@ -71,11 +80,8 @@ import { usePostStore } from '@/stores/post'
 import { useSeo } from '@/composables/useSeo'
 import { useToast } from '@/composables/useToast'
 import { formatDate } from '@/assets/js/utils'
-// marked + 语法高亮的一次性全局配置已抽到 markdown.js：marked.use() 改的是全局状态，
-// 写在 setup 里会随每次组件实例化重复注册扩展。这里直接用配置好的实例
-import { marked } from '@/assets/js/markdown'
-import DOMPurify from 'dompurify'
 import Icon from '@/components/Icon.vue'
+import MarkdownContent from '@/components/MarkdownContent.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -85,6 +91,7 @@ const toast = useToast()
 // 初值为 true：onMounted 发起请求前若已完成首次渲染，会先走 v-else 分支闪一帧「文章不存在」
 const loading = ref(true)
 const post = ref(null)
+const coverImageFailed = ref(false)
 
 // setup 顶层调用：随数据响应式更新，组件卸载时自动清理 SEO meta
 useSeo({
@@ -94,18 +101,6 @@ useSeo({
   image: computed(() => post.value?.cover_image || ''),
   url: computed(() => window.location.href),
   type: 'article',
-})
-
-const renderedContent = computed(() => {
-  if (!post.value?.content) return ''
-  return DOMPurify.sanitize(marked(post.value.content), {
-    afterSanitizeAttributes: (node) => {
-      // 新窗口打开的链接补 rel，防 tabnabbing
-      if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
-        node.setAttribute('rel', 'noopener noreferrer')
-      }
-    },
-  })
 })
 
 function goBack() {
@@ -121,6 +116,7 @@ onMounted(async () => {
   loading.value = true
   try {
     const res = await postStore.fetchPost(route.params.slug)
+    coverImageFailed.value = false
     post.value = res.data.post
   } catch (error) {
     console.error('获取文章失败:', error)
@@ -129,6 +125,10 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+function handleCoverError() {
+  coverImageFailed.value = true
+}
 </script>
 
 <style scoped>
@@ -136,17 +136,17 @@ onMounted(async () => {
   min-height: 100vh;
 }
 
-.main-content {
+.view-content {
   padding-bottom: var(--spacing-2xl);
 }
 
 .article {
   max-width: 800px;
   margin: 0 auto;
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--bg-card);
   border-radius: 20px;
   padding: var(--spacing-2xl);
-  border: 1px solid rgba(120, 122, 116, 0.15);
+  border: 1px solid var(--border-color);
   box-shadow: var(--shadow-md);
 }
 
@@ -165,9 +165,9 @@ onMounted(async () => {
 
 .meta-category {
   padding: 4px 14px;
-  background: rgba(163, 166, 156, 0.15);
+  background: var(--bg-table-row-hover);
   border-radius: 20px;
-  color: var(--color-primary-dark);
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -204,6 +204,17 @@ onMounted(async () => {
   display: block;
 }
 
+.image-fallback {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+}
+
 .article-content {
   font-size: 1.05rem;
   line-height: 1.9;
@@ -223,7 +234,7 @@ onMounted(async () => {
 .article-content :deep(h2) {
   font-size: 1.5rem;
   padding-bottom: 0.5em;
-  border-bottom: 1px solid rgba(120, 122, 116, 0.2);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .article-content :deep(h3) {
@@ -250,7 +261,7 @@ onMounted(async () => {
 .article-content :deep(blockquote) {
   padding: 1em 1.5em;
   border-left: 4px solid var(--color-primary);
-  background: rgba(163, 166, 156, 0.08);
+  background: var(--bg-tertiary);
   border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
   margin: 1.5em 0;
   color: var(--text-secondary);
@@ -258,7 +269,7 @@ onMounted(async () => {
 
 .article-content :deep(code) {
   padding: 2px 8px;
-  background: rgba(163, 166, 156, 0.12);
+  background: var(--bg-tertiary);
   border-radius: 4px;
   font-size: 0.9em;
   font-family: var(--font-mono);
@@ -268,9 +279,9 @@ onMounted(async () => {
 .article-content :deep(pre) {
   margin: 1.5em 0;
   padding: 1.5em;
-  background: rgba(45, 46, 43, 0.06);
+  background: var(--bg-secondary);
   border-radius: var(--border-radius);
-  border: 1px solid rgba(120, 122, 116, 0.12);
+  border: 1px solid var(--border-color);
   overflow-x: auto;
 }
 
@@ -293,14 +304,14 @@ onMounted(async () => {
 
 .article-content :deep(hr) {
   border: none;
-  border-top: 1px solid rgba(120, 122, 116, 0.2);
+  border-top: 1px solid var(--border-color);
   margin: 2em 0;
 }
 
 .article-footer {
   margin-top: var(--spacing-2xl);
   padding-top: var(--spacing-xl);
-  border-top: 1px solid rgba(120, 122, 116, 0.15);
+  border-top: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;

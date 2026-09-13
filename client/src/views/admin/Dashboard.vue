@@ -44,7 +44,7 @@
 
     <div class="content-grid">
       <div class="recent-posts glass-card" data-aos="fade-up">
-        <h3 class="section-title">最近文章</h3>
+        <h2 class="section-title">最近文章</h2>
         <div class="posts-list">
           <div v-for="post in recentPosts" :key="post.id" class="post-item">
             <div class="post-info">
@@ -70,7 +70,7 @@
       </div>
 
       <div class="quick-actions glass-card" data-aos="fade-up" data-aos-delay="100">
-        <h3 class="section-title">快捷操作</h3>
+        <h2 class="section-title">快捷操作</h2>
         <div class="actions-list">
           <router-link to="/admin/posts/create" class="action-item">
             <Icon name="edit" :size="20" />
@@ -159,8 +159,8 @@ onMounted(async () => {
   gap: var(--spacing-lg);
   padding: var(--spacing-xl);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(120, 122, 116, 0.15);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
 }
 
@@ -193,8 +193,8 @@ onMounted(async () => {
 /* 最近文章卡片 */
 .recent-posts {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(120, 122, 116, 0.15);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   padding: var(--spacing-xl);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
@@ -203,8 +203,8 @@ onMounted(async () => {
 /* 快捷操作卡片 */
 .quick-actions {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(120, 122, 116, 0.15);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   padding: var(--spacing-xl);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
@@ -215,7 +215,7 @@ onMounted(async () => {
   font-weight: 600;
   margin-bottom: var(--spacing-lg);
   padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid rgba(120, 122, 116, 0.15);
+  border-bottom: 1px solid var(--border-color);
   color: var(--text-primary);
 }
 

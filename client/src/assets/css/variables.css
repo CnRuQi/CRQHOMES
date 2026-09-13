@@ -1,15 +1,22 @@
 :root {
   /* 主色调 - 枯木冷茶 */
-  --color-primary: #a3a69c;
-  --color-primary-light: #c4c6bf;
-  --color-primary-dark: #82857c;
-  --color-accent: #dedfd9;
+  --color-primary: #687064;
+  --color-primary-light: #9aa692;
+  --color-primary-dark: #4d574a;
+  --color-accent: #dce4d5;
+  --on-primary: #ffffff;
 
   /* 功能色 - 同步降噪处理 */
-  --color-success: #9ba38e;
-  --color-warning: #c7b38d;
-  --color-danger: #b38f8f;
-  --color-info: #8fa1b3;
+  --color-success: #4f7957;
+  --color-warning: #8b641a;
+  --color-danger: #813636;
+  --color-info: #426a86;
+
+  /* 状态标签：文本和底色成对定义，保证两种主题下都有足够对比度 */
+  --status-published-text: #35633e;
+  --status-published-bg: #e6efe7;
+  --status-draft-text: #74520c;
+  --status-draft-bg: #f5ecd9;
 
   /* 背景色 - 宣纸/洗砚 */
   --bg-primary: #f5f5f3;
@@ -19,17 +26,19 @@
   --bg-card-hover: rgba(255, 255, 255, 0.95);
   --bg-glass: rgba(255, 255, 255, 0.75);
   --bg-glass-hover: rgba(245, 245, 243, 0.9);
+  --bg-table-row: #f1f1ee;
+  --bg-table-row-hover: #e9ebe6;
 
   /* 文字颜色 - 加深对比度 */
   --text-primary: #2d2e2b;
   --text-secondary: #4a4c48;
-  --text-muted: #6e706b;
-  --text-disabled: #9a9c97;
+  --text-muted: #575a54;
+  --text-disabled: #73766f;
 
   /* 边框 - 增强可见度 */
-  --border-color: rgba(120, 122, 116, 0.2);
-  --border-hover: rgba(120, 122, 116, 0.4);
-  --border-active: rgba(120, 122, 116, 0.6);
+  --border-color: rgba(77, 87, 74, 0.24);
+  --border-hover: rgba(77, 87, 74, 0.46);
+  --border-active: rgba(77, 87, 74, 0.68);
   --border-radius: 12px;
   --border-radius-lg: 16px;
   --border-radius-sm: 8px;
@@ -75,16 +84,22 @@
 /* 暗色模式 */
 [data-theme='dark'] {
   /* 主色调 - 枯木冷茶（暗色版） */
-  --color-primary: #8a8d84;
-  --color-primary-light: #6e706b;
-  --color-primary-dark: #a3a69c;
-  --color-accent: #3d3e3b;
+  --color-primary: #667462;
+  --color-primary-light: #aeb9a4;
+  --color-primary-dark: #aeb9a4;
+  --color-accent: #3d483c;
+  --on-primary: #ffffff;
 
   /* 功能色 */
-  --color-success: #7a8270;
-  --color-warning: #a89470;
-  --color-danger: #947070;
-  --color-info: #6e8294;
+  --color-success: #8fbe93;
+  --color-warning: #e0b558;
+  --color-danger: #e49a9a;
+  --color-info: #9bc2df;
+
+  --status-published-text: #a8d6ad;
+  --status-published-bg: #304638;
+  --status-draft-text: #f0c979;
+  --status-draft-bg: #4b3d1f;
 
   /* 背景色 - 夜空/墨石 */
   --bg-primary: #1a1a1a;
@@ -94,17 +109,19 @@
   --bg-card-hover: rgba(55, 55, 55, 0.95);
   --bg-glass: rgba(35, 35, 35, 0.75);
   --bg-glass-hover: rgba(45, 45, 45, 0.9);
+  --bg-table-row: #333333;
+  --bg-table-row-hover: #3b403b;
 
   /* 文字颜色 */
   --text-primary: #e0e0e0;
-  --text-secondary: #b0b0b0;
-  --text-muted: #808080;
-  --text-disabled: #606060;
+  --text-secondary: #c1c5bd;
+  --text-muted: #aeb4a9;
+  --text-disabled: #8e958b;
 
   /* 边框 */
-  --border-color: rgba(200, 200, 200, 0.12);
-  --border-hover: rgba(200, 200, 200, 0.25);
-  --border-active: rgba(200, 200, 200, 0.4);
+  --border-color: rgba(200, 210, 198, 0.22);
+  --border-hover: rgba(200, 210, 198, 0.42);
+  --border-active: rgba(200, 210, 198, 0.62);
 
   /* 阴影 */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);

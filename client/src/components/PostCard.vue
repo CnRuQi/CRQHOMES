@@ -5,12 +5,21 @@
     :data-aos-delay="Math.min(index, 6) * 100"
   >
     <router-link :to="`/post/${post.slug || post.id}`" class="card-link">
-      <div v-if="post.cover_image" class="card-cover">
-        <img :src="post.cover_image" :alt="post.title" loading="lazy" />
+      <div v-if="post.cover_image && !imageFailed" class="card-cover">
+        <img :src="post.cover_image" :alt="post.title" loading="lazy" @error="handleImageError" />
         <div class="cover-overlay"></div>
       </div>
+      <div
+        v-else-if="imageFailed"
+        class="card-cover placeholder image-fallback"
+        role="img"
+        aria-label="封面图片加载失败"
+      >
+        <Icon name="camera" :size="32" />
+        <span>封面图片加载失败</span>
+      </div>
       <div v-else class="card-cover placeholder">
-        <span class="placeholder-icon">✦</span>
+        <span class="placeholder-icon" aria-hidden="true"></span>
       </div>
 
       <div class="card-body">
@@ -22,12 +31,12 @@
           <span class="card-date">{{ fromNow(post.published_at || post.created_at) }}</span>
         </div>
 
-        <h3 class="card-title">
+        <h2 class="card-title">
           <template v-for="(part, i) in titleParts" :key="i">
             <mark v-if="part.highlight">{{ part.text }}</mark>
             <span v-else>{{ part.text }}</span>
           </template>
-        </h3>
+        </h2>
 
         <p v-if="post.summary" class="card-summary">
           <template v-for="(part, i) in summaryParts" :key="i">
@@ -53,7 +62,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { fromNow, truncate, formatNumber, highlightParts } from '@/assets/js/utils'
 import Icon from '@/components/Icon.vue'
 
@@ -76,27 +85,44 @@ const titleParts = computed(() => highlightParts(props.post.title, props.keyword
 const summaryParts = computed(() =>
   highlightParts(truncate(props.post.summary, 100), props.keyword)
 )
+const imageFailed = ref(false)
+
+function handleImageError() {
+  imageFailed.value = true
+}
+
+watch(
+  () => props.post.cover_image,
+  () => {
+    imageFailed.value = false
+  }
+)
 </script>
 
 <style scoped>
 .post-card {
   overflow: hidden;
-  transition: all 0.3s ease;
+  min-width: 0;
+  transition:
+    transform var(--transition-normal),
+    box-shadow var(--transition-normal),
+    border-color var(--transition-normal);
   position: relative;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(120, 122, 116, 0.15);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
 }
 
 .post-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
-  border-color: rgba(120, 122, 116, 0.25);
+  border-color: var(--border-hover);
 }
 
 .card-link {
   display: block;
+  min-width: 0;
   color: inherit;
   text-decoration: none;
 }
@@ -130,13 +156,24 @@ const summaryParts = computed(() =>
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(163, 166, 156, 0.12), rgba(222, 223, 217, 0.12));
+  background: var(--bg-tertiary);
+}
+
+.card-cover.image-fallback {
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  color: var(--text-muted);
+  font-size: 0.85rem;
 }
 
 .placeholder-icon {
   font-size: 3rem;
   opacity: 0.3;
   animation: float 4s ease-in-out infinite;
+}
+
+.placeholder-icon::before {
+  content: '✦';
 }
 
 @keyframes float {
@@ -165,15 +202,15 @@ const summaryParts = computed(() =>
   padding: 3px 12px;
   background: rgba(163, 166, 156, 0.12);
   border-radius: 20px;
-  color: var(--color-primary-dark);
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .card-top {
   padding: 3px 12px;
-  background: rgba(179, 143, 143, 0.15);
+  background: color-mix(in srgb, var(--color-danger) 14%, transparent);
   border-radius: 20px;
-  color: #9a7272;
+  color: var(--color-danger);
   font-weight: 500;
 }
 
@@ -213,7 +250,7 @@ const summaryParts = computed(() =>
   align-items: center;
   justify-content: space-between;
   padding-top: var(--spacing-md);
-  border-top: 1px solid rgba(150, 164, 138, 0.1);
+  border-top: 1px solid var(--border-color);
 }
 
 .card-tags {
@@ -253,8 +290,8 @@ const summaryParts = computed(() =>
 }
 
 :deep(mark) {
-  background: rgba(163, 166, 156, 0.3);
-  color: inherit;
+  background: var(--color-accent);
+  color: var(--text-primary);
   padding: 1px 2px;
   border-radius: 2px;
 }

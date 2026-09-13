@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parsePagination, parseTags } from '../utils/helpers.js'
+import { normalizeTags, parsePagination, parseTags } from '../utils/helpers.js'
 
 describe('parsePagination', () => {
   it('returns defaults for empty query', () => {
@@ -12,24 +12,22 @@ describe('parsePagination', () => {
     expect(result).toEqual({ page: 3, pageSize: 20, offset: 40 })
   })
 
-  it('clamps page to minimum 1', () => {
-    const result = parsePagination({ page: '0' })
-    expect(result.page).toBe(1)
+  it('rejects a non-positive page', () => {
+    expect(() => parsePagination({ page: '0' })).toThrow(/页码/)
   })
 
-  it('clamps pageSize to maximum 50', () => {
-    const result = parsePagination({ pageSize: '100' })
-    expect(result.pageSize).toBe(50)
+  it('rejects a pageSize above the public maximum', () => {
+    expect(() => parsePagination({ pageSize: '100' })).toThrow(/每页数量/)
   })
 
-  it('treats pageSize 0 as no pagination (all)', () => {
-    const result = parsePagination({ pageSize: '0' })
+  it('allows pageSize 0 only when unbounded reads are explicitly enabled', () => {
+    const result = parsePagination({ pageSize: '0' }, { allowUnbounded: true })
     expect(result).toEqual({ page: 1, pageSize: null, offset: 0 })
+    expect(() => parsePagination({ pageSize: '0' })).toThrow(/不分页/)
   })
 
-  it('handles non-numeric values gracefully', () => {
-    const result = parsePagination({ page: 'abc', pageSize: 'xyz' })
-    expect(result).toEqual({ page: 1, pageSize: 10, offset: 0 })
+  it('rejects non-numeric values instead of silently using defaults', () => {
+    expect(() => parsePagination({ page: 'abc', pageSize: 'xyz' })).toThrow(/页码|每页数量/)
   })
 })
 
@@ -54,5 +52,14 @@ describe('parseTags', () => {
 
   it('filters empty strings', () => {
     expect(parseTags('vue,,node,')).toEqual(['vue', 'node'])
+  })
+
+  it('normalizes whitespace in array values', () => {
+    expect(normalizeTags([' vue ', 'node'])).toEqual(['vue', 'node'])
+  })
+
+  it('rejects tag lists over the shared limits', () => {
+    expect(() => normalizeTags(Array.from({ length: 21 }, () => 'tag'))).toThrow(/20/)
+    expect(() => normalizeTags('a'.repeat(51))).toThrow(/50/)
   })
 })

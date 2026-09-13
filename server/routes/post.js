@@ -1,4 +1,5 @@
 const express = require('express')
+const rateLimit = require('express-rate-limit')
 const router = express.Router()
 const {
   getPosts,
@@ -17,6 +18,19 @@ const {
 const { authenticate } = require('../middleware/auth')
 const { postRules } = require('../middleware/validator')
 
+// 搜索限流：个人博客场景下每个可信客户端 IP 15 分钟最多 300 次。
+// 多进程部署时需改用共享 store，否则每个进程会分别计数。
+const searchLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 300,
+  message: {
+    code: 429,
+    message: '搜索请求过于频繁，请稍后再试',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
 // 注意：所有静态路径（/stats、/search、/archives、/admin、/admin/:id、/sort）
 // 必须注册在 /:idOrSlug 和 /:id 之前，否则会被动态路由吞掉。
 
@@ -24,16 +38,16 @@ const { postRules } = require('../middleware/validator')
 router.get('/stats', authenticate, getStats)
 
 // GET /api/posts/search - 搜索文章
-router.get('/search', postRules.search, searchPosts)
+router.get('/search', searchLimiter, postRules.search, searchPosts)
 
 // GET /api/posts - 获取文章列表（前台）
 router.get('/', postRules.list, getPosts)
 
 // GET /api/posts/archives - 获取归档
-router.get('/archives', getArchives)
+router.get('/archives', postRules.archive, getArchives)
 
 // GET /api/posts/admin - 获取所有文章（后台管理）
-router.get('/admin', authenticate, postRules.list, getAllPosts)
+router.get('/admin', authenticate, postRules.adminList, getAllPosts)
 
 // GET /api/posts/admin/:id - 获取单篇文章（后台管理，含草稿）
 router.get('/admin/:id', authenticate, postRules.getById, getPostForAdmin)

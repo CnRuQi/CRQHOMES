@@ -1,7 +1,7 @@
 # 第二轮代码审查报告 — 披花沐雪
 
 > 审查日期：2026-08-31
-> 触发：第一轮（`docs/code-review-2026-08-29.md`）修复完成后的复查
+> 触发：第一轮（`code-review-2026-08-29.md`）修复完成后的复查
 > 范围：**全量**——除第一轮已覆盖的 server 后端与 client 主要视图外，本轮补齐了第一轮未覆盖的
 > `components/{Icon,PostCard,EmptyState,SkeletonCard,Footer}.vue`、全部 admin 视图、
 > `NotFound.vue`、`server/db/{create-admin,import-data}.js`、测试文件与构建配置

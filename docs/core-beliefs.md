@@ -35,8 +35,8 @@
 **信念：** 每一层只做自己的事，不越界。
 
 - routes 只做路由映射，不写业务逻辑
-- controllers 处理业务，不写 SQL
-- db 层封装数据操作，不处理业务
+- controllers 处理业务；当前通过 `server/db/index.js` 获取连接并执行参数化 SQL
+- db 层管理数据库连接、schema 和迁移，不处理业务；独立 data-access 层的提取是后续工作
 - middleware 做预处理，不改变业务结果
 
 ---

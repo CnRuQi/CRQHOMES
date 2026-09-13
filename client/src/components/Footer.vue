@@ -11,12 +11,12 @@
 
       <div class="footer-links">
         <div class="link-group">
-          <h4>导航</h4>
+          <h2>导航</h2>
           <router-link to="/">首页</router-link>
           <router-link to="/archives">归档</router-link>
         </div>
         <div class="link-group">
-          <h4>管理</h4>
+          <h2>管理</h2>
           <router-link to="/admin/login">后台登录</router-link>
         </div>
       </div>
@@ -82,7 +82,7 @@ const currentYear = new Date().getFullYear()
 }
 
 .footer-desc {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
@@ -91,7 +91,7 @@ const currentYear = new Date().getFullYear()
   gap: var(--spacing-2xl);
 }
 
-.link-group h4 {
+.link-group h2 {
   color: var(--text-secondary);
   font-size: 0.85rem;
   font-weight: 600;
@@ -102,7 +102,7 @@ const currentYear = new Date().getFullYear()
 
 .link-group a {
   display: block;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 0.9rem;
   margin-bottom: var(--spacing-sm);
   transition: color var(--transition-fast);
@@ -129,7 +129,7 @@ const currentYear = new Date().getFullYear()
 }
 
 .beian-info a {
-  color: var(--text-disabled);
+  color: var(--text-muted);
   font-size: 0.8rem;
   text-decoration: none;
   transition: color var(--transition-fast);
@@ -143,7 +143,7 @@ const currentYear = new Date().getFullYear()
 }
 
 .beian-info .divider {
-  color: var(--text-disabled);
+  color: var(--text-muted);
   font-size: 0.8rem;
   opacity: 0.5;
 }
@@ -154,7 +154,7 @@ const currentYear = new Date().getFullYear()
 }
 
 .copyright {
-  color: var(--text-disabled);
+  color: var(--text-muted);
   font-size: 0.85rem;
 }
 

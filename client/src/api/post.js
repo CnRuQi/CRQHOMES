@@ -41,8 +41,8 @@ export function toggleTop(id) {
 }
 
 // 获取归档
-export function getArchives() {
-  return api.get('/posts/archives')
+export function getArchives(params = {}) {
+  return api.get('/posts/archives', { params })
 }
 
 // 更新排序

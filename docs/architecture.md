@@ -33,7 +33,7 @@
 
 ---
 
-## 二、依赖方向（严格单向）
+## 二、依赖方向与当前边界
 
 ```
 routes → controllers → db
@@ -44,10 +44,12 @@ middleware  utils
 | 规则 | 说明 |
 |------|------|
 | routes 只做路由映射 | 禁止在 route 中写业务逻辑或 SQL |
-| controllers 处理业务 | 可调用 db、utils，不可调用 routes |
+| controllers 处理业务 | 当前通过 `server/db/index.js` 获取连接并执行参数化 SQL，可调用 utils，不可调用 routes |
 | middleware 前置处理 | auth、validation、error 处理 |
-| db 层封装数据操作 | 所有 SQL 集中在此，禁止散落在其他层 |
+| db 层管理连接与 schema | `index.js` 负责连接、WAL、迁移和初始化；独立数据访问层仍是后续整理目标 |
 | utils 纯函数工具 | 无副作用，不依赖其他层 |
+
+当前代码已经执行 `routes` 不直连数据库的约束，但尚未把全部 SQL 从 controllers 提取到独立 data-access 模块。后续若完成该提取，再将依赖方向收紧为 `controllers → data-access → db`，不能把目标状态当作当前事实。
 
 **禁止的依赖方向：**
 - db → controllers（禁止）
@@ -88,7 +90,7 @@ router/
 | routes/ | URL → controller 映射 | auth.js、post.js |
 | controllers/ | 业务逻辑处理 | authController.js |
 | middleware/ | 请求预处理 | auth.js、error.js |
-| db/ | 数据库操作封装 | index.js、schema.sql |
+| db/ | 连接、schema 与迁移 | index.js、schema.sql、init.js |
 | config/ | 环境变量管理 | index.js |
 | utils/ | 通用工具函数 | helpers.js |
 
@@ -106,7 +108,7 @@ posts (1) ──────── (N) view_tracking  [浏览记录]
 
 ### SQL 规则
 
-1. **所有 SQL 必须参数化**：使用 `?` 占位符，禁止字符串拼接
+1. **所有 SQL 必须参数化**：使用 `?` 占位符，禁止字符串拼接；当前 SQL 主要位于 controllers，并通过 `getDb()` 执行
 2. **外键约束**：`posts.category_id → categories.id ON DELETE SET NULL`
 3. **软删除**：`posts.status` 字段（1=发布，0=草稿），不物理删除
 4. **索引**：高频查询字段必须有索引（status、is_top、category_id、created_at）

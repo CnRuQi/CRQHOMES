@@ -1,7 +1,7 @@
 <template>
   <div class="default-layout">
     <Navbar />
-    <main class="main-content">
+    <main id="main-content" class="main-content">
       <router-view v-slot="{ Component, route }">
         <transition name="page" mode="out-in">
           <component :is="Component" :key="route.path" />
@@ -22,6 +22,7 @@ import Footer from '@/components/Footer.vue'
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: var(--bg-primary);
 }
 
 .main-content {

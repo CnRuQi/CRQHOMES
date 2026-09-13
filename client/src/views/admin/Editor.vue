@@ -3,17 +3,17 @@
     <div class="page-header">
       <h2>{{ isEdit ? '编辑文章' : '写文章' }}</h2>
       <div class="header-actions">
-        <button class="btn btn-secondary" @click="goBack">取消</button>
-        <button class="btn btn-secondary" :disabled="saving" @click="handleSaveDraft">
+        <button type="button" class="btn btn-secondary" @click="goBack">取消</button>
+        <button type="button" class="btn btn-secondary" :disabled="saving" @click="handleSaveDraft">
           保存草稿
         </button>
-        <button class="btn btn-primary" :disabled="saving" @click="handlePublish">
+        <button type="button" class="btn btn-primary" :disabled="saving" @click="handlePublish">
           {{ saving ? '保存中...' : '发布' }}
         </button>
       </div>
     </div>
 
-    <div v-if="loading" class="loading">
+    <div v-if="loading" class="loading" role="status" aria-label="加载中">
       <div class="spinner"></div>
     </div>
 
@@ -40,8 +40,8 @@
             <h3 class="card-title">文章设置</h3>
 
             <div class="form-group">
-              <label class="form-label">分类</label>
-              <select v-model="form.category_id" class="form-select" required>
+              <label for="post-category" class="form-label">分类</label>
+              <select id="post-category" v-model="form.category_id" class="form-select" required>
                 <option v-for="cat in categories" :key="cat.id" :value="cat.id">
                   {{ cat.name }}
                 </option>
@@ -49,8 +49,9 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">标签</label>
+              <label for="post-tags" class="form-label">标签</label>
               <input
+                id="post-tags"
                 v-model="form.tags"
                 type="text"
                 class="form-input"
@@ -59,8 +60,9 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">摘要</label>
+              <label for="post-summary" class="form-label">摘要</label>
               <textarea
+                id="post-summary"
                 v-model="form.summary"
                 class="form-textarea"
                 placeholder="文章摘要（选填）"
@@ -69,18 +71,22 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label">封面图</label>
+              <span id="post-cover-label" class="form-label">封面图</span>
               <div class="cover-tabs">
                 <button
+                  type="button"
                   class="tab-btn"
                   :class="{ active: coverMode === 'upload' }"
+                  :aria-pressed="coverMode === 'upload'"
                   @click="coverMode = 'upload'"
                 >
                   <Icon name="camera" :size="16" /> 上传
                 </button>
                 <button
+                  type="button"
                   class="tab-btn"
                   :class="{ active: coverMode === 'link' }"
+                  :aria-pressed="coverMode === 'link'"
                   @click="coverMode = 'link'"
                 >
                   <Icon name="external" :size="16" /> 链接
@@ -92,6 +98,7 @@
                 <img
                   v-if="form.cover_image && !form.cover_image.startsWith('http')"
                   :src="form.cover_image"
+                  alt="封面预览"
                   class="cover-preview"
                 />
                 <div v-else class="cover-placeholder">
@@ -99,9 +106,11 @@
                   <span>点击上传图片</span>
                 </div>
                 <input
+                  id="post-cover-upload"
                   type="file"
                   accept="image/*"
                   class="cover-input"
+                  aria-label="上传封面图"
                   @change="handleCoverUpload"
                 />
               </div>
@@ -109,27 +118,39 @@
               <!-- 链接模式 -->
               <div v-else class="cover-link-input">
                 <input
+                  id="post-cover-url"
                   v-model="form.cover_image"
                   type="text"
                   class="form-input"
+                  aria-labelledby="post-cover-label"
                   placeholder="输入图片链接，如 https://example.com/image.jpg"
                 />
                 <div v-if="form.cover_image" class="cover-preview-link">
-                  <img :src="form.cover_image" class="cover-preview" @error="handleImageError" />
+                  <img
+                    :src="form.cover_image"
+                    alt="封面预览"
+                    class="cover-preview"
+                    @error="handleImageError"
+                  />
                 </div>
               </div>
             </div>
 
             <div class="form-group">
-              <label class="form-label">发布时间</label>
-              <input v-model="form.published_at" type="datetime-local" class="form-input" />
+              <label for="post-published-at" class="form-label">发布时间</label>
+              <input
+                id="post-published-at"
+                v-model="form.published_at"
+                type="datetime-local"
+                class="form-input"
+              />
             </div>
 
             <div class="form-group">
-              <label class="form-label">
-                <input v-model="form.is_top" type="checkbox" />
-                置顶文章
-              </label>
+              <div class="form-check">
+                <input id="post-is-top" v-model="form.is_top" type="checkbox" />
+                <label for="post-is-top" class="form-label">置顶文章</label>
+              </div>
             </div>
           </div>
         </div>
@@ -139,14 +160,15 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, defineAsyncComponent } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { createPost, updatePost, getPostForAdmin } from '@/api/post'
 import { getCategories } from '@/api/category'
 import { uploadImage } from '@/api/upload'
-import MarkdownEditor from '@/components/MarkdownEditor.vue'
 import Icon from '@/components/Icon.vue'
 import { useToast } from '@/composables/useToast'
+
+const MarkdownEditor = defineAsyncComponent(() => import('@/components/MarkdownEditor.vue'))
 
 const route = useRoute()
 const router = useRouter()
@@ -371,21 +393,30 @@ function handleBeforeUnload(e) {
 <style scoped>
 .editor-page {
   max-width: 1400px;
+  min-width: 0;
 }
 
 .header-actions {
   display: flex;
   gap: var(--spacing-sm);
+  min-width: 0;
 }
 
 .editor-layout {
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: var(--spacing-xl);
+}
+
+.editor-main,
+.editor-sidebar,
+.sidebar-card {
+  min-width: 0;
 }
 
 .title-input {
   width: 100%;
+  min-width: 0;
   padding: var(--spacing-md) var(--spacing-lg);
   background: var(--bg-glass);
   border: 1px solid var(--border-color);
@@ -468,13 +499,16 @@ function handleBeforeUnload(e) {
   align-items: center;
   gap: var(--spacing-xs);
   padding: var(--spacing-sm) var(--spacing-md);
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-glass);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   color: var(--text-muted);
   font-size: 0.85rem;
   cursor: pointer;
   transition: all var(--transition-fast);
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: center;
 }
 
 .tab-btn:hover {
@@ -519,7 +553,8 @@ function handleBeforeUnload(e) {
 @media (max-width: 768px) {
   .editor-page .header-actions {
     display: grid;
-    grid-template-columns: 1fr 1fr 2fr;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--spacing-sm);
   }
 
@@ -527,6 +562,11 @@ function handleBeforeUnload(e) {
     width: 100%;
     padding: 10px 6px;
     font-size: 0.9rem;
+    min-width: 0;
+  }
+
+  .editor-page .header-actions .btn:last-child {
+    grid-column: 1 / -1;
   }
 
   .editor-main .title-input {

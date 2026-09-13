@@ -10,6 +10,7 @@ html {
   font-size: 16px;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  overflow-x: clip;
   /* 移动端：去除点击时的灰色高亮块，统一交互反馈 */
   -webkit-tap-highlight-color: transparent;
 }
@@ -20,7 +21,7 @@ body {
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   /* 移动端：禁用双击缩放干扰，同时保留双指缩放（pinch-zoom 需在 viewport 中启用） */
@@ -50,6 +51,21 @@ button {
   border: none;
   outline: none;
   background: none;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[contenteditable='true']:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
 }
 
 input,

@@ -1,6 +1,6 @@
 <template>
   <div class="search-page">
-    <main class="main-content">
+    <div class="view-content">
       <div class="container">
         <section class="search-header" data-aos="fade-down">
           <h1 class="page-title">搜索</h1>
@@ -55,7 +55,7 @@
           </div>
         </template>
       </div>
-    </main>
+    </div>
   </div>
 </template>
 
@@ -200,7 +200,7 @@ watch(
   flex-direction: column;
 }
 
-.main-content {
+.view-content {
   flex: 1;
   padding-bottom: var(--spacing-2xl);
 }
@@ -251,6 +251,7 @@ watch(
   background: none;
   font-size: 1.1rem;
   color: var(--text-primary);
+  min-width: 0;
   outline: none;
 }
 
@@ -268,7 +269,7 @@ watch(
 
 .clear-btn:hover {
   color: var(--text-primary);
-  background: rgba(163, 166, 156, 0.1);
+  background: var(--bg-glass-hover);
 }
 
 .results-count {

@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <main class="main-content">
+    <div class="view-content">
       <div class="container">
         <!-- Hero 区域 - 仅首页显示 -->
         <section v-if="!route.params.slug" class="hero" data-aos="fade-down">
@@ -38,7 +38,7 @@
           </template>
         </section>
       </div>
-    </main>
+    </div>
   </div>
 </template>
 
@@ -133,7 +133,7 @@ watch(
   min-height: 100vh;
 }
 
-.main-content {
+.view-content {
   padding-bottom: var(--spacing-2xl);
 }
 
@@ -155,7 +155,7 @@ watch(
 .deco-line {
   width: 60px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(163, 166, 156, 0.4), transparent);
+  background: var(--border-color);
 }
 
 .deco-dot {
@@ -171,31 +171,17 @@ watch(
   font-weight: 800;
   margin-bottom: var(--spacing-sm);
   font-family: var(--font-display);
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   line-height: 1.1;
+  color: var(--text-primary);
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #82857c 0%, #a3a69c 40%, #c4c6bf 70%, #dedfd9 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  background-size: 200% 200%;
-  animation: gradient-shift 10s ease infinite;
-}
-
-@keyframes gradient-shift {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
+  color: var(--text-primary);
 }
 
 .hero-subtitle {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 1.15rem;
   font-weight: 300;
   letter-spacing: 0.1em;
@@ -204,13 +190,13 @@ watch(
 
 .posts-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--spacing-xl);
 }
 
 @media (max-width: 1024px) {
   .posts-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -229,7 +215,7 @@ watch(
   }
 
   .posts-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--spacing-lg);
   }
 }

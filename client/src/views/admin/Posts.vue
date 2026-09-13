@@ -38,14 +38,16 @@
       <table>
         <thead>
           <tr>
-            <th class="drag-col"></th>
-            <th>标题</th>
-            <th>分类</th>
-            <th>状态</th>
-            <th>置顶</th>
-            <th>阅读</th>
-            <th>发布时间</th>
-            <th>操作</th>
+            <th class="drag-col" scope="col">
+              <span class="sr-only">排序</span>
+            </th>
+            <th scope="col">标题</th>
+            <th scope="col">分类</th>
+            <th scope="col">状态</th>
+            <th scope="col">置顶</th>
+            <th scope="col">阅读</th>
+            <th scope="col">发布时间</th>
+            <th scope="col">操作</th>
           </tr>
         </thead>
         <draggable
@@ -60,9 +62,16 @@
           <template #item="{ element: post }">
             <tr>
               <td class="drag-col">
-                <span class="drag-handle">
+                <button
+                  type="button"
+                  class="drag-handle"
+                  :aria-label="`排序：${post.title}。使用上/下方向键移动`"
+                  aria-keyshortcuts="ArrowUp ArrowDown"
+                  @keydown.up.prevent="movePost(post, -1)"
+                  @keydown.down.prevent="movePost(post, 1)"
+                >
                   <Icon name="list" :size="16" />
-                </span>
+                </button>
               </td>
               <td>
                 <router-link :to="`/admin/posts/${post.id}/edit`" class="post-title">
@@ -82,8 +91,11 @@
               </td>
               <td>
                 <button
+                  type="button"
                   class="top-btn"
                   :class="{ active: post.is_top }"
+                  :aria-label="post.is_top ? `取消置顶：${post.title}` : `置顶：${post.title}`"
+                  :aria-pressed="Boolean(post.is_top)"
                   @click="handleToggleTop(post)"
                 >
                   <Icon :name="post.is_top ? 'pinyes' : 'pinno'" :size="18" />
@@ -99,7 +111,9 @@
                   >
                     编辑
                   </router-link>
-                  <button class="btn btn-sm btn-danger" @click="handleDelete(post)">删除</button>
+                  <button type="button" class="btn btn-sm btn-danger" @click="handleDelete(post)">
+                    删除
+                  </button>
                 </div>
               </td>
             </tr>
@@ -141,6 +155,7 @@ let fetchSeq = 0
 
 // 筛选状态下禁用拖拽排序
 const hasFilter = computed(() => filters.value.status !== '' || filters.value.keyword !== '')
+const sortSaving = ref(false)
 
 async function fetchPosts() {
   const seq = ++fetchSeq
@@ -192,6 +207,55 @@ async function handleDelete(post) {
   }
 }
 
+function getSortData() {
+  return posts.value.map((post, index) => ({
+    id: post.id,
+    sort_order: posts.value.length - index,
+  }))
+}
+
+async function persistSortOrder() {
+  if (sortSaving.value) return
+  sortSaving.value = true
+  try {
+    await updateSortOrder(getSortData())
+  } catch (error) {
+    console.error('排序更新失败:', error)
+    toast.error('排序更新失败')
+    await fetchPosts()
+  } finally {
+    sortSaving.value = false
+  }
+}
+
+// 拖拽之外的键盘排序入口：只允许在同一置顶分组内移动，避免破坏服务端排序规则。
+async function movePost(post, direction) {
+  if (hasFilter.value || sortSaving.value) {
+    if (hasFilter.value) toast.warning('排序仅在无筛选时可用')
+    return
+  }
+
+  const currentIndex = posts.value.findIndex((item) => item.id === post.id)
+  const targetIndex = currentIndex + direction
+  if (
+    currentIndex < 0 ||
+    targetIndex < 0 ||
+    targetIndex >= posts.value.length ||
+    Boolean(posts.value[currentIndex].is_top) !== Boolean(posts.value[targetIndex].is_top)
+  ) {
+    toast.warning('置顶文章固定显示在最前，不能跨组移动')
+    return
+  }
+
+  const nextPosts = [...posts.value]
+  ;[nextPosts[currentIndex], nextPosts[targetIndex]] = [
+    nextPosts[targetIndex],
+    nextPosts[currentIndex],
+  ]
+  posts.value = nextPosts
+  await persistSortOrder()
+}
+
 async function handleDragEnd() {
   // 列表已不分页（列出全部文章），仅在无筛选时允许拖拽排序，
   // 避免筛选出的子集提交后打乱全局顺序
@@ -219,17 +283,7 @@ async function handleDragEnd() {
     return
   }
 
-  try {
-    const sortData = posts.value.map((post, index) => ({
-      id: post.id,
-      sort_order: posts.value.length - index,
-    }))
-    await updateSortOrder(sortData)
-  } catch (error) {
-    console.error('排序更新失败:', error)
-    toast.error('排序更新失败')
-    fetchPosts()
-  }
+  await persistSortOrder()
 }
 
 onMounted(() => {
@@ -248,8 +302,8 @@ onMounted(() => {
   justify-content: space-between;
   padding: var(--spacing-lg);
   margin-bottom: var(--spacing-lg);
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(120, 122, 116, 0.15);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 14px;
   box-shadow: var(--shadow-sm);
 }
@@ -263,15 +317,15 @@ onMounted(() => {
 .filter-left .form-input {
   width: auto;
   min-width: 150px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(120, 122, 116, 0.2);
+  background: var(--bg-card-hover);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
 }
 
 .posts-table {
   overflow-x: auto;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(120, 122, 116, 0.15);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 14px;
   padding: var(--spacing-sm);
   box-shadow: var(--shadow-sm);
@@ -296,7 +350,7 @@ th {
 td {
   padding: var(--spacing-md) var(--spacing-lg);
   text-align: left;
-  background: rgba(235, 235, 232, 0.3);
+  background: var(--bg-table-row);
 }
 
 tr td:first-child {
@@ -308,7 +362,7 @@ tr td:last-child {
 }
 
 tr:hover td {
-  background: rgba(163, 166, 156, 0.08);
+  background: var(--bg-table-row-hover);
 }
 
 .post-title {
@@ -323,10 +377,10 @@ tr:hover td {
 
 .category-tag {
   padding: 3px 12px;
-  background: rgba(163, 166, 156, 0.1);
+  background: var(--bg-table-row-hover);
   border-radius: 20px;
   font-size: 0.8rem;
-  color: var(--color-primary-dark);
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -358,8 +412,26 @@ tr:hover td {
   padding: 0 var(--spacing-sm) !important;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .drag-handle {
+  width: 32px;
+  min-height: 32px;
+  padding: var(--spacing-xs);
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-sm);
   cursor: grab;
+  background: transparent;
   color: var(--text-disabled);
   transition: color var(--transition-fast);
   display: flex;
@@ -369,6 +441,12 @@ tr:hover td {
 
 .drag-handle:hover {
   color: var(--text-muted);
+  background: var(--bg-table-row-hover);
+}
+
+.drag-handle:focus-visible {
+  color: var(--text-primary);
+  border-color: var(--color-primary);
 }
 
 .drag-handle:active {
@@ -422,13 +500,6 @@ tr:hover td {
 
   .actions .btn {
     white-space: nowrap;
-  }
-}
-
-@media (max-width: 480px) {
-  /* 超窄屏隐藏拖拽列（移动端拖拽排序不常用） */
-  .posts-table .drag-col {
-    display: none;
   }
 }
 </style>

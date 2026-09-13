@@ -2,6 +2,12 @@ const { getDb } = require('../db')
 const { AppError } = require('../middleware/error')
 const { success } = require('../utils/helpers')
 
+function assertOptionalString(value, field) {
+  if (value !== undefined && typeof value !== 'string') {
+    throw new AppError(`${field}必须是字符串`, 400)
+  }
+}
+
 // 获取所有分类（前台）
 function getCategories(req, res, next) {
   try {
@@ -32,7 +38,11 @@ function createCategory(req, res, next) {
   try {
     const { name, slug, description, sort } = req.body
 
-    if (!name || !slug) {
+    assertOptionalString(name, '分类名称')
+    assertOptionalString(slug, '分类别名')
+    assertOptionalString(description, '分类描述')
+
+    if (!name || !name.trim() || !slug || !slug.trim()) {
       throw new AppError('分类名称和别名不能为空', 400)
     }
 
@@ -46,7 +56,7 @@ function createCategory(req, res, next) {
 
     const result = db
       .prepare('INSERT INTO categories (name, slug, description, sort) VALUES (?, ?, ?, ?)')
-      .run(name, slug, description || '', sort || 0)
+      .run(name, slug, description ?? '', sort ?? 0)
 
     const category = db.prepare('SELECT * FROM categories WHERE id = ?').get(result.lastInsertRowid)
 
@@ -61,6 +71,11 @@ function updateCategory(req, res, next) {
   try {
     const { id } = req.params
     const { name, slug, description, sort } = req.body
+
+    assertOptionalString(name, '分类名称')
+    assertOptionalString(slug, '分类别名')
+    assertOptionalString(description, '分类描述')
+
     const db = getDb()
 
     const existing = db
@@ -70,7 +85,7 @@ function updateCategory(req, res, next) {
       throw new AppError('分类不存在', 404)
     }
 
-    if (!name) {
+    if (!name || !name.trim()) {
       throw new AppError('分类名称不能为空', 400)
     }
 

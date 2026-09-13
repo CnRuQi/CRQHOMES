@@ -59,7 +59,7 @@
           <Icon name="external" :size="20" />
           <span class="menu-text" :class="{ hidden: isCollapsed }">访问前台</span>
         </router-link>
-        <button class="menu-item" @click="handleLogout">
+        <button type="button" class="menu-item" @click="handleLogout">
           <Icon name="logout" :size="20" />
           <span class="menu-text" :class="{ hidden: isCollapsed }">退出登录</span>
         </button>
@@ -71,10 +71,15 @@
       <!-- 顶栏 -->
       <header class="topbar glass-header">
         <div class="topbar-left">
-          <button class="collapse-btn" @click="toggleSidebar">
-            <span :class="{ rotated: isCollapsed }">☰</span>
+          <button
+            type="button"
+            class="collapse-btn"
+            :aria-label="isCollapsed ? '展开侧边栏' : '收起侧边栏'"
+            @click="toggleSidebar"
+          >
+            <span aria-hidden="true" :class="{ rotated: isCollapsed }"></span>
           </button>
-          <h2 class="page-title">{{ currentPageTitle }}</h2>
+          <h1 class="page-title">{{ currentPageTitle }}</h1>
         </div>
 
         <div class="topbar-right">
@@ -145,6 +150,8 @@ onUnmounted(() => setBodyScrollLock(false))
 .admin-layout {
   display: flex;
   min-height: 100vh;
+  min-width: 0;
+  background: var(--bg-primary);
 }
 
 .sidebar {
@@ -242,7 +249,9 @@ onUnmounted(() => setBodyScrollLock(false))
 
 .main-wrapper {
   flex: 1;
+  min-width: 0;
   margin-left: var(--sidebar-width);
+  background: var(--bg-primary);
   transition: margin-left var(--transition-normal);
 }
 
@@ -271,12 +280,18 @@ onUnmounted(() => setBodyScrollLock(false))
   font-size: 1.3rem;
   color: var(--text-secondary);
   padding: var(--spacing-xs);
+  min-width: 44px;
+  min-height: 44px;
   transition: transform var(--transition-fast);
 }
 
 .collapse-btn span {
   display: inline-block;
   transition: transform var(--transition-fast);
+}
+
+.collapse-btn span::before {
+  content: '☰';
 }
 
 .collapse-btn span.rotated {
@@ -304,6 +319,7 @@ onUnmounted(() => setBodyScrollLock(false))
 .admin-content {
   padding: var(--spacing-xl);
   min-height: calc(100vh - var(--header-height));
+  min-width: 0;
 }
 
 /* 后台页面切换过渡 */

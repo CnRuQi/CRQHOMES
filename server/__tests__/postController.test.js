@@ -15,6 +15,7 @@ let toggleTop
 let updatePost
 let createPost
 let getAllPosts
+let getArchives
 let dbModulePath
 let originalDbModule = null
 
@@ -41,6 +42,7 @@ beforeAll(() => {
   updatePost = controller.updatePost
   createPost = controller.createPost
   getAllPosts = controller.getAllPosts
+  getArchives = controller.getArchives
 })
 
 afterAll(() => {
@@ -241,7 +243,7 @@ describe('updatePost', () => {
     expect(after.published_at).toBeNull()
   })
 
-  it('草稿更新省略 status 时允许正文为空', () => {
+  it('草稿更新省略 status 和 content 时保留原有正文', () => {
     db.prepare('INSERT INTO categories (name, slug) VALUES (?, ?)').run('状态分类2', 'status-cat-2')
     const cat = db.prepare("SELECT id FROM categories WHERE slug = 'status-cat-2'").get()
     const post = insertPost({ updatedAt: '2026-01-01 00:00:00' })
@@ -267,7 +269,126 @@ describe('updatePost', () => {
 
     const after = db.prepare('SELECT status, content FROM posts WHERE id = ?').get(post.id)
     expect(after.status).toBe(0)
-    expect(after.content).toBe('')
+    expect(after.content).toBe('测试内容')
+  })
+
+  it('省略可选字段时保留文章数据，显式空字符串才清空对应字段', () => {
+    db.prepare('INSERT INTO categories (name, slug) VALUES (?, ?)').run('保留分类', 'keep-cat')
+    const cat = db.prepare("SELECT id FROM categories WHERE slug = 'keep-cat'").get()
+    const post = insertPost({ title: '保留字段', content: '原始正文' })
+    db.prepare(
+      'UPDATE posts SET summary = ?, cover_image = ?, tags = ?, status = 0, is_top = 1, category_id = ? WHERE id = ?'
+    ).run('原始摘要', '/uploads/original.jpg', 'vue,node', cat.id, post.id)
+
+    let nextError = null
+    updatePost(
+      {
+        params: { id: post.id },
+        body: { title: '更新标题', category_id: cat.id },
+      },
+      makeRes(),
+      (error) => {
+        nextError = error
+      }
+    )
+    expect(nextError).toBeNull()
+
+    let after = db
+      .prepare(
+        'SELECT title, content, summary, cover_image, tags, status, is_top FROM posts WHERE id = ?'
+      )
+      .get(post.id)
+    expect(after).toMatchObject({
+      title: '更新标题',
+      content: '原始正文',
+      summary: '原始摘要',
+      cover_image: '/uploads/original.jpg',
+      tags: 'vue,node',
+      status: 0,
+      is_top: 1,
+    })
+
+    nextError = null
+    updatePost(
+      {
+        params: { id: post.id },
+        body: {
+          title: '再次更新',
+          category_id: cat.id,
+          summary: '',
+          cover_image: '',
+          tags: '',
+        },
+      },
+      makeRes(),
+      (error) => {
+        nextError = error
+      }
+    )
+    expect(nextError).toBeNull()
+
+    after = db
+      .prepare('SELECT content, summary, cover_image, tags, status, is_top FROM posts WHERE id = ?')
+      .get(post.id)
+    expect(after).toMatchObject({
+      content: '原始正文',
+      summary: '',
+      cover_image: '',
+      tags: '',
+      status: 0,
+      is_top: 1,
+    })
+  })
+
+  it('显式发布时有效正文为空会返回 400', () => {
+    db.prepare('INSERT INTO categories (name, slug) VALUES (?, ?)').run('发布分类', 'publish-cat')
+    const cat = db.prepare("SELECT id FROM categories WHERE slug = 'publish-cat'").get()
+    const post = insertPost({ title: '空正文草稿', content: '' })
+    db.prepare('UPDATE posts SET status = 0, category_id = ? WHERE id = ?').run(cat.id, post.id)
+
+    let nextError = null
+    updatePost(
+      {
+        params: { id: post.id },
+        body: { title: post.title, content: '', category_id: cat.id, status: 1 },
+      },
+      makeRes(),
+      (error) => {
+        nextError = error
+      }
+    )
+
+    expect(nextError?.statusCode).toBe(400)
+  })
+
+  it('省略 is_top 时保留原置顶状态（置顶不会被静默取消）', () => {
+    db.prepare('INSERT INTO categories (name, slug) VALUES (?, ?)').run('置顶分类', 'top-cat')
+    const cat = db.prepare("SELECT id FROM categories WHERE slug = 'top-cat'").get()
+    const post = insertPost({ updatedAt: '2026-01-01 00:00:00' })
+    db.prepare('UPDATE posts SET is_top = 1 WHERE id = ?').run(post.id)
+
+    let nextError = null
+    // 请求体不含 is_top：验证器把 is_top 标为 optional，省略是合法请求，
+    // 此时必须保留原置顶状态。若缺省走 normalizeTopFlag(undefined)=0，置顶会被静默取消
+    updatePost(
+      {
+        params: { id: post.id },
+        body: {
+          title: '改标题但不动置顶',
+          content: '正文',
+          category_id: cat.id,
+          status: 1,
+        },
+      },
+      makeRes(),
+      (error) => {
+        nextError = error
+      }
+    )
+    expect(nextError).toBeNull()
+
+    const after = db.prepare('SELECT is_top FROM posts WHERE id = ?').get(post.id)
+    expect(after.is_top).toBe(1)
   })
 })
 
@@ -396,5 +517,49 @@ describe('getAllPosts', () => {
     // 与归档接口（getArchives）的 COALESCE 语义保持一致
     expect(ids.indexOf(a.id)).toBeGreaterThanOrEqual(0)
     expect(ids.indexOf(a.id)).toBeLessThan(ids.indexOf(b.id))
+  })
+})
+
+describe('getArchives', () => {
+  it('returns complete paginated archives without silently dropping older posts', () => {
+    const createdIds = []
+    for (let index = 0; index < 55; index++) {
+      const post = insertPost({ title: `归档分页-${index}`, content: `内容-${index}` })
+      createdIds.push(post.id)
+      db.prepare('UPDATE posts SET published_at = ?, status = 1 WHERE id = ?').run(
+        `2099-01-01T00:00:${String(index).padStart(2, '0')}.000Z`,
+        post.id
+      )
+    }
+
+    const requestPage = (page) => {
+      let payload = null
+      let nextError = null
+      getArchives(
+        { query: { page: String(page), pageSize: '50' } },
+        { json: (value) => (payload = value) },
+        (error) => {
+          nextError = error
+        }
+      )
+      expect(nextError).toBeNull()
+      return payload
+    }
+
+    const firstPage = requestPage(1)
+    const secondPage = requestPage(2)
+    const firstIds = firstPage.data.archives.flatMap((archive) =>
+      archive.posts.map((post) => post.id)
+    )
+    const secondIds = secondPage.data.archives.flatMap((archive) =>
+      archive.posts.map((post) => post.id)
+    )
+    const createdIdSet = new Set(createdIds)
+    const paginatedCreatedIds = [...firstIds, ...secondIds].filter((id) => createdIdSet.has(id))
+
+    expect(firstPage.data.pagination).toMatchObject({ page: 1, pageSize: 50 })
+    expect(secondPage.data.pagination).toMatchObject({ page: 2, pageSize: 50 })
+    expect(firstPage.data.pagination.total).toBeGreaterThanOrEqual(55)
+    expect(new Set(paginatedCreatedIds)).toEqual(createdIdSet)
   })
 })

@@ -3,9 +3,12 @@ import Database from 'better-sqlite3'
 import { readFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
+import { createRequire } from 'module'
 
 // ESM 测试环境下 __dirname 可能未定义，显式推导
 const __dirname = dirname(fileURLToPath(import.meta.url))
+const require = createRequire(import.meta.url)
+const { initDb } = require('../db')
 
 let db
 
@@ -126,5 +129,102 @@ describe('Foreign Key Constraints', () => {
     db.prepare('DELETE FROM categories WHERE id = ?').run(cat.id)
     const post = db.prepare('SELECT category_id FROM posts WHERE title = ?').get('测试文章')
     expect(post.category_id).toBeNull()
+  })
+})
+
+function createLegacyPostsTable(database, { withSlug = false } = {}) {
+  database.exec(`
+    CREATE TABLE posts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      ${withSlug ? 'slug TEXT,' : ''}
+      content TEXT NOT NULL,
+      summary TEXT,
+      cover_image TEXT,
+      category_id INTEGER,
+      tags TEXT,
+      is_top INTEGER DEFAULT 0,
+      status INTEGER DEFAULT 1,
+      views INTEGER DEFAULT 0,
+      sort_order INTEGER DEFAULT 0,
+      published_at DATETIME,
+      created_at DATETIME,
+      updated_at DATETIME
+    )
+  `)
+}
+
+describe('Legacy post slug migration', () => {
+  it('adds deterministic unique slugs to a legacy table without slug', () => {
+    const legacyDb = new Database(':memory:')
+    createLegacyPostsTable(legacyDb)
+    legacyDb
+      .prepare('INSERT INTO posts (id, title, content) VALUES (?, ?, ?)')
+      .run(1, '第一篇', '内容')
+    legacyDb
+      .prepare('INSERT INTO posts (id, title, content) VALUES (?, ?, ?)')
+      .run(2, '第二篇', '内容')
+
+    initDb(legacyDb)
+
+    expect(
+      legacyDb
+        .prepare('PRAGMA table_info(posts)')
+        .all()
+        .map((column) => column.name)
+    ).toContain('slug')
+    expect(legacyDb.prepare('SELECT id, slug FROM posts ORDER BY id').all()).toEqual([
+      { id: 1, slug: 'post-1' },
+      { id: 2, slug: 'post-2' },
+    ])
+    expect(() =>
+      legacyDb
+        .prepare('INSERT INTO posts (title, slug, content) VALUES (?, ?, ?)')
+        .run('重复', 'post-1', '内容')
+    ).toThrow()
+
+    const before = legacyDb.prepare('SELECT id, slug FROM posts ORDER BY id').all()
+    initDb(legacyDb)
+    expect(legacyDb.prepare('SELECT id, slug FROM posts ORDER BY id').all()).toEqual(before)
+
+    legacyDb.close()
+  })
+
+  it('resolves duplicate legacy slugs in stable id order', () => {
+    const legacyDb = new Database(':memory:')
+    createLegacyPostsTable(legacyDb, { withSlug: true })
+    legacyDb.prepare('CREATE INDEX idx_posts_slug ON posts(slug)').run()
+    const insert = legacyDb.prepare(
+      'INSERT INTO posts (id, title, slug, content) VALUES (?, ?, ?, ?)'
+    )
+    insert.run(1, '第一篇', 'same', '内容')
+    insert.run(2, '第二篇', 'same', '内容')
+    insert.run(3, '第三篇', '', '内容')
+
+    initDb(legacyDb)
+
+    expect(legacyDb.prepare('SELECT id, slug FROM posts ORDER BY id').all()).toEqual([
+      { id: 1, slug: 'same' },
+      { id: 2, slug: 'same-1' },
+      { id: 3, slug: 'post-3' },
+    ])
+    const indexes = legacyDb.prepare('PRAGMA index_list(posts)').all()
+    const slugIndex = indexes.find((index) => index.name === 'idx_posts_slug_unique')
+    expect(slugIndex?.unique).toBe(1)
+
+    const before = legacyDb.prepare('SELECT id, slug FROM posts ORDER BY id').all()
+    initDb(legacyDb)
+    expect(legacyDb.prepare('SELECT id, slug FROM posts ORDER BY id').all()).toEqual(before)
+
+    legacyDb.close()
+  })
+
+  it('surfaces an invalid migration state instead of swallowing the error', () => {
+    const invalidDb = new Database(':memory:')
+    invalidDb.exec('CREATE TABLE posts (id INTEGER PRIMARY KEY, slug TEXT)')
+
+    expect(() => initDb(invalidDb)).toThrow()
+
+    invalidDb.close()
   })
 })

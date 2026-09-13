@@ -9,7 +9,7 @@
         <span class="logo-text">披花沐雪</span>
       </router-link>
 
-      <nav id="navbar-menu" class="navbar-menu" :class="{ active: isMenuOpen }">
+      <nav id="navbar-menu" class="navbar-menu" :class="{ active: isMenuOpen }" aria-label="主导航">
         <router-link to="/" class="nav-link" @click="closeMenu"> 首页 </router-link>
         <router-link
           v-for="cat in postStore.categories"
@@ -206,6 +206,7 @@ onUnmounted(() => {
   transition: all 0.3s ease;
   border-radius: 8px;
   font-size: 0.95rem;
+  white-space: nowrap;
 }
 
 .nav-link:hover {
@@ -243,26 +244,28 @@ onUnmounted(() => {
 
 .admin-link {
   padding: 8px 18px;
-  background: rgba(255, 255, 255, 0.4);
-  border: 1px solid rgba(163, 166, 156, 0.2);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   margin-left: var(--spacing-sm);
   transition: all 0.3s ease;
 }
 
 .admin-link:hover {
-  background: rgba(163, 166, 156, 0.1);
-  border-color: rgba(163, 166, 156, 0.35);
+  background: var(--bg-glass-hover);
+  border-color: var(--border-hover);
   transform: translateY(1px);
   box-shadow: var(--shadow-sm);
 }
 
 .menu-toggle {
   display: none;
-  width: 28px;
-  height: 20px;
+  width: 44px;
+  height: 44px;
   position: relative;
   cursor: pointer;
+  align-items: center;
+  justify-content: center;
 }
 
 .menu-toggle span,
@@ -278,6 +281,8 @@ onUnmounted(() => {
 }
 
 .menu-toggle span {
+  width: 28px;
+  height: 20px;
   top: 50%;
   transform: translateY(-50%);
 }
@@ -308,7 +313,7 @@ onUnmounted(() => {
 
 @media (max-width: 768px) {
   .menu-toggle {
-    display: block;
+    display: flex;
   }
 
   .navbar-menu {
@@ -323,8 +328,14 @@ onUnmounted(() => {
     padding: var(--spacing-2xl) var(--spacing-lg)
       calc(var(--spacing-2xl) + env(safe-area-inset-bottom, 0px));
     gap: var(--spacing-sm);
+    width: 100%;
+    max-width: 100vw;
     transform: translateX(100%);
-    transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      transform 0.45s cubic-bezier(0.32, 0.72, 0, 1),
+      visibility 0s linear 0.45s;
     z-index: 1001;
     overflow-y: auto;
   }
@@ -335,6 +346,9 @@ onUnmounted(() => {
 
   .navbar-menu.active {
     transform: translateX(0);
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
   }
 
   /* 菜单项交错滑入动画 */

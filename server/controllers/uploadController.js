@@ -129,9 +129,12 @@ function uploadImage(req, res, next) {
       throw new AppError('文件内容与声明的类型不匹配', 400)
     }
 
-    // 生成访问 URL
-    const relativePath = path.relative(path.join(__dirname, '..'), req.file.path)
-    const url = `/${relativePath.replace(/\\/g, '/')}`
+    // 生成访问 URL：磁盘目录可以在 server 外部，但公开路径始终从 /uploads 开始
+    const relativePath = path.relative(uploadDir, req.file.path)
+    if (!relativePath || relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+      throw new AppError('上传文件路径无效', 500)
+    }
+    const url = `/uploads/${relativePath.replace(/\\/g, '/')}`
 
     success(
       res,

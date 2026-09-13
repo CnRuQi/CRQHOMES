@@ -1,6 +1,6 @@
 <template>
   <div class="archives">
-    <main class="main-content">
+    <div class="view-content">
       <div class="container">
         <h1 class="page-title" data-aos="fade-down">归档</h1>
 
@@ -46,35 +46,88 @@
             <div class="empty-icon">📚</div>
             <p>暂无文章</p>
           </div>
+
+          <nav v-if="pagination.totalPages > 1" class="archives-pagination" aria-label="归档分页">
+            <button
+              type="button"
+              class="pagination-btn"
+              :disabled="pagination.page <= 1 || loading"
+              @click="goToPage(pagination.page - 1)"
+            >
+              上一页
+            </button>
+            <span class="pagination-status">
+              第 {{ pagination.page }} / {{ pagination.totalPages }} 页
+            </span>
+            <button
+              type="button"
+              class="pagination-btn"
+              :disabled="pagination.page >= pagination.totalPages || loading"
+              @click="goToPage(pagination.page + 1)"
+            >
+              下一页
+            </button>
+          </nav>
         </template>
       </div>
-    </main>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { getArchives } from '@/api/post'
 import { formatDate, restoreListScroll } from '@/assets/js/utils'
 import { useToast } from '@/composables/useToast'
 
 const route = useRoute()
+const router = useRouter()
 const toast = useToast()
 const loading = ref(false)
 const archives = ref([])
+const archivePageSize = 50
+const pagination = ref({ total: 0, page: 1, pageSize: archivePageSize, totalPages: 0 })
 
-onMounted(async () => {
+const initialPage = Number(route.query.page)
+const page = ref(Number.isSafeInteger(initialPage) && initialPage > 0 ? initialPage : 1)
+
+async function fetchArchives() {
   loading.value = true
   try {
-    const res = await getArchives()
+    const res = await getArchives({ page: page.value, pageSize: archivePageSize })
     archives.value = res.data.archives
+    pagination.value = res.data.pagination
+
+    if (pagination.value.totalPages > 0 && page.value > pagination.value.totalPages) {
+      page.value = pagination.value.totalPages
+      await fetchArchives()
+      return
+    }
   } catch (error) {
     console.error('获取归档失败:', error)
     toast.error('加载归档失败')
   } finally {
     loading.value = false
   }
+}
+
+async function goToPage(nextPage) {
+  if (nextPage < 1 || nextPage > pagination.value.totalPages || loading.value) return
+  page.value = nextPage
+  const query = { ...route.query }
+  if (nextPage === 1) {
+    delete query.page
+  } else {
+    query.page = String(nextPage)
+  }
+  await router.replace({ query })
+  await fetchArchives()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+onMounted(async () => {
+  await fetchArchives()
   // 数据渲染完成后精确恢复滚动位置
   await nextTick()
   restoreListScroll(route.fullPath)
@@ -86,7 +139,7 @@ onMounted(async () => {
   min-height: 100vh;
 }
 
-.main-content {
+.view-content {
   padding-bottom: var(--spacing-2xl);
 }
 
@@ -136,8 +189,8 @@ onMounted(async () => {
 }
 
 .archive-item:hover {
-  background: rgba(163, 166, 156, 0.1);
-  border-color: rgba(163, 166, 156, 0.3);
+  background: var(--bg-glass-hover);
+  border-color: var(--border-hover);
   transform: translateX(8px);
 }
 
@@ -152,13 +205,45 @@ onMounted(async () => {
   flex: 1;
 }
 
+.archives-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-2xl);
+}
+
+.pagination-btn {
+  min-width: 84px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg-glass);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.pagination-btn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.pagination-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.pagination-status {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
 .skeleton-pulse {
-  background: linear-gradient(
-    90deg,
-    rgba(163, 166, 156, 0.1) 25%,
-    rgba(163, 166, 156, 0.2) 50%,
-    rgba(163, 166, 156, 0.1) 75%
-  );
+  background: var(--bg-tertiary);
   background-size: 200% 100%;
   animation: pulse 1.5s ease-in-out infinite;
   border-radius: 4px;

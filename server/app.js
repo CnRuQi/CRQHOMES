@@ -17,10 +17,8 @@ initDb()
 
 const app = express()
 
-// 信任反向代理（宝塔/Nginx 反代时设置 TRUST_PROXY=1，用于正确识别客户端 IP 和限流）
-if (config.trustProxy) {
-  app.set('trust proxy', 1)
-}
+// 信任反向代理（配置值决定信任范围，用于正确识别客户端 IP 和限流）
+app.set('trust proxy', config.trustProxy)
 
 // 安全中间件
 app.use(

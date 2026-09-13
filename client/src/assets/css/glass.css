@@ -2,14 +2,14 @@
 
 /* 移动端默认：纯半透明，无模糊（性能优先） */
 .glass {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(120, 122, 116, 0.2);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(120, 122, 116, 0.18);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-sm);
   transition: all var(--transition-normal);
@@ -18,22 +18,22 @@
 .glass-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
-  border-color: rgba(120, 122, 116, 0.3);
+  border-color: var(--border-hover);
 }
 
 .glass-header {
-  background: rgb(245, 245, 243);
-  border-bottom: 1px solid rgba(120, 122, 116, 0.15);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .glass-sidebar {
-  background: rgba(235, 235, 232, 0.98);
-  border-right: 1px solid rgba(120, 122, 116, 0.15);
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
 }
 
 .glass-input {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(120, 122, 116, 0.25);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   transition: all var(--transition-fast);
 }
@@ -41,12 +41,12 @@
 .glass-input:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(163, 166, 156, 0.15);
-  background: white;
+  background: var(--bg-card-hover);
 }
 
 .glass-btn {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(120, 122, 116, 0.2);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   color: var(--text-secondary);
   transition: all var(--transition-fast);
@@ -54,7 +54,7 @@
 
 .glass-btn:hover {
   background: rgba(163, 166, 156, 0.12);
-  border-color: rgba(120, 122, 116, 0.4);
+  border-color: var(--border-hover);
   color: var(--text-primary);
 }
 
@@ -77,37 +77,37 @@
 /* 桌面端：启用模糊效果 */
 @media (min-width: 768px) {
   .glass {
-    background: rgba(255, 255, 255, 0.75);
+    background: color-mix(in srgb, var(--bg-glass) 86%, transparent);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
   }
 
   .glass-card {
-    background: rgba(255, 255, 255, 0.85);
+    background: color-mix(in srgb, var(--bg-card) 92%, transparent);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
   }
 
   .glass-header {
-    background: rgba(245, 245, 243, 0.95);
+    background: color-mix(in srgb, var(--bg-secondary) 95%, transparent);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }
 
   .glass-sidebar {
-    background: rgba(235, 235, 232, 0.95);
+    background: color-mix(in srgb, var(--bg-secondary) 95%, transparent);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }
 
   .glass-input {
-    background: rgba(255, 255, 255, 0.9);
+    background: color-mix(in srgb, var(--bg-card) 94%, transparent);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
   }
 
   .glass-btn {
-    background: rgba(255, 255, 255, 0.6);
+    background: color-mix(in srgb, var(--bg-glass) 90%, transparent);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
   }

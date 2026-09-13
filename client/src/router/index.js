@@ -4,7 +4,11 @@ import 'nprogress/nprogress.css'
 import { useAuthStore } from '@/stores/auth'
 import { saveListScroll, getListScroll, clearListScroll } from '@/assets/js/utils'
 
-NProgress.configure({ showSpinner: false })
+NProgress.configure({
+  showSpinner: false,
+  barSelector: '.bar',
+  template: '<div class="bar" aria-hidden="true"><div class="peg"></div></div>',
+})
 
 // 需要保存/恢复滚动位置的列表类路由
 const SCROLLABLE_LIST_NAMES = ['Home', 'Category', 'Search', 'Archives']

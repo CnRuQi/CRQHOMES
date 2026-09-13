@@ -140,6 +140,14 @@ async function changePassword(req, res, next) {
 async function updateProfile(req, res, next) {
   try {
     const { nickname, avatar } = req.body
+
+    if (nickname !== undefined && typeof nickname !== 'string') {
+      throw new AppError('昵称必须是字符串', 400)
+    }
+    if (avatar !== undefined && typeof avatar !== 'string') {
+      throw new AppError('头像必须是字符串', 400)
+    }
+
     const db = getDb()
 
     // undefined = 未提供（保留原值）；空串 = 清空该字段（与分类的半更新语义一致）

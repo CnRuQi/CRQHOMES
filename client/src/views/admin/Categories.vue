@@ -2,7 +2,7 @@
   <div class="categories-page">
     <div class="page-header">
       <h2>分类管理</h2>
-      <button class="btn btn-primary" @click="showModal = true">
+      <button type="button" class="btn btn-primary" @click="showModal = true">
         <Icon name="add" :size="18" /> 新建分类
       </button>
     </div>
@@ -37,7 +37,9 @@
       </div>
 
       <EmptyState v-if="!categories.length" icon="folder" text="暂无分类" glass>
-        <button class="btn btn-primary mt-md" @click="showModal = true">创建第一个分类</button>
+        <button type="button" class="btn btn-primary mt-md" @click="showModal = true">
+          创建第一个分类
+        </button>
       </EmptyState>
     </template>
 
@@ -45,16 +47,26 @@
     <Teleport to="body">
       <Transition name="modal-fade">
         <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
-          <div class="modal glass-card">
+          <div
+            class="modal glass-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="category-modal-title"
+          >
             <div class="modal-header">
-              <h3>{{ editingCategory ? '编辑分类' : '新建分类' }}</h3>
-              <button class="close-btn" aria-label="关闭" @click="closeModal">✕</button>
+              <h3 id="category-modal-title">
+                {{ editingCategory ? '编辑分类' : '新建分类' }}
+              </h3>
+              <button type="button" class="close-btn" aria-label="关闭" @click="closeModal">
+                ✕
+              </button>
             </div>
 
             <form class="modal-body" @submit.prevent="handleSubmit">
               <div class="form-group">
-                <label class="form-label">分类名称 *</label>
+                <label for="category-name" class="form-label">分类名称 *</label>
                 <input
+                  id="category-name"
                   v-model="form.name"
                   type="text"
                   class="form-input"
@@ -64,8 +76,9 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label">分类别名 *</label>
+                <label for="category-slug" class="form-label">分类别名 *</label>
                 <input
+                  id="category-slug"
                   v-model="form.slug"
                   type="text"
                   class="form-input"
@@ -75,8 +88,9 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label">描述</label>
+                <label for="category-description" class="form-label">描述</label>
                 <textarea
+                  id="category-description"
                   v-model="form.description"
                   class="form-textarea"
                   placeholder="分类描述（选填）"
@@ -85,8 +99,9 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label">排序</label>
+                <label for="category-sort" class="form-label">排序</label>
                 <input
+                  id="category-sort"
                   v-model.number="form.sort"
                   type="number"
                   class="form-input"

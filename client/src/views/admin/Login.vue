@@ -1,5 +1,5 @@
 <template>
-  <div class="login-page">
+  <main class="login-page">
     <div class="login-container" data-aos="fade-up">
       <div class="login-card glass-card">
         <div class="login-header">
@@ -16,33 +16,42 @@
 
         <form class="login-form" @submit.prevent="handleLogin">
           <div class="form-group">
-            <label class="form-label">用户名</label>
+            <label for="login-username" class="form-label">用户名</label>
             <input
+              id="login-username"
               v-model="form.username"
               type="text"
               class="form-input glass-input"
               placeholder="请输入用户名"
+              autocomplete="username"
               required
               autofocus
             />
           </div>
 
           <div class="form-group">
-            <label class="form-label">密码</label>
+            <label for="login-password" class="form-label">密码</label>
             <input
+              id="login-password"
               v-model="form.password"
               type="password"
               class="form-input glass-input"
               placeholder="请输入密码"
+              autocomplete="current-password"
               required
             />
           </div>
 
-          <div v-if="error" class="error-message">
+          <div v-if="error" class="error-message" role="alert">
             {{ error }}
           </div>
 
-          <button type="submit" class="btn btn-primary btn-lg login-btn" :disabled="loading">
+          <button
+            type="submit"
+            class="btn btn-primary btn-lg login-btn"
+            :disabled="loading"
+            :aria-busy="loading"
+          >
             <span v-if="loading" class="spinner-sm"></span>
             <span v-else>登 录</span>
           </button>
@@ -53,7 +62,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <script setup>
@@ -157,24 +166,18 @@ async function handleLogin() {
   background: rgba(179, 143, 143, 0.1);
   border: 1px solid rgba(179, 143, 143, 0.2);
   border-radius: var(--border-radius-sm);
-  color: #9a7272;
+  color: var(--color-danger);
   font-size: 0.9rem;
 }
 
 .offline-notice {
   margin-bottom: var(--spacing-md);
   padding: var(--spacing-sm) var(--spacing-md);
-  background: rgba(186, 117, 23, 0.1);
-  border: 1px solid rgba(186, 117, 23, 0.25);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 34%, transparent);
   border-radius: var(--border-radius-sm);
-  color: #8a6410;
+  color: var(--color-warning);
   font-size: 0.9rem;
-}
-
-[data-theme='dark'] .offline-notice {
-  background: rgba(224, 181, 88, 0.12);
-  border-color: rgba(224, 181, 88, 0.28);
-  color: #e0b558;
 }
 
 .login-btn {

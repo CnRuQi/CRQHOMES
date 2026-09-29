@@ -4,6 +4,7 @@ const helmet = require('helmet')
 const config = require('./config')
 const { initDb } = require('./db')
 const { errorHandler, notFound } = require('./middleware/error')
+const { csrfProtection } = require('./middleware/csrf')
 
 // 路由
 const authRoutes = require('./routes/auth')
@@ -35,6 +36,7 @@ app.use('/api', (req, res, next) => {
 
 // CORS
 app.use(cors(config.cors))
+app.use('/api', csrfProtection)
 
 // 解析请求体
 app.use(express.json({ limit: '10mb' }))
@@ -77,6 +79,11 @@ app.use(errorHandler)
 const server = app.listen(config.port, () => {
   console.info(`服务器运行在 http://localhost:${config.port}`)
   console.info(`环境: ${config.env}`)
+  if (!config.rateLimit.storeModule) {
+    console.warn(
+      '限流使用进程内存 store，仅适用于单实例部署；多实例部署需配置 RATE_LIMIT_STORE_MODULE'
+    )
+  }
 })
 
 server.on('error', (error) => {

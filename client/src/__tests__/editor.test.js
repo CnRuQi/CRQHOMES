@@ -58,6 +58,7 @@ const editorRoutes = [
 // Layout 作为父级路由：跨路由重建测试必须走真实的 <router-view> 渲染路径
 const layoutRoutes = [
   { path: '/', component: { template: '<div>前台</div>' } },
+  { path: '/admin/login', component: { template: '<div>登录</div>' } },
   {
     path: '/admin',
     component: Layout,
@@ -206,6 +207,75 @@ describe('已发布文章转草稿需确认（防止静默下线）', () => {
       })
     )
     confirmSpy.mockRestore()
+    wrapper.unmount()
+  })
+})
+
+describe('Editor 保存期间的路由保护', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('保存请求未完成时取消离开编辑页的导航', async () => {
+    let resolveSave
+    updatePost.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveSave = resolve
+      })
+    )
+    const router = makeRouter('/admin/posts/1/edit', layoutRoutes)
+    await router.isReady()
+    const wrapper = mount(Layout, {
+      global: {
+        plugins: [router, createPinia()],
+        stubs: { MarkdownEditor: true, Icon: true, transition: true },
+      },
+    })
+    await flushPromises()
+
+    await wrapper
+      .findAll('button')
+      .find((button) => button.text() === '发布')
+      .trigger('click')
+    await flushPromises()
+    await router.push('/admin/categories')
+
+    expect(router.currentRoute.value.path).toBe('/admin/posts/1/edit')
+
+    resolveSave({ data: { post: { id: 1 } } })
+    await flushPromises()
+    expect(router.currentRoute.value.path).toBe('/admin/posts')
+    wrapper.unmount()
+  })
+
+  it('保存请求完成后不覆盖已允许前往的登录页', async () => {
+    let resolveSave
+    updatePost.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveSave = resolve
+      })
+    )
+    const router = makeRouter('/admin/posts/1/edit', layoutRoutes)
+    await router.isReady()
+    const wrapper = mount(Layout, {
+      global: {
+        plugins: [router, createPinia()],
+        stubs: { MarkdownEditor: true, Icon: true, transition: true },
+      },
+    })
+    await flushPromises()
+
+    await wrapper
+      .findAll('button')
+      .find((button) => button.text() === '发布')
+      .trigger('click')
+    await flushPromises()
+    await router.push('/admin/login')
+    expect(router.currentRoute.value.path).toBe('/admin/login')
+
+    resolveSave({ data: { post: { id: 1 } } })
+    await flushPromises()
+    expect(router.currentRoute.value.path).toBe('/admin/login')
     wrapper.unmount()
   })
 })

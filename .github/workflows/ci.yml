@@ -30,6 +30,17 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
+      - name: Audit root dependencies
+        run: npm audit --audit-level=high
+
+      - name: Audit server dependencies
+        working-directory: server
+        run: npm audit --audit-level=high
+
+      - name: Audit client dependencies
+        working-directory: client
+        run: npm audit --audit-level=high
+
       - name: Lint server
         working-directory: server
         run: npm run lint

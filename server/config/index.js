@@ -79,6 +79,21 @@ function createConfig(environment = process.env) {
     .trim()
     .toLowerCase()
   const jwtSecret = getJwtSecret(environment, env)
+  const corsOrigin = environment.CORS_ORIGIN || 'http://localhost:5173'
+  const configuredOrigins = [
+    ...String(corsOrigin).split(','),
+    ...(environment.CSRF_TRUSTED_ORIGINS || '').split(','),
+  ]
+  if (environment.SITE_URL) configuredOrigins.push(environment.SITE_URL)
+  const csrfOrigins = configuredOrigins
+    .map((origin) => {
+      try {
+        return new URL(origin.trim()).origin
+      } catch (_error) {
+        return ''
+      }
+    })
+    .filter(Boolean)
 
   return {
     // 服务配置
@@ -87,6 +102,13 @@ function createConfig(environment = process.env) {
     // Nginx 反代时设为 1 信任所有代理（限流/防刷识别真实 IP）；
     // 也可配置具体代理 IP 列表（逗号分隔，如 127.0.0.1,10.0.0.1），仅信任这些代理，防 XFF 伪造
     trustProxy: parseTrustProxy(environment.TRUST_PROXY),
+
+    rateLimit: {
+      storeModule: String(environment.RATE_LIMIT_STORE_MODULE || '').trim(),
+    },
+    csrf: {
+      allowedOrigins: [...new Set(csrfOrigins)],
+    },
 
     // JWT 配置
     jwt: {
@@ -129,7 +151,7 @@ function createConfig(environment = process.env) {
 
     // CORS 配置
     cors: {
-      origin: environment.CORS_ORIGIN || 'http://localhost:5173',
+      origin: corsOrigin,
       credentials: true,
     },
   }

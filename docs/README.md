@@ -41,6 +41,7 @@
 
 版本变更记录按版本保存在 [releases/](releases/)：
 
+- [v2.0.1](releases/v2.0.1.md)
 - [v2.0.0](releases/v2.0.0.md)
 - [v1.4.1](releases/v1.4.1.md)
 - [v1.4.0](releases/v1.4.0.md)

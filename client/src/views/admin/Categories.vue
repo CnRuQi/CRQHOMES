@@ -2,7 +2,7 @@
   <div class="categories-page">
     <div class="page-header">
       <h2>分类管理</h2>
-      <button type="button" class="btn btn-primary" @click="showModal = true">
+      <button ref="createButtonRef" type="button" class="btn btn-primary" @click="openCreateModal">
         <Icon name="add" :size="18" /> 新建分类
       </button>
     </div>
@@ -12,35 +12,41 @@
     </div>
 
     <template v-else>
-      <div class="categories-grid">
-        <div
-          v-for="category in categories"
-          :key="category.id"
-          class="category-card glass-card"
-          data-aos="fade-up"
-        >
-          <div class="category-info">
-            <h3 class="category-name">{{ category.name }}</h3>
-            <p class="category-slug">{{ category.slug }}</p>
-            <p v-if="category.description" class="category-desc">
-              {{ category.description }}
-            </p>
-            <div class="category-meta">
-              <span class="post-count">{{ category.post_count || 0 }} 篇文章</span>
+      <p v-if="loadError" class="load-error" role="alert">分类加载失败，请稍后重试</p>
+
+      <template v-else>
+        <div class="categories-grid">
+          <div
+            v-for="category in categories"
+            :key="category.id"
+            class="category-card glass-card"
+            data-aos="fade-up"
+          >
+            <div class="category-info">
+              <h3 class="category-name">{{ category.name }}</h3>
+              <p class="category-slug">{{ category.slug }}</p>
+              <p v-if="category.description" class="category-desc">
+                {{ category.description }}
+              </p>
+              <div class="category-meta">
+                <span class="post-count">{{ category.post_count || 0 }} 篇文章</span>
+              </div>
+            </div>
+            <div class="category-actions">
+              <button class="btn btn-sm btn-secondary" @click="editCategory(category, $event)">
+                编辑
+              </button>
+              <button class="btn btn-sm btn-danger" @click="handleDelete(category)">删除</button>
             </div>
           </div>
-          <div class="category-actions">
-            <button class="btn btn-sm btn-secondary" @click="editCategory(category)">编辑</button>
-            <button class="btn btn-sm btn-danger" @click="handleDelete(category)">删除</button>
-          </div>
         </div>
-      </div>
 
-      <EmptyState v-if="!categories.length" icon="folder" text="暂无分类" glass>
-        <button type="button" class="btn btn-primary mt-md" @click="showModal = true">
-          创建第一个分类
-        </button>
-      </EmptyState>
+        <EmptyState v-if="!categories.length" icon="folder" text="暂无分类" glass>
+          <button type="button" class="btn btn-primary mt-md" @click="openCreateModal">
+            创建第一个分类
+          </button>
+        </EmptyState>
+      </template>
     </template>
 
     <!-- 模态框 -->
@@ -48,6 +54,7 @@
       <Transition name="modal-fade">
         <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
           <div
+            ref="modalRef"
             class="modal glass-card"
             role="dialog"
             aria-modal="true"
@@ -57,7 +64,13 @@
               <h3 id="category-modal-title">
                 {{ editingCategory ? '编辑分类' : '新建分类' }}
               </h3>
-              <button type="button" class="close-btn" aria-label="关闭" @click="closeModal">
+              <button
+                type="button"
+                class="close-btn"
+                aria-label="关闭"
+                :disabled="submitting"
+                @click="closeModal"
+              >
                 ✕
               </button>
             </div>
@@ -110,7 +123,14 @@
               </div>
 
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" @click="closeModal">取消</button>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  :disabled="submitting"
+                  @click="closeModal"
+                >
+                  取消
+                </button>
                 <button type="submit" class="btn btn-primary" :disabled="submitting">
                   {{ submitting ? '保存中...' : '保存' }}
                 </button>
@@ -124,7 +144,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { getCategories, createCategory, updateCategory, deleteCategory } from '@/api/category'
 import { setBodyScrollLock } from '@/assets/js/utils'
 import Icon from '@/components/Icon.vue'
@@ -133,10 +153,14 @@ import { useToast } from '@/composables/useToast'
 
 const toast = useToast()
 const loading = ref(false)
+const loadError = ref(false)
 const categories = ref([])
 const showModal = ref(false)
 const submitting = ref(false)
 const editingCategory = ref(null)
+const modalRef = ref(null)
+const createButtonRef = ref(null)
+let modalOpener = null
 
 const form = ref({
   name: '',
@@ -147,18 +171,30 @@ const form = ref({
 
 async function fetchCategories() {
   loading.value = true
+  loadError.value = false
   try {
     const res = await getCategories()
     categories.value = res.data.categories
   } catch (error) {
     console.error('获取分类失败:', error)
+    loadError.value = true
     toast.error('加载分类失败')
   } finally {
     loading.value = false
   }
 }
 
-function editCategory(category) {
+function openCreateModal(event) {
+  if (submitting.value) return
+  modalOpener = event?.currentTarget || document.activeElement
+  editingCategory.value = null
+  form.value = { name: '', slug: '', description: '', sort: 0 }
+  showModal.value = true
+}
+
+function editCategory(category, event) {
+  if (submitting.value) return
+  modalOpener = event?.currentTarget || document.activeElement
   editingCategory.value = category
   form.value = {
     name: category.name,
@@ -170,6 +206,7 @@ function editCategory(category) {
 }
 
 function closeModal() {
+  if (submitting.value) return
   showModal.value = false
   editingCategory.value = null
   form.value = {
@@ -189,6 +226,8 @@ async function handleSubmit() {
     } else {
       await createCategory(form.value)
     }
+    submitting.value = false
+    modalOpener = createButtonRef.value
     closeModal()
     await fetchCategories()
     toast.success(isEdit ? '分类更新成功' : '分类创建成功')
@@ -224,16 +263,45 @@ async function handleDelete(category) {
 function handleKeydown(e) {
   if (e.key === 'Escape') {
     closeModal()
+    return
+  }
+  if (e.key !== 'Tab' || !modalRef.value) return
+
+  const focusable = modalRef.value.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  )
+  if (!focusable.length) return
+
+  const first = focusable[0]
+  const last = focusable[focusable.length - 1]
+  if (
+    e.shiftKey &&
+    (document.activeElement === first || !modalRef.value.contains(document.activeElement))
+  ) {
+    e.preventDefault()
+    last.focus()
+  } else if (
+    !e.shiftKey &&
+    (document.activeElement === last || !modalRef.value.contains(document.activeElement))
+  ) {
+    e.preventDefault()
+    first.focus()
   }
 }
 
 // 模态打开期间：挂 Esc 监听 + 锁背景滚动（与移动端菜单的做法保持一致）
-watch(showModal, (open) => {
+watch(showModal, async (open) => {
   setBodyScrollLock(open)
   if (open) {
     document.addEventListener('keydown', handleKeydown)
+    await nextTick()
+    modalRef.value?.querySelector('#category-name')?.focus()
   } else {
     document.removeEventListener('keydown', handleKeydown)
+    const opener = modalOpener
+    modalOpener = null
+    await nextTick()
+    if (opener?.isConnected) opener.focus()
   }
 })
 

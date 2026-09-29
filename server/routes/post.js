@@ -1,5 +1,5 @@
 const express = require('express')
-const rateLimit = require('express-rate-limit')
+const { createRateLimit } = require('../middleware/rateLimit')
 const router = express.Router()
 const {
   getPosts,
@@ -19,13 +19,25 @@ const { authenticate } = require('../middleware/auth')
 const { postRules } = require('../middleware/validator')
 
 // 搜索限流：个人博客场景下每个可信客户端 IP 15 分钟最多 300 次。
-// 多进程部署时需改用共享 store，否则每个进程会分别计数。
-const searchLimiter = rateLimit({
+// 多实例部署时通过 RATE_LIMIT_STORE_MODULE 配置共享 store。
+const searchLimiter = createRateLimit('posts:search', {
   windowMs: 15 * 60 * 1000,
   limit: 300,
   message: {
     code: 429,
     message: '搜索请求过于频繁，请稍后再试',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
+// 详情请求会触发 SQLite 浏览计数和防刷记录，每个客户端 IP 15 分钟最多 600 次。
+const detailLimiter = createRateLimit('posts:detail', {
+  windowMs: 15 * 60 * 1000,
+  limit: 600,
+  message: {
+    code: 429,
+    message: '文章请求过于频繁，请稍后再试',
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -56,7 +68,7 @@ router.get('/admin/:id', authenticate, postRules.getById, getPostForAdmin)
 router.put('/sort', authenticate, postRules.sortOrder, updateSortOrder)
 
 // GET /api/posts/:idOrSlug - 获取文章详情
-router.get('/:idOrSlug', getPost)
+router.get('/:idOrSlug', detailLimiter, getPost)
 
 // POST /api/posts - 创建文章
 router.post('/', authenticate, postRules.create, createPost)

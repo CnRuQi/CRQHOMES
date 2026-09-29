@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
-const rateLimit = require('express-rate-limit')
+const { createRateLimit } = require('../middleware/rateLimit')
+const { usernameAttemptKey } = require('../middleware/authLimiter')
 const {
   login,
   logout,
@@ -12,7 +13,7 @@ const { authenticate } = require('../middleware/auth')
 const { authRules } = require('../middleware/validator')
 
 // 登录速率限制：15分钟内最多5次尝试
-const loginLimiter = rateLimit({
+const loginLimiter = createRateLimit('auth:login-ip', {
   windowMs: 15 * 60 * 1000, // 15分钟
   limit: 5, // 最多5次
   message: {
@@ -23,17 +24,12 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 })
 
-// 账号维度登录限制：同一用户名 15 分钟内失败 5 次后锁定
-// IP 维度限流可被伪造 X-Forwarded-For 绕过（反代追加模式下 req.ip 取客户端可伪造的最左值），
-// 这是唯一不依赖代理配置正确性的防爆破层。代价是恶意输错密码可把该账号锁 15 分钟（DoS 烦扰），
-// 换来单账号无法被 IP 轮换爆破，单人博客下是正确取舍
-const loginUsernameLimiter = rateLimit({
+// 账号和客户端 IP 组合限制，避免攻击者仅凭用户名锁住所有管理员会话。
+// 可信客户端 IP 仍依赖 TRUST_PROXY 与反向代理的转发头配置。
+const loginUsernameLimiter = createRateLimit('auth:login-account-ip', {
   windowMs: 15 * 60 * 1000, // 15分钟
   limit: 5,
-  keyGenerator: (req) =>
-    String(req.body?.username || '')
-      .trim()
-      .toLowerCase(),
+  keyGenerator: usernameAttemptKey,
   // 只统计失败尝试，正常登录不消耗次数
   skipSuccessfulRequests: true,
   message: {
@@ -45,7 +41,7 @@ const loginUsernameLimiter = rateLimit({
 })
 
 // 密码修改速率限制：1小时内最多3次
-const passwordLimiter = rateLimit({
+const passwordLimiter = createRateLimit('auth:password', {
   windowMs: 60 * 60 * 1000, // 1小时
   limit: 3,
   message: {

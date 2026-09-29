@@ -4,15 +4,15 @@
 
 一个现代化的个人博客系统，采用「枯木冷茶」(Zen Wood) 配色方案，支持文章管理、暗色模式、动画效果和响应式布局，前后端分离，安全优先。
 
-**当前版本：v2.0.0**
+**当前版本：v2.0.1**
 
-> 说明：v2.0.0 收录 2026-09-12 至 2026-09-13 的全面审计修复、浏览器回归和发布验证。详细变更见 [`docs/releases/v2.0.0.md`](docs/releases/v2.0.0.md)，工程证据见 [`docs/audits/browser-baseline-2026-09-13.md`](docs/audits/browser-baseline-2026-09-13.md)。
+> 说明：v2.0.1 修复了安全审查发现的 CSRF、资源边界、前端异步竞态和发布配置问题。详细变更及部署包校验值见 [`docs/releases/v2.0.1.md`](docs/releases/v2.0.1.md)；v2.0.0 全面审计的历史证据见 [`docs/releases/v2.0.0.md`](docs/releases/v2.0.0.md) 和 [`docs/audits/browser-baseline-2026-09-13.md`](docs/audits/browser-baseline-2026-09-13.md)。
 
 ## 当前审计进度
 
-v2.0.0 已完成：生产配置 fail-closed、sitemap 和上传 URL 边界、参数化输入验证、文章半更新语义、草稿/发布校验、slug 唯一迁移、公开列表边界、搜索限流、归档分页，以及前台/后台的响应式、主题和无障碍修复。
+v2.0.1 在 v2.0.0 全面审计修复基础上，补充 Cookie 写请求来源校验、登录密码字节上限、公开浏览写入和上传请求资源边界、可配置共享限流，以及前后台竞态与错误状态修复。生产环境多实例部署应配置共享限流 store；默认进程内 store 只适用于单实例。
 
-前端 Markdown 内容现由 `MarkdownContent.vue` 以 Vue VNode 渲染，原始 HTML 被忽略，链接协议受限并经过 DOMPurify 防御；没有使用 `v-html`。后台编辑器按路由懒加载，公开路由不加载编辑器 chunk。全量测试共 106 个用例通过，浏览器矩阵和 axe 回归结果均为 0 个 violation/incomplete；编辑器 chunk 仍有约 877.38 kB 的 Vite warning，详见 v2.0.0 Release Notes。
+前端 Markdown 内容现由 `MarkdownContent.vue` 以 Vue VNode 渲染，原始 HTML 被忽略，链接协议受限并经过 DOMPurify 防御；没有使用 `v-html`。后台编辑器按路由懒加载，公开路由不加载编辑器 chunk。当前前后端共 133 个测试用例通过；编辑器 chunk 仍有约 877.38 kB 的 Vite warning，详见 v2.0.1 Release Notes。
 
 ## 功能特性
 
@@ -28,7 +28,7 @@ v2.0.0 已完成：生产配置 fail-closed、sitemap 和上传 URL 边界、参
 | 全文搜索        | 标题 + 摘要 + 正文搜索，高亮显示、防竞态                                              |
 | SEO 优化        | meta 标签、Open Graph、动态 sitemap.xml                                               |
 | 用户认证        | JWT + bcrypt，httpOnly cookie 下发（前端不可读，防 XSS 窃取）                         |
-| 安全防护        | SQL 参数化、输入验证、DOMPurify 消毒、上传魔数+文件结构校验、速率限制、Helmet、CORS   |
+| 安全防护        | SQL 参数化、输入验证、CSRF 来源校验、DOMPurify 消毒、上传结构与请求限额、速率限制、Helmet、CORS |
 | 动画系统        | AOS 滚动动画、页面过渡、菜单交错动画、统计数字计数滚动，尊重 `prefers-reduced-motion` |
 | 性能优化        | SQLite 轻量级数据库（WAL 模式），浏览量防刷持久化                                     |
 
@@ -55,7 +55,7 @@ v2.0.0 已完成：生产配置 fail-closed、sitemap 和上传 URL 边界、参
 
 | 技术                    | 版本            | 说明                          |
 | ----------------------- | --------------- | ----------------------------- |
-| Node.js                 | 18+（推荐 20+） | JavaScript 运行时             |
+| Node.js                 | 20+             | JavaScript 运行时             |
 | Express                 | ^5.2            | Web 框架                      |
 | better-sqlite3          | ^12.9           | SQLite 数据库                 |
 | jsonwebtoken + bcryptjs | ^9 / ^3         | JWT 认证与密码加密            |
@@ -106,7 +106,7 @@ HTMLsite/
 
 ### 环境要求
 
-- Node.js >= 18（推荐 20+）
+- Node.js >= 20
 - npm >= 9
 
 ### 安装步骤
@@ -174,6 +174,12 @@ CORS_ORIGIN=http://localhost:5173
 # 反向代理（仅在代理会覆盖而非追加 X-Forwarded-For 时设为 1；
 # 更稳妥可填具体代理 IP 列表，如 127.0.0.1,10.0.0.1，仅信任这些代理）
 TRUST_PROXY=1
+
+# 多实例部署时配置实现 createStore(name) 的共享限流 store 模块
+# RATE_LIMIT_STORE_MODULE=your-rate-limit-store-module
+
+# 可选额外 CSRF 来源白名单，多个来源用逗号分隔
+# CSRF_TRUSTED_ORIGINS=https://admin.example.com
 
 # 站点基础 URL（生产环境必填有效的 http(s) 绝对 URL，避免依赖 Host 请求头）
 SITE_URL=https://your-domain.com
@@ -293,6 +299,10 @@ npm test            # 全量测试（前后端）
 npm run lint:fix    # 自动修复 lint
 ```
 
+GitHub Actions CI 会分别对根目录、`server/` 和 `client/` 的锁文件执行联网 `npm audit --audit-level=high`。发现 high 或 critical 漏洞、或 npm registry 无法访问时，CI 会失败。
+
+多实例部署需要设置 `RATE_LIMIT_STORE_MODULE` 并提供共享 store；未设置时后端使用进程内存 store，并在启动时提示该配置仅适用于单实例。Cookie 写接口通过 `CORS_ORIGIN`、`SITE_URL`、`CSRF_TRUSTED_ORIGINS` 和 Fetch Metadata 校验请求来源。
+
 - 依赖方向：routes → middleware/controllers → `server/db/index.js`；当前 SQL 主要由 controllers 执行，独立数据访问层仍在后续计划中（详见 `docs/architecture.md`）
 - 代码规范：`docs/conventions.md`；核心信念：`docs/core-beliefs.md`
 - AI Agent 开发指引：`AGENTS.md` + `docs/tasks/*.md`
@@ -307,7 +317,7 @@ npm run lint:fix    # 自动修复 lint
 
 | 内容                                          | 规则                                  |
 | --------------------------------------------- | ------------------------------------- |
-| `server/.env`（含 JWT_SECRET 等）             | `.env`                                |
+| `.env` 和 `.env.*`（保留 `.env.example`）     | `.env`、`.env.*`                      |
 | 数据库 `data/*.db(-wal/-shm)`                 | `data/*.db*`                          |
 | 上传图片 `server/uploads/*`                   | `server/uploads/*`（保留 `.gitkeep`） |
 | 依赖 `node_modules/`、构建产物 `client/dist/` | 对应目录规则                          |

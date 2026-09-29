@@ -60,3 +60,24 @@ CREATE TABLE IF NOT EXISTS view_tracking (
 
 CREATE INDEX IF NOT EXISTS idx_view_tracking_ip_post ON view_tracking(ip_address, post_id);
 CREATE INDEX IF NOT EXISTS idx_view_tracking_viewed_at ON view_tracking(viewed_at);
+
+-- 浏览记录行数由触发器维护，插入前可快速淘汰最旧记录并维持容量上限。
+CREATE TABLE IF NOT EXISTS view_tracking_stats (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    row_count INTEGER NOT NULL DEFAULT 0
+);
+
+INSERT OR IGNORE INTO view_tracking_stats (id, row_count)
+SELECT 1, COUNT(*) FROM view_tracking;
+
+CREATE TRIGGER IF NOT EXISTS trg_view_tracking_count_insert
+AFTER INSERT ON view_tracking
+BEGIN
+    UPDATE view_tracking_stats SET row_count = row_count + 1 WHERE id = 1;
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_view_tracking_count_delete
+AFTER DELETE ON view_tracking
+BEGIN
+    UPDATE view_tracking_stats SET row_count = row_count - 1 WHERE id = 1;
+END;

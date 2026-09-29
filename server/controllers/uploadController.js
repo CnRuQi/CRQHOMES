@@ -108,12 +108,20 @@ const fileFilter = (req, file, cb) => {
   }
 }
 
+const uploadLimits = {
+  fileSize: config.upload.maxSize,
+  files: 1,
+  fields: 4,
+  parts: 5,
+  fieldNameSize: 100,
+  fieldSize: 8 * 1024,
+  headerPairs: 100,
+}
+
 const upload = multer({
   storage,
   fileFilter,
-  limits: {
-    fileSize: config.upload.maxSize,
-  },
+  limits: uploadLimits,
 })
 
 // 上传图片处理
@@ -169,4 +177,4 @@ function handleMulterError(error, req, res, next) {
   next(error)
 }
 
-module.exports = { upload, uploadImage, handleMulterError }
+module.exports = { upload, uploadImage, handleMulterError, uploadLimits }

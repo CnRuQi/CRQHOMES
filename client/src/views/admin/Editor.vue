@@ -327,6 +327,7 @@ async function handlePublish() {
 async function savePost() {
   if (saving.value) return // 防止双击重复提交
   saving.value = true
+  const saveLocation = route.fullPath
   try {
     // datetime-local 给的是「本地时间、无时区」串（如 2026-08-29T22:30）。
     // 直接提交会让服务端按服务器自己的时区去解析，跨时区部署就会整体偏移。
@@ -349,7 +350,8 @@ async function savePost() {
 
     toast.success(isEdit.value ? '文章更新成功' : '文章创建成功')
     dirty.value = false
-    router.push('/admin/posts')
+    saving.value = false
+    if (route.fullPath === saveLocation) router.push('/admin/posts')
   } catch (error) {
     console.error('保存失败:', error)
     toast.error('保存失败: ' + (error.message || '未知错误'))
@@ -371,7 +373,11 @@ onBeforeUnmount(() => {
 
 // 路由离开拦截（含「取消」按钮与侧边栏切换）
 onBeforeRouteLeave((to, from, next) => {
-  if (!dirty.value || saving.value || to.path === '/admin/login') {
+  if (saving.value && to.path !== '/admin/login') {
+    next(false)
+    return
+  }
+  if (!dirty.value || to.path === '/admin/login') {
     next()
     return
   }

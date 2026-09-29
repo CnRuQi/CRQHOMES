@@ -27,14 +27,23 @@
           </div>
 
           <template v-else>
-            <div v-if="posts.length" class="posts-grid">
-              <PostCard v-for="(post, index) in posts" :key="post.id" :post="post" :index="index" />
-            </div>
+            <p v-if="loadError" class="load-error" role="alert">文章加载失败，请稍后重试</p>
 
-            <EmptyState v-else icon="article" text="暂无文章" />
+            <template v-else>
+              <div v-if="posts.length" class="posts-grid">
+                <PostCard
+                  v-for="(post, index) in posts"
+                  :key="post.id"
+                  :post="post"
+                  :index="index"
+                />
+              </div>
 
-            <!-- 分页 -->
-            <Pagination :pagination="pagination" @change="changePage" />
+              <EmptyState v-else icon="article" text="暂无文章" />
+
+              <!-- 分页 -->
+              <Pagination :pagination="pagination" @change="changePage" />
+            </template>
           </template>
         </section>
       </div>
@@ -59,6 +68,7 @@ const postStore = usePostStore()
 const toast = useToast()
 
 const loading = ref(false)
+const loadError = ref(false)
 const posts = ref([])
 const pagination = ref({
   total: 0,
@@ -78,6 +88,7 @@ async function fetchPosts(page = 1) {
   const seq = ++fetchSeq
   requestedPage = page
   loading.value = true
+  loadError.value = false
   try {
     const params = { page, pageSize: 18 }
     if (route.params.slug) {
@@ -89,7 +100,8 @@ async function fetchPosts(page = 1) {
     pagination.value = postStore.pagination
   } catch (error) {
     console.error('获取文章列表失败:', error)
-    // 失败与「真的没有文章」语义不同，不能让用户看到误导性的空态
+    if (seq !== fetchSeq) return
+    loadError.value = true
     toast.error('加载文章失败，请稍后重试')
   } finally {
     if (seq === fetchSeq) loading.value = false

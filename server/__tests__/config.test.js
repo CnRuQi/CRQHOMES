@@ -56,4 +56,11 @@ describe('runtime configuration', () => {
 
     expect(config.siteUrl).toBe('')
   })
+
+  it('accepts an optional shared rate-limit store module setting', () => {
+    const config = createConfig(makeEnv({ RATE_LIMIT_STORE_MODULE: 'blog-rate-limit-store' }))
+
+    expect(config.rateLimit?.storeModule).toBe('blog-rate-limit-store')
+    expect(createConfig(makeEnv()).rateLimit?.storeModule).toBe('')
+  })
 })

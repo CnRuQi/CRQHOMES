@@ -1,12 +1,12 @@
 # AGENTS.md - 披花沐雪开发指南
 
-> 本文件是仓库级开发约束。v2.0.0 全面审计修复已完成并进入发布，后续维护以当前代码、审计证据和发布说明为准。
+> 本文件是仓库级开发约束。v2.0.0 全面审计修复已完成；v2.0.1 补齐后续安全审查发现的问题并进入发布，后续维护以当前代码和发布说明为准。
 
 ## 项目概览
 
 Vue 3 + Express 5 + SQLite 个人博客系统。前端 Vite 构建，后端 REST API，数据存储在 `data/blog.db`。
 
-## 当前审计进度（2026-09-13，v2.0.0）
+## 当前审计进度（2026-09-29，v2.0.1）
 
 ### 已完成
 
@@ -18,21 +18,25 @@ Vue 3 + Express 5 + SQLite 个人博客系统。前端 Vite 构建，后端 REST
 - 前台文章使用 `MarkdownContent.vue` 以 Vue VNode 渲染，原始 HTML 被忽略，链接经过协议限制和 DOMPurify 防御；禁止 `v-html`。
 - 新增后端配置、sitemap、上传、验证器、数据库、文章更新和 Markdown 安全回归测试。
 - 完成后台真实流程、键盘排序、真实 Markdown、图片失败状态、暗色主题和空/错误状态的浏览器回归；CI 检查改为阻断式，并完成依赖树、数据库副本和发布证据核验。
+- v2.0.1 增加 Cookie 写请求来源校验、登录密码 UTF-8 字节上限、文章详情限流与浏览记录容量、上传 multipart 配额、共享限流 store 接口及前端竞态/焦点/错误态修复。
+- `.gitignore` 覆盖 `.env.*` 并保留 `.env.example`；后端要求 Node 20+；CI 对 root、server、client 执行联网依赖审计。
 
 ### 已验证
 
-- 后端 7 个测试文件、71 个用例通过；前端 6 个测试文件、35 个用例通过，共 106 个用例通过；`lint`、`format:check` 和构建均退出 0。
+- 后端 9 个测试文件、83 个用例通过；前端 10 个测试文件、50 个用例通过，共 133 个用例通过；`lint`、`format:check` 和构建均退出 0。
 - Light 主题 8 个路由在 320、375、414、768、1440 CSS 像素宽度通过回归；Dark 主题关键页面、真实 Markdown、图片加载失败、键盘排序均通过；axe violations/incomplete 均为 0。
 - root、server、client 的 `npm ci`、`npm ls` 和 `npm audit --offline` 已执行；离线审计结果来自本机缓存，不能替代联网漏洞库结论。
+- 后续 CI 对 root、server、client 分别执行联网 `npm audit --audit-level=high`；漏洞达到 high/critical 或 registry 无法访问时均会阻断 CI。
 - 数据库副本迁移两次幂等，`PRAGMA integrity_check` 为 `ok`，行数保持 `users=1`、`posts=3`、`categories=2`，重复 slug 查询为空。
 
 ### 已知保留项
 
 - 编辑器已按路由懒加载，但独立压缩 chunk 仍约 877.38 kB，Vite 保留 500 kB warning；这不影响公开首页加载，后续可继续拆分。
-- `npm audit --offline` 只反映本机缓存结果，联网漏洞审计仍由 CI 负责。
-- controllers 当前仍通过 `server/db/index.js` 获取连接并执行参数化 SQL；独立 data-access 层是后续架构整理目标，不作为 v2.0.0 的未修复缺陷。
+- `npm audit --offline` 只反映本机缓存结果；提交后的联网漏洞审计由 CI 针对 root、server、client 执行，registry 不可达时同样失败。
+- 多实例部署必须配置 `RATE_LIMIT_STORE_MODULE` 接入共享限流 store；默认进程内存 store 只适用于单实例。
+- controllers 当前仍通过 `server/db/index.js` 获取连接并执行参数化 SQL；独立 data-access 层是后续架构整理目标，不作为已知未修复缺陷。
 
-审计执行清单和回填说明保存在：`docs/superpowers/plans/2026-09-12-full-audit-remediation.md`、`docs/superpowers/plans/2026-09-12-next-audit-steps.md`；浏览器与工程证据保存在：`docs/audits/browser-baseline-2026-09-13.md`。
+v2.0.0 审计执行清单和回填说明保存在：`docs/superpowers/plans/2026-09-12-full-audit-remediation.md`、`docs/superpowers/plans/2026-09-12-next-audit-steps.md`；浏览器与工程证据保存在：`docs/audits/browser-baseline-2026-09-13.md`。v2.0.1 修复与包校验记录见：`docs/releases/v2.0.1.md`。
 文档目录索引：`docs/README.md`。
 
 ## 核心信念
@@ -109,6 +113,11 @@ SQLite，表结构见 `server/db/schema.sql`。4 张核心表：
 - `categories` - 分类
 - `view_tracking` - 浏览防刷记录
 
+## 运行环境
+
+- 项目最低要求 Node.js 20；后端 `better-sqlite3@12.9` 需要 Node.js 20 或更新的兼容版本。
+- CI 对根目录、`server/` 和 `client/` 分别执行联网 `npm audit --audit-level=high`；高危及以上漏洞或 registry 连接失败都会使 CI 失败。
+
 ## 生产配置底线
 
 - `NODE_ENV=production` 时必须设置有效的 `SITE_URL`，只能使用 `http` 或 `https` 绝对 URL，不能带用户名、密码、查询串或片段。
@@ -120,4 +129,4 @@ SQLite，表结构见 `server/db/schema.sql`。4 张核心表：
 ## 文档与个人文件
 
 - 项目文档统一放在 `docs/`，当前采用 Markdown；文档分类和入口见 `docs/README.md`。架构、规范等稳定参考资料位于根目录，审计记录位于 `docs/audits/`，任务指引、发布说明和执行计划位于对应子目录。
-- `.gitignore` 忽略个人 `.docx`、压缩包、`.env`、数据库和上传内容。当前仓库没有 `docx/` 文件夹，也没有可供清理的 `.docx` 文件；未经确认不要删除 `docs/` 下的 Markdown 资料。
+- `.gitignore` 忽略个人 `.docx`、压缩包、`.env` 和 `.env.*`（保留 `.env.example`）、数据库和上传内容。当前仓库没有 `docx/` 文件夹，也没有可供清理的 `.docx` 文件；未经确认不要删除 `docs/` 下的 Markdown 资料。

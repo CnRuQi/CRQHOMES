@@ -75,7 +75,7 @@
 }
 
 /* 桌面端：启用模糊效果 */
-@media (min-width: 768px) {
+@media (min-width: 769px) {
   .glass {
     background: color-mix(in srgb, var(--bg-glass) 86%, transparent);
     backdrop-filter: blur(16px);

@@ -85,3 +85,18 @@ describe('upload URL generation', () => {
     expect(payload.data.url).toBe('/uploads/202601/image.jpg')
   })
 })
+
+describe('Multer multipart limits', () => {
+  it('bounds file count, fields, parts, field names, values, and multipart headers', () => {
+    const { uploadLimits } = loadController(mkdtempSync(join(tmpdir(), 'blog-upload-limits-')))
+    expect(uploadLimits).toMatchObject({
+      fileSize: 5 * 1024 * 1024,
+      files: 1,
+      fields: 4,
+      parts: 5,
+      fieldNameSize: 100,
+      fieldSize: 8 * 1024,
+      headerPairs: 100,
+    })
+  })
+})

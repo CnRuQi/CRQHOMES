@@ -6,6 +6,7 @@ const { success, paginate, parsePagination, normalizeTags, parseTags } = require
 // 列表与归档必须用同一套语义，否则同一批数据在两处的先后次序会对不上
 // （直接排 published_at 会把 NULL 行甩到末尾，而归档的 COALESCE 不会）
 const TIME_ORDER_EXPR = 'julianday(COALESCE(p.published_at, p.created_at))'
+const MAX_VIEW_TRACKING_ROWS = 100000
 
 // 格式化 IP 地址（处理 IPv6 格式）
 function normalizeIp(ip) {
@@ -105,9 +106,24 @@ function hasRecentlyViewed(db, ip, postId) {
 }
 
 // 记录浏览（统一使用 ISO 时间字符串，与 hasRecentlyViewed/cleanupOldViews 的比较格式一致）
-function recordView(db, ip, postId) {
+function recordView(db, ip, postId, maxRows = MAX_VIEW_TRACKING_ROWS) {
+  const { row_count: rowCount } = db
+    .prepare('SELECT row_count FROM view_tracking_stats WHERE id = 1')
+    .get()
+  const existing = db
+    .prepare('SELECT id FROM view_tracking WHERE ip_address = ? AND post_id = ?')
+    .get(ip, postId)
+
+  if (!existing && rowCount >= maxRows) {
+    const excess = rowCount - maxRows + 1
+    db.prepare(
+      'DELETE FROM view_tracking WHERE id IN (SELECT id FROM view_tracking ORDER BY viewed_at ASC, id ASC LIMIT ?)'
+    ).run(excess)
+  }
+
   db.prepare(
-    'INSERT OR REPLACE INTO view_tracking (ip_address, post_id, viewed_at) VALUES (?, ?, ?)'
+    `INSERT INTO view_tracking (ip_address, post_id, viewed_at) VALUES (?, ?, ?)
+     ON CONFLICT(ip_address, post_id) DO UPDATE SET viewed_at = excluded.viewed_at`
   ).run(ip, postId, new Date().toISOString())
 }
 
@@ -115,6 +131,16 @@ function recordView(db, ip, postId) {
 function cleanupOldViews(db) {
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
   db.prepare('DELETE FROM view_tracking WHERE viewed_at < ?').run(oneDayAgo)
+
+  const { row_count: rowCount } = db
+    .prepare('SELECT row_count FROM view_tracking_stats WHERE id = 1')
+    .get()
+  const excess = rowCount - MAX_VIEW_TRACKING_ROWS
+  if (excess > 0) {
+    db.prepare(
+      'DELETE FROM view_tracking WHERE id IN (SELECT id FROM view_tracking ORDER BY viewed_at ASC, id ASC LIMIT ?)'
+    ).run(excess)
+  }
 }
 
 // 构建文章查询条件
@@ -725,4 +751,5 @@ module.exports = {
   getStats,
   searchPosts,
   cleanupOldViews,
+  recordView,
 }

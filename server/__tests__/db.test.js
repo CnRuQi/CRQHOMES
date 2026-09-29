@@ -228,3 +228,36 @@ describe('Legacy post slug migration', () => {
     invalidDb.close()
   })
 })
+
+describe('view tracking capacity migration', () => {
+  it('backfills existing rows and remains consistent after repeated initialization', () => {
+    const legacyDb = new Database(':memory:')
+    legacyDb.exec(`
+      CREATE TABLE view_tracking (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ip_address TEXT NOT NULL,
+        post_id INTEGER NOT NULL,
+        viewed_at DATETIME DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+        UNIQUE(ip_address, post_id)
+      );
+      INSERT INTO view_tracking (ip_address, post_id) VALUES ('192.0.2.1', 1);
+      INSERT INTO view_tracking (ip_address, post_id) VALUES ('192.0.2.2', 1);
+    `)
+
+    initDb(legacyDb)
+    expect(
+      legacyDb.prepare('SELECT row_count FROM view_tracking_stats WHERE id = 1').get().row_count
+    ).toBe(2)
+
+    initDb(legacyDb)
+    legacyDb.prepare('DELETE FROM view_tracking WHERE ip_address = ?').run('192.0.2.1')
+    legacyDb
+      .prepare('INSERT INTO view_tracking (ip_address, post_id) VALUES (?, ?)')
+      .run('192.0.2.3', 1)
+
+    expect(
+      legacyDb.prepare('SELECT row_count FROM view_tracking_stats WHERE id = 1').get().row_count
+    ).toBe(2)
+    legacyDb.close()
+  })
+})

@@ -34,7 +34,9 @@
       <div class="spinner"></div>
     </div>
 
-    <div class="posts-table glass-card">
+    <p v-else-if="loadError" class="load-error" role="alert">文章列表加载失败，请稍后重试</p>
+
+    <div v-else class="posts-table glass-card">
       <table>
         <thead>
           <tr>
@@ -139,6 +141,7 @@ import draggable from 'vuedraggable'
 
 const toast = useToast()
 const loading = ref(false)
+const loadError = ref(false)
 const posts = ref([])
 
 const filters = ref({
@@ -156,10 +159,12 @@ let fetchSeq = 0
 // 筛选状态下禁用拖拽排序
 const hasFilter = computed(() => filters.value.status !== '' || filters.value.keyword !== '')
 const sortSaving = ref(false)
+let sortQueued = false
 
 async function fetchPosts() {
   const seq = ++fetchSeq
   loading.value = true
+  loadError.value = false
   try {
     // pageSize=0 表示不分页，一次列出全部文章，保证拖拽排序可在任意文章间进行
     const params = {
@@ -171,6 +176,8 @@ async function fetchPosts() {
     posts.value = res.data.list
   } catch (error) {
     console.error('获取文章列表失败:', error)
+    if (seq !== fetchSeq) return
+    loadError.value = true
     toast.error('加载文章失败')
   } finally {
     if (seq === fetchSeq) loading.value = false
@@ -215,23 +222,30 @@ function getSortData() {
 }
 
 async function persistSortOrder() {
-  if (sortSaving.value) return
+  if (sortSaving.value) {
+    sortQueued = true
+    return
+  }
   sortSaving.value = true
   try {
     await updateSortOrder(getSortData())
   } catch (error) {
     console.error('排序更新失败:', error)
     toast.error('排序更新失败')
-    await fetchPosts()
+    if (!sortQueued) await fetchPosts()
   } finally {
     sortSaving.value = false
+    if (sortQueued) {
+      sortQueued = false
+      await persistSortOrder()
+    }
   }
 }
 
 // 拖拽之外的键盘排序入口：只允许在同一置顶分组内移动，避免破坏服务端排序规则。
 async function movePost(post, direction) {
-  if (hasFilter.value || sortSaving.value) {
-    if (hasFilter.value) toast.warning('排序仅在无筛选时可用')
+  if (hasFilter.value) {
+    toast.warning('排序仅在无筛选时可用')
     return
   }
 

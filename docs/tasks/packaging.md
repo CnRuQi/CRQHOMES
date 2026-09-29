@@ -17,7 +17,7 @@
 
 | 产物 | 内容 | 用途 |
 |------|------|------|
-| `server.tar.gz` | 后端代码（排除 `node_modules`、`.env`、`uploads/` 图片） | 覆盖服务器 `server/` |
+| `server.tar.gz` | 后端代码（排除 `node_modules`、真实 `.env*`、数据库和上传图片；保留 `.env.example`） | 覆盖服务器 `server/` |
 | `dist.tar.gz` | 前端生产构建（`index.html` + `assets/`） | 覆盖站点 `dist/` |
 | `data.tar.gz` | 数据库 `data/blog.db`（**可选**） | 仅数据迁移 / 新站初始化 / 恢复 |
 
@@ -32,12 +32,10 @@
 ```bash
 npm run lint          # 0 error
 npm run format:check  # 全部符合 Prettier
-npm test              # 后端 30 + 前端 23
+npm test              # 当前发布基线：后端 83 + 前端 50
 ```
 
-> 后端测试在本机**必须用 Node 24**（`D:\Program Files\nodejs`）。`better-sqlite3` 由 Node 24 编译（ABI 137），
-> 默认 Node 22（ABI 127）会报 `NODE_MODULE_VERSION` 不匹配。这是本地环境问题，与代码无关；
-> CI 用 `npm ci` 重新编译原生模块，不受影响。
+> 项目最低要求 Node 20。若出现 `NODE_MODULE_VERSION` 不匹配，说明当前 `node_modules` 是由其他 Node ABI 安装或编译的；切换到受支持的 Node 版本后，在对应 package 目录重新执行 `npm ci`。
 >
 > 若 `npx vitest` 无输出且 exit 1，加管道即可：`npx vitest run 2>&1 | cat`
 
@@ -71,22 +69,21 @@ cd client && tar -czf ../dist.tar.gz dist
 ```bash
 cd <项目根目录>
 tar -cf server.tar --exclude='server/node_modules' --exclude='server/.env' \
+  --exclude='server/.env.*' \
   --exclude='server/uploads/*' server
-tar -rf server.tar server/uploads/.gitkeep
+tar -rf server.tar server/uploads/.gitkeep server/.env.example
 gzip -f server.tar
 ```
 
-三个排除项的含义与注意事项：
+排除项的含义与注意事项：
 
 | 排除项 | 原因 |
 |--------|------|
 | `server/node_modules` | 服务器已有依赖，且体积巨大；依赖变化时应在服务器 `npm install` |
-| `server/.env` | 含 `JWT_SECRET` 等密钥，绝不能进包。不会误伤 `.env.example` |
+| `server/.env`、`server/.env.*` | 本地运行配置可能含密钥，不能进包。`.env.example` 会在归档时单独加入 |
 | `server/uploads/*` | 真实上传图片。服务器上的图片是权威数据，不能被旧包覆盖 |
 
-**为什么要绕一圈追加 `.gitkeep`**：`--exclude='server/uploads/*'` 会把 `uploads/.gitkeep` 一起排掉，
-而这个占位文件决定了服务器解压后 `uploads/` 目录是否存在。已 gzip 的归档不能用 `tar -r` 追加，
-所以先生成未压缩的 `server.tar`、追加后再压缩。
+**为什么要绕一圈追加文件**：排除规则会把 `uploads/.gitkeep` 和 `.env.example` 一起排掉；前者保证上传目录存在，后者是安全的配置模板。已 gzip 的归档不能用 `tar -r` 追加，所以先生成未压缩的 `server.tar`、追加后再压缩。
 
 **排除模式不要加 `./` 前缀**：打包参数是 `server`，成员名是 `server/...`，带 `./` 的模式匹配不上，排除会静默失效。
 
@@ -96,8 +93,14 @@ gzip -f server.tar
 # 条目清单与上一版比对（应完全一致，除非本次新增/删除了源文件）
 diff <(tar -tzf /tmp/pkgbak/server.tar.gz | sort) <(tar -tzf server.tar.gz | sort)
 
-# 敏感内容排查：应只剩 uploads/ 与 uploads/.gitkeep 两行
-tar -tzf server.tar.gz | grep -E "node_modules|/\.env$|uploads/"
+# 环境文件排查：只允许 server/.env.example，不得出现其他 .env 或 .env.*
+if tar -tzf server.tar.gz | grep -E "/\.env($|\.)" | grep -v "/\.env\.example$"; then
+  echo "发现不应打包的环境文件" >&2
+  exit 1
+fi
+
+# 上传目录排查：仅允许 uploads/ 与 uploads/.gitkeep
+tar -tzf server.tar.gz | grep -E "node_modules|uploads/"
 
 # 前端包根目录确认：dist/ + dist/index.html + dist/assets/
 tar -tzf dist.tar.gz | grep -v "assets/"
@@ -169,7 +172,7 @@ pm2 restart blog-server
 | `tar -r` 报 "Cannot append to compressed archive" | gzip 过的归档不能追加，需按第 5 步先建未压缩 tar |
 | 解压后 `server/uploads/` 目录丢失 | `.gitkeep` 被 `server/uploads/*` 一起排掉了 |
 | 覆盖后前端仍是旧版 | 浏览器缓存，Ctrl+F5；或确认站点根目录指向的是被覆盖的那个 `dist/` |
-| 后端测试报 NODE_MODULE_VERSION 不匹配 | 用了 Node 22，切 Node 24 运行 |
+| 后端测试报 NODE_MODULE_VERSION 不匹配 | 确认使用 Node 20+，并在 `server/` 目录重新执行 `npm ci` |
 
 ---
 

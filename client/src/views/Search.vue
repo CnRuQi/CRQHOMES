@@ -13,7 +13,7 @@
               placeholder="输入关键词搜索文章..."
               aria-label="搜索文章"
               autofocus
-              @input="debouncedSearch"
+              @input="handleSearchInput"
             />
             <button v-if="keyword" class="clear-btn" aria-label="清除搜索" @click="clearSearch">
               ✕
@@ -26,8 +26,10 @@
         </div>
 
         <template v-else>
+          <p v-if="loadError" class="load-error" role="alert">搜索失败，请稍后重试</p>
+
           <EmptyState
-            v-if="keyword && !posts.length"
+            v-else-if="keyword && !posts.length"
             icon="article"
             text="未找到相关文章"
             hint="试试其他关键词？"
@@ -75,10 +77,11 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 
-const keyword = ref(route.query.q || '')
+const keyword = ref(typeof route.query.q === 'string' ? route.query.q : '')
 const posts = ref([])
 const total = ref(0)
 const loading = ref(false)
+const loadError = ref(false)
 const pagination = ref({
   total: 0,
   page: 1,
@@ -96,12 +99,17 @@ async function doSearch(page = 1, { restore = false } = {}) {
   if (!keyword.value.trim()) {
     posts.value = []
     total.value = 0
+    loadError.value = false
     pagination.value = { total: 0, page: 1, pageSize: 10, totalPages: 0 }
     return
   }
 
   const seq = ++searchSeq
   loading.value = true
+  loadError.value = false
+  posts.value = []
+  total.value = 0
+  pagination.value = { total: 0, page: 1, pageSize: 10, totalPages: 0 }
   try {
     const res = await searchPosts({
       keyword: keyword.value.trim(),
@@ -130,6 +138,7 @@ async function doSearch(page = 1, { restore = false } = {}) {
   } catch (error) {
     if (seq !== searchSeq) return
     console.error('搜索失败:', error)
+    loadError.value = true
     toast.error('搜索失败')
   } finally {
     if (seq === searchSeq) {
@@ -142,6 +151,20 @@ const debouncedSearch = debounce(() => {
   doSearch()
 }, 300)
 
+function handleSearchInput() {
+  searchSeq++
+  loadError.value = false
+  posts.value = []
+  total.value = 0
+  pagination.value = { total: 0, page: 1, pageSize: 10, totalPages: 0 }
+  if (!keyword.value.trim()) {
+    loading.value = false
+    return
+  }
+  loading.value = true
+  debouncedSearch()
+}
+
 function changePage(page) {
   doSearch(page)
   window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -153,6 +176,7 @@ function clearSearch() {
   keyword.value = ''
   posts.value = []
   total.value = 0
+  loadError.value = false
   loading.value = false
   pagination.value = { total: 0, page: 1, pageSize: 10, totalPages: 0 }
   router.replace({ query: {} })
@@ -179,6 +203,7 @@ watch(
         searchSeq++
         posts.value = []
         total.value = 0
+        loadError.value = false
         loading.value = false
         pagination.value = { total: 0, page: 1, pageSize: 10, totalPages: 0 }
       }

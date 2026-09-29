@@ -119,7 +119,7 @@ onUnmounted(() => {
 /* 桌面端启用毛玻璃；移动端禁用 backdrop-filter——
    backdrop-filter 会使 .navbar 成为内部 fixed 子元素（移动端菜单）的包含块，
    导致菜单定位错乱、塌陷（滚动页面后菜单只剩第一项）。移动端保持纯背景，也符合性能优先设计 */
-@media (min-width: 768px) {
+@media (min-width: 769px) {
   .navbar.scrolled {
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);

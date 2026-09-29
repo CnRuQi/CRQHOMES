@@ -62,6 +62,24 @@ describe('authRules.changePassword 新密码 72 字节上限', () => {
   })
 })
 
+describe('authRules.login 密码 72 字节上限', () => {
+  it('登录密码最多允许 72 个 UTF-8 字节', async () => {
+    const valid = await runRules(authRules.login, {
+      body: { username: 'admin', password: 'a'.repeat(72) },
+    })
+    const tooLong = await runRules(authRules.login, {
+      body: { username: 'admin', password: 'a'.repeat(73) },
+    })
+    const multibyteTooLong = await runRules(authRules.login, {
+      body: { username: 'admin', password: '密'.repeat(25) },
+    })
+
+    expect(valid).toEqual([])
+    expect(tooLong).toContain('密码过长（加密算法最多处理72字节），请缩短后重试')
+    expect(multibyteTooLong).toContain('密码过长（加密算法最多处理72字节），请缩短后重试')
+  })
+})
+
 describe('request text type validation', () => {
   const malformedValues = [{}, []]
 

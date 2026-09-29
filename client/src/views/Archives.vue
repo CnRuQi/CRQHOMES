@@ -14,60 +14,64 @@
         </div>
 
         <template v-else>
-          <div v-if="archives.length" class="archives-list">
-            <div
-              v-for="archive in archives"
-              :key="`${archive.year}-${archive.month}`"
-              class="archive-group"
-              data-aos="fade-up"
-            >
-              <h2 class="archive-title">
-                {{ archive.year }}年{{ archive.month }}月
-                <span class="archive-count">({{ archive.posts.length }})</span>
-              </h2>
+          <p v-if="loadError" class="load-error" role="alert">归档加载失败，请稍后重试</p>
 
-              <div class="archive-posts">
-                <router-link
-                  v-for="post in archive.posts"
-                  :key="post.id"
-                  :to="`/post/${post.slug || post.id}`"
-                  class="archive-item"
-                >
-                  <span class="item-date">{{
-                    formatDate(post.published_at || post.created_at, 'MM-DD')
-                  }}</span>
-                  <span class="item-title">{{ post.title }}</span>
-                </router-link>
+          <template v-else>
+            <div v-if="archives.length" class="archives-list">
+              <div
+                v-for="archive in archives"
+                :key="`${archive.year}-${archive.month}`"
+                class="archive-group"
+                data-aos="fade-up"
+              >
+                <h2 class="archive-title">
+                  {{ archive.year }}年{{ archive.month }}月
+                  <span class="archive-count">({{ archive.posts.length }})</span>
+                </h2>
+
+                <div class="archive-posts">
+                  <router-link
+                    v-for="post in archive.posts"
+                    :key="post.id"
+                    :to="`/post/${post.slug || post.id}`"
+                    class="archive-item"
+                  >
+                    <span class="item-date">{{
+                      formatDate(post.published_at || post.created_at, 'MM-DD')
+                    }}</span>
+                    <span class="item-title">{{ post.title }}</span>
+                  </router-link>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div v-else class="empty">
-            <div class="empty-icon">📚</div>
-            <p>暂无文章</p>
-          </div>
+            <div v-else class="empty">
+              <div class="empty-icon">📚</div>
+              <p>暂无文章</p>
+            </div>
 
-          <nav v-if="pagination.totalPages > 1" class="archives-pagination" aria-label="归档分页">
-            <button
-              type="button"
-              class="pagination-btn"
-              :disabled="pagination.page <= 1 || loading"
-              @click="goToPage(pagination.page - 1)"
-            >
-              上一页
-            </button>
-            <span class="pagination-status">
-              第 {{ pagination.page }} / {{ pagination.totalPages }} 页
-            </span>
-            <button
-              type="button"
-              class="pagination-btn"
-              :disabled="pagination.page >= pagination.totalPages || loading"
-              @click="goToPage(pagination.page + 1)"
-            >
-              下一页
-            </button>
-          </nav>
+            <nav v-if="pagination.totalPages > 1" class="archives-pagination" aria-label="归档分页">
+              <button
+                type="button"
+                class="pagination-btn"
+                :disabled="pagination.page <= 1 || loading"
+                @click="goToPage(pagination.page - 1)"
+              >
+                上一页
+              </button>
+              <span class="pagination-status">
+                第 {{ pagination.page }} / {{ pagination.totalPages }} 页
+              </span>
+              <button
+                type="button"
+                class="pagination-btn"
+                :disabled="pagination.page >= pagination.totalPages || loading"
+                @click="goToPage(pagination.page + 1)"
+              >
+                下一页
+              </button>
+            </nav>
+          </template>
         </template>
       </div>
     </div>
@@ -85,6 +89,7 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const loading = ref(false)
+const loadError = ref(false)
 const archives = ref([])
 const archivePageSize = 50
 const pagination = ref({ total: 0, page: 1, pageSize: archivePageSize, totalPages: 0 })
@@ -94,6 +99,7 @@ const page = ref(Number.isSafeInteger(initialPage) && initialPage > 0 ? initialP
 
 async function fetchArchives() {
   loading.value = true
+  loadError.value = false
   try {
     const res = await getArchives({ page: page.value, pageSize: archivePageSize })
     archives.value = res.data.archives
@@ -106,6 +112,7 @@ async function fetchArchives() {
     }
   } catch (error) {
     console.error('获取归档失败:', error)
+    loadError.value = true
     toast.error('加载归档失败')
   } finally {
     loading.value = false

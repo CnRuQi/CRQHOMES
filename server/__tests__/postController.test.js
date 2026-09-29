@@ -16,6 +16,7 @@ let updatePost
 let createPost
 let getAllPosts
 let getArchives
+let recordView
 let dbModulePath
 let originalDbModule = null
 
@@ -43,6 +44,7 @@ beforeAll(() => {
   createPost = controller.createPost
   getAllPosts = controller.getAllPosts
   getArchives = controller.getArchives
+  recordView = controller.recordView
 })
 
 afterAll(() => {
@@ -561,5 +563,28 @@ describe('getArchives', () => {
     expect(secondPage.data.pagination).toMatchObject({ page: 2, pageSize: 50 })
     expect(firstPage.data.pagination.total).toBeGreaterThanOrEqual(55)
     expect(new Set(paginatedCreatedIds)).toEqual(createdIdSet)
+  })
+})
+
+describe('view tracking capacity', () => {
+  it('keeps the newest view records within the configured row capacity', () => {
+    expect(recordView).toBeTypeOf('function')
+    const a = insertPost({ slug: 'capacity-a' })
+    const b = insertPost({ slug: 'capacity-b' })
+    const c = insertPost({ slug: 'capacity-c' })
+
+    recordView(db, '192.0.2.1', a.id, 2)
+    recordView(db, '192.0.2.2', b.id, 2)
+    recordView(db, '192.0.2.3', c.id, 2)
+
+    const rows = db.prepare('SELECT ip_address FROM view_tracking ORDER BY viewed_at, id').all()
+    expect(rows).toHaveLength(2)
+    expect(rows.map((row) => row.ip_address)).toEqual(['192.0.2.2', '192.0.2.3'])
+
+    recordView(db, '192.0.2.3', c.id, 2)
+    expect(db.prepare('SELECT COUNT(*) AS count FROM view_tracking').get().count).toBe(2)
+    expect(
+      db.prepare('SELECT row_count FROM view_tracking_stats WHERE id = 1').get().row_count
+    ).toBe(2)
   })
 })

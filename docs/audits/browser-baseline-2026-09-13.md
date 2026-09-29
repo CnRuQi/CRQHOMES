@@ -45,6 +45,6 @@
 - `npm ci` 在 root、`server`、`client` 均成功完成；过程中仅有 npm 机器级配置提示、依赖安装脚本批准提示和已有 `glob` deprecated warning。
 - `npm run lint`、`npm run format:check`、`npm test` 和 `client/npm run build` 均退出 `0`。测试为 client `6` 个文件 / `35` 个用例、server `7` 个文件 / `71` 个用例，共 `106` 个用例通过。
 - build 产物仍有已知风险：`MarkdownEditor-DihckxT0.js` 压缩后约 `877.38 kB`，Vite 保留 `500 kB` chunk warning；编辑器已按路由懒加载，公开首页未请求该 chunk。
-- root、server、client 的 `npm audit --offline` 均报告 `0 vulnerabilities`。这些结果来自本机 npm 缓存，不能替代联网漏洞库结论；在线审计仍由 CI 负责。
+- root、server、client 的 `npm audit --offline` 均报告 `0 vulnerabilities`。这些结果来自本机 npm 缓存，不能替代联网漏洞库结论。当前 CI 已对三个锁文件执行联网 `npm audit --audit-level=high`；漏洞达到 high/critical 或 registry 不可达都会使 CI 失败。
 - 数据库副本初始化两次前后 `users=1`、`posts=3`、`categories=2` 保持不变；两次 `PRAGMA integrity_check` 为 `ok`，两次重复 slug 查询均为空。
 - `git diff --check` 退出 `0`；CRLF 提示不影响结果。最终没有项目服务监听 `3000`/`5174`，敏感本地文件、构建产物和临时数据库均未进入 tracked 文件。

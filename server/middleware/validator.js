@@ -192,7 +192,9 @@ const authRules = {
       .notEmpty()
       .withMessage('密码不能为空')
       .isLength({ min: 6 })
-      .withMessage('密码长度不能少于6位'),
+      .withMessage('密码长度不能少于6位')
+      .custom((value) => Buffer.byteLength(value, 'utf-8') <= 72)
+      .withMessage('密码过长（加密算法最多处理72字节），请缩短后重试'),
     validate,
   ],
   changePassword: [

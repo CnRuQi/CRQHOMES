@@ -309,7 +309,7 @@ GitHub Actions CI 会分别对根目录、`server/` 和 `client/` 的锁文件�
 
 ## 文档与个人文件
 
-项目文档统一放在 `docs/`，分类和入口见 [`docs/README.md`](docs/README.md)：架构、规范和设计资料位于根目录，审计记录位于 `docs/audits/`，任务指引、发布说明和后续计划位于对应子目录。个人 `.docx`、数据库、上传文件、环境变量和压缩包均由 `.gitignore` 排除；当前仓库没有 `docx/` 文件夹或可删除的 `.docx` 文件，本次也没有发现可安全删除的项目 Markdown 资料。
+项目文档统一放在 `docs/`，分类和入口见 [`docs/README.md`](docs/README.md)：架构、规范和设计资料位于根目录，审计记录位于 `docs/audits/`，任务指引、发布说明和后续计划位于对应子目录。个人 `.docx`、数据库、上传文件、环境变量和压缩包均由 `.gitignore` 排除。
 
 ## 隐私与仓库提交
 
@@ -323,11 +323,6 @@ GitHub Actions CI 会分别对根目录、`server/` 和 `client/` 的锁文件�
 | 依赖 `node_modules/`、构建产物 `client/dist/` | 对应目录规则                          |
 | 部署打包产物 `*.tar.gz` 等                    | `*.tar.gz` `*.zip` `*.rar`            |
 
-提交前请确认：
-
-- [ ] `git status` 中**没有** `.env`、`*.db`、`uploads/` 下的图片
-- [ ] 生产服务器已轮换 `JWT_SECRET`（`openssl rand -hex 32`），不要复用示例/弱密钥
-- [ ] `server/db/import-data.js` 中的示例文章数据（含个人链接）确认可公开
 
 ## 更新日志
 

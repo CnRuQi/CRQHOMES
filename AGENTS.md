@@ -20,6 +20,7 @@ Vue 3 + Express 5 + SQLite 个人博客系统。前端 Vite 构建，后端 REST
 - 完成后台真实流程、键盘排序、真实 Markdown、图片失败状态、暗色主题和空/错误状态的浏览器回归；CI 检查改为阻断式，并完成依赖树、数据库副本和发布证据核验。
 - v2.0.1 增加 Cookie 写请求来源校验、登录密码 UTF-8 字节上限、文章详情限流与浏览记录容量、上传 multipart 配额、共享限流 store 接口及前端竞态/焦点/错误态修复。
 - `.gitignore` 覆盖 `.env.*` 并保留 `.env.example`；后端要求 Node 20+；CI 对 root、server、client 执行联网依赖审计。
+- 2026-09-29 依赖审计修复升级 Axios、DOMPurify、md-editor-v3、Vue/Vite/Vitest、Multer、express-rate-limit 和 Unhead；官方 registry 的 root、server、client 完整审计均为 0 vulnerabilities。
 
 ### 已验证
 
@@ -31,7 +32,7 @@ Vue 3 + Express 5 + SQLite 个人博客系统。前端 Vite 构建，后端 REST
 
 ### 已知保留项
 
-- 编辑器已按路由懒加载，但独立压缩 chunk 仍约 877.38 kB，Vite 保留 500 kB warning；这不影响公开首页加载，后续可继续拆分。
+- 编辑器已按路由懒加载，但独立压缩 chunk 仍约 882.24 kB，Vite 保留 500 kB warning；这不影响公开首页加载，后续可继续拆分。
 - `npm audit --offline` 只反映本机缓存结果；提交后的联网漏洞审计由 CI 针对 root、server、client 执行，registry 不可达时同样失败。
 - 多实例部署必须配置 `RATE_LIMIT_STORE_MODULE` 接入共享限流 store；默认进程内存 store 只适用于单实例。
 - controllers 当前仍通过 `server/db/index.js` 获取连接并执行参数化 SQL；独立 data-access 层是后续架构整理目标，不作为已知未修复缺陷。

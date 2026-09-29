@@ -12,7 +12,7 @@
 
 v2.0.1 在 v2.0.0 全面审计修复基础上，补充 Cookie 写请求来源校验、登录密码字节上限、公开浏览写入和上传请求资源边界、可配置共享限流，以及前后台竞态与错误状态修复。生产环境多实例部署应配置共享限流 store；默认进程内 store 只适用于单实例。
 
-前端 Markdown 内容现由 `MarkdownContent.vue` 以 Vue VNode 渲染，原始 HTML 被忽略，链接协议受限并经过 DOMPurify 防御；没有使用 `v-html`。后台编辑器按路由懒加载，公开路由不加载编辑器 chunk。当前前后端共 133 个测试用例通过；编辑器 chunk 仍有约 877.38 kB 的 Vite warning，详见 v2.0.1 Release Notes。
+前端 Markdown 内容现由 `MarkdownContent.vue` 以 Vue VNode 渲染，原始 HTML 被忽略，链接协议受限并经过 DOMPurify 防御；没有使用 `v-html`。后台编辑器按路由懒加载，公开路由不加载编辑器 chunk。当前前后端共 133 个测试用例通过；root、server、client 的官方 registry 依赖审计均为 0 vulnerabilities。编辑器 chunk 仍有约 882.24 kB 的 Vite warning，详见 v2.0.1 Release Notes。
 
 ## 功能特性
 
@@ -39,16 +39,16 @@ v2.0.1 在 v2.0.0 全面审计修复基础上，补充 Cookie 写请求来源校
 | 技术                  | 版本      | 说明                                       |
 | --------------------- | --------- | ------------------------------------------ |
 | Vue 3                 | ^3.5      | 渐进式 JavaScript 框架（`<script setup>`） |
-| Vite                  | ^6.0      | 前端构建工具                               |
+| Vite                  | ^6.4      | 前端构建工具                               |
 | Vue Router            | ^4.5      | 官方路由管理器                             |
 | Pinia                 | ^2.3      | 状态管理                                   |
-| Axios                 | ^1.7      | HTTP 客户端（withCredentials）             |
+| Axios                 | ^1.18     | HTTP 客户端（withCredentials）             |
 | AOS                   | ^2.3      | 滚动动画库                                 |
-| md-editor-v3          | ^5.5      | Markdown 编辑器                            |
+| md-editor-v3          | ^6.5      | Markdown 编辑器                            |
 | marked                | ^18       | 公开 Markdown 解析（编辑器高亮由 md-editor-v3 按需加载） |
 | DOMPurify             | ^3.4      | HTML 消毒（防 XSS）                        |
 | vuedraggable          | ^4.1      | 后台拖拽排序                               |
-| @vueuse/head          | ^2.0      | SEO meta 管理                              |
+| @unhead/vue           | ^2.1      | SEO meta 管理                              |
 | dayjs                 | ^1.11     | 日期处理                                   |
 
 ### 后端
@@ -60,9 +60,9 @@ v2.0.1 在 v2.0.0 全面审计修复基础上，补充 Cookie 写请求来源校
 | better-sqlite3          | ^12.9           | SQLite 数据库                 |
 | jsonwebtoken + bcryptjs | ^9 / ^3         | JWT 认证与密码加密            |
 | cookie                  | ^0.7            | Cookie 解析（httpOnly token） |
-| multer                  | ^2.1            | 文件上传（魔数校验）          |
+| multer                  | ^2.3            | 文件上传（魔数校验）          |
 | helmet / cors           | ^8 / ^2.8       | 安全头与跨域                  |
-| express-rate-limit      | ^8.5            | 速率限制                      |
+| express-rate-limit      | ^8.7            | 速率限制                      |
 | express-validator       | ^7.3            | 输入验证                      |
 
 ## 项目结构

@@ -1,5 +1,5 @@
 import { computed } from 'vue'
-import { useHead } from '@vueuse/head'
+import { useHead } from '@unhead/vue'
 
 // 兼容 ref/computed 与普通值
 function toValue(value) {

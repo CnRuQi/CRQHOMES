@@ -1,0 +1,124 @@
+/* ============================================================
+   experience.css — 氛围与微交互体验层
+   ------------------------------------------------------------
+   只承载三类「环境级」体验，组件样式不写在这里：
+     · 落雪画布（snowfall.js 挂载）
+     · 墨点跟随层（inkCursor.js 挂载）
+     · 磁性元素（v-magnetic 指令）
+     · 主题切换的圆形扩散（View Transitions API，渐进增强）
+   全部特性均可独立失败：JS 未挂载、CSS 未加载、API 不支持，
+   任何一环缺失都只是「回到没有这一层的站点」，绝不出错。
+   ============================================================ */
+
+/* ============================================================
+   §1 落雪层
+   位置在纸纹之下（grain 是 body::after, z-index 10000），
+   内容之上；不拦截任何指针事件。
+   ============================================================ */
+.snowfall-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ============================================================
+   §2 墨点跟随层
+   一滴迟到的墨：默认 7px 实心墨点，悬停可交互元素时
+   晕开成 34px 的空心墨环；按下时收紧。
+   亮色主题是淡墨，暗色主题是霜色。
+   ============================================================ */
+.ink-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ink-900) 55%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    width var(--dur-normal) var(--ease-spring),
+    height var(--dur-normal) var(--ease-spring),
+    margin var(--dur-normal) var(--ease-spring),
+    background-color var(--dur-normal) var(--ease-standard),
+    border-color var(--dur-normal) var(--ease-standard),
+    opacity var(--dur-slow) var(--ease-standard);
+}
+
+[data-theme='dark'] .ink-cursor {
+  background: color-mix(in srgb, var(--sage-200) 60%, transparent);
+}
+
+.ink-cursor.is-visible {
+  opacity: 1;
+}
+
+/* 悬停可交互元素：实心点晕开成一圈墨环 */
+.ink-cursor.is-active {
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  background: transparent;
+  border: 1.5px solid color-mix(in srgb, var(--ink-900) 42%, transparent);
+}
+
+[data-theme='dark'] .ink-cursor.is-active {
+  border-color: color-mix(in srgb, var(--sage-200) 46%, transparent);
+}
+
+/* 按下：墨滴收紧，给出「按住纸面」的张力 */
+.ink-cursor.is-pressed {
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+}
+
+/* 键盘/触屏环境永远不会挂载墨点，这里只是双保险 */
+@media (pointer: coarse), (hover: none) {
+  .ink-cursor {
+    display: none;
+  }
+}
+
+/* ============================================================
+   §3 磁性元素
+   跟随与弹回的过渡都由 magnetic.js 在行内样式里精确控制
+   （跟手阶段零过渡、弹回阶段一次性过渡），这里只预留合成层提示。
+   ============================================================ */
+.is-magnetic {
+  will-change: transform;
+}
+
+/* ============================================================
+   §4 主题切换圆形扩散（View Transitions API）
+   只有支持 startViewTransition 的浏览器会生效；
+   其余浏览器走 useTheme 的直接切换路径。
+   ============================================================ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* 新主题从点击处圆形展开，旧主题静候其下 */
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+/* 降低动态偏好：扩散退化为直接切换（JS 层同样会短路） */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}

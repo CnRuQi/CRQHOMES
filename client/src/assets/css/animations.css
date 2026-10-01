@@ -1,4 +1,98 @@
-/* 淡入动画 */
+/* ============================================================
+   animations.css — 动效系统（Motion）
+   ------------------------------------------------------------
+   三条纪律：
+     1. 每个动效必须回答「它在表达什么」——进入、离开、强调、状态变化
+     2. 时长与缓动只用令牌，禁止裸写 ease / linear
+     3. 入场用 ease-out（快起慢停），退场用 ease-in，
+        绝不用 ease-in-out 做入场（它会让动效显得犹豫）
+
+   这里只放两类东西：
+     · 站点自有的揭示系统（配合 assets/js/reveal.js）
+     · 路由切换过渡（需要全局作用域才能命中 <router-view>）
+   早期从模板继承的 .animate-* / .delay-* / .hover-* 兼容类已全部删除：
+   它们与 [data-reveal] 表达同一件事，
+   同一份设计里留两套写法只会让人不知道以哪套为准。
+   ============================================================ */
+
+/* ============================================================
+   §1 揭示（Reveal）
+   ------------------------------------------------------------
+   由 assets/js/reveal.js 用 IntersectionObserver 添加 .is-revealed。
+   初始隐藏态挂在 .js-reveal 之下——脚本未执行时页面完全可见，
+   不会出现「JS 失败 → 内容永久空白」。
+   ============================================================ */
+.js-reveal [data-reveal] {
+  opacity: 0;
+  will-change: opacity, transform;
+  transition:
+    opacity var(--dur-slow) var(--ease-out) var(--reveal-delay, 0ms),
+    transform var(--dur-slow) var(--ease-out) var(--reveal-delay, 0ms),
+    clip-path var(--dur-reveal) var(--ease-emphasis) var(--reveal-delay, 0ms),
+    filter var(--dur-slower) var(--ease-out) var(--reveal-delay, 0ms);
+}
+
+.js-reveal [data-reveal='up'] {
+  transform: translate3d(0, 1.25rem, 0);
+}
+
+.js-reveal [data-reveal='down'] {
+  transform: translate3d(0, -1rem, 0);
+}
+
+.js-reveal [data-reveal='left'] {
+  transform: translate3d(-1.5rem, 0, 0);
+}
+
+.js-reveal [data-reveal='right'] {
+  transform: translate3d(1.5rem, 0, 0);
+}
+
+.js-reveal [data-reveal='scale'] {
+  transform: scale(0.965);
+}
+
+/* 墨线晕开：整块内容像被墨线自上而下揭开。
+   初始态必须保留 2px 可见缝——IntersectionObserver 的交集计算
+   会应用 clip-path，裁到 0（如 102%）会让 ratio 恒为 0，
+   揭示永远不触发，内容被永久藏住（文章页标题曾栽在这里）。
+   先见一线墨，再晕开全文：语义反而更完整。 */
+.js-reveal [data-reveal='mask'] {
+  clip-path: inset(0 0 calc(100% - 2px) 0);
+}
+
+/* 显影：从微糊到清晰，只用于「画面级」元素（封面、Hero），
+   用多了会像滤镜而不是动效 */
+.js-reveal [data-reveal='blur'] {
+  filter: blur(12px);
+  transform: scale(1.02);
+}
+
+/* 发丝线从左向右画出，用于章节分隔 */
+.js-reveal [data-reveal='rule'] {
+  opacity: 1;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-slower) var(--ease-emphasis) var(--reveal-delay, 0ms);
+}
+
+.js-reveal [data-reveal='fade'] {
+  transform: none;
+}
+
+.js-reveal [data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+  clip-path: none;
+  filter: none;
+  /* 入场结束即释放合成层，避免长列表留下大量 GPU 图层 */
+  will-change: auto;
+}
+
+/* ============================================================
+   §2 关键帧
+   ============================================================ */
+/* 淡入：后台遮罩、模态背景这类「瞬时出没」的表面用它 */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -8,211 +102,41 @@
   }
 }
 
-/* 向上淡入 */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 向下淡入 */
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 向左淡入 */
-@keyframes fadeInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* 向右淡入 */
-@keyframes fadeInRight {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* 缩放淡入 */
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* 浮动动画 */
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-/* 脉冲动画 */
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-/* 旋转动画 */
-@keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* 应用动画的类 */
-.animate-fade-in {
-  animation: fadeIn 0.5s ease forwards;
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.5s ease forwards;
-}
-
-.animate-fade-in-down {
-  animation: fadeInDown 0.5s ease forwards;
-}
-
-.animate-fade-in-left {
-  animation: fadeInLeft 0.5s ease forwards;
-}
-
-.animate-fade-in-right {
-  animation: fadeInRight 0.5s ease forwards;
-}
-
-.animate-scale-in {
-  animation: scaleIn 0.5s ease forwards;
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-.animate-pulse {
-  animation: pulse 2s ease-in-out infinite;
-}
-
-/* 延迟类 */
-.delay-100 {
-  animation-delay: 100ms;
-}
-.delay-200 {
-  animation-delay: 200ms;
-}
-.delay-300 {
-  animation-delay: 300ms;
-}
-.delay-400 {
-  animation-delay: 400ms;
-}
-.delay-500 {
-  animation-delay: 500ms;
-}
-
-/* 悬停动画 */
-.hover-lift {
+/* ============================================================
+   §3 路由与页面过渡（全局，因为需要作用于 <router-view>）
+   ------------------------------------------------------------
+   「翻页」的隐喻：旧页像被轻轻揭走（快、上飘），
+   新页从下方从容落定（慢、emphasis 缓动）。
+   两段时长刻意不对称——离开是扫一眼，到达才是重点。
+   ============================================================ */
+.page-enter-active {
   transition:
-    transform var(--transition-normal),
-    box-shadow var(--transition-normal);
+    opacity var(--dur-slow) var(--ease-emphasis),
+    transform var(--dur-slow) var(--ease-emphasis);
 }
 
-.hover-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-}
-
-.hover-scale {
-  transition: transform var(--transition-fast);
-}
-
-.hover-scale:hover {
-  transform: scale(1.05);
-}
-
-.hover-glow {
-  transition: box-shadow var(--transition-normal);
-}
-
-.hover-glow:hover {
-  box-shadow: 0 0 20px rgba(150, 164, 138, 0.3);
-}
-
-/* 页面过渡 */
-.page-enter-active,
 .page-leave-active {
   transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
+    opacity var(--dur-fast) var(--ease-in),
+    transform var(--dur-fast) var(--ease-in);
 }
 
 .page-enter-from {
   opacity: 0;
-  transform: translateY(10px);
+  transform: translate3d(0, 1rem, 0);
 }
 
 .page-leave-to {
   opacity: 0;
-  transform: translateY(-10px);
+  transform: translate3d(0, -0.5rem, 0);
 }
 
-/* 列表动画 */
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.3s ease;
-}
-
-.list-enter-from,
-.list-leave-to {
-  opacity: 0;
-  transform: translateX(-30px);
-}
-
-.list-move {
-  transition: transform 0.3s ease;
-}
-
-/* 无障碍：用户偏好减少动态效果时，禁用/大幅缩短所有动画 */
+/* ============================================================
+   §4 降低动态偏好
+   ------------------------------------------------------------
+   不是「删掉动效」，而是把动效降级为纯透明度变化，
+   同时保住必要的过程指示（加载转圈）。
+   ============================================================ */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -220,6 +144,30 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  html {
     scroll-behavior: auto !important;
+  }
+
+  .js-reveal [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+    filter: none !important;
+  }
+
+  /* 加载指示必须继续转：它是状态，不是装饰。
+     1.4s 是刻意放慢的裸值——这里要的是「更少的运动量」，
+     不是标准转速，所以不引用 --dur-spin */
+  .spinner {
+    animation-duration: 1.4s !important;
+    animation-iteration-count: infinite !important;
+  }
+
+  /* 骨架屏改为静态底色，避免持续的整屏重绘 */
+  .skeleton-pulse {
+    background-image: none !important;
+    background-color: var(--tint-neutral) !important;
   }
 }

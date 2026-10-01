@@ -1,10 +1,11 @@
 <template>
   <main class="login-page">
-    <div class="login-container" data-aos="fade-up">
+    <div class="login-container" data-reveal="up">
       <div class="login-card glass-card">
         <div class="login-header">
+          <p class="login-eyebrow">Admin</p>
           <h1 class="login-title">
-            <Icon name="logo" :size="40" />
+            <Icon name="logo" :size="36" />
             披花沐雪
           </h1>
           <p class="login-subtitle">管理后台登录</p>
@@ -117,119 +118,149 @@ async function handleLogin() {
 </script>
 
 <style scoped>
+/* ============================================================
+   登录：一张落在砚池里的纸。
+   背景不是纯色，而是极淡的双晕——为的是不做「居中卡片」模板脸。
+   ============================================================ */
 .login-page {
-  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-primary);
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: var(--space-6);
+  background:
+    radial-gradient(
+      120% 90% at 18% 0%,
+      color-mix(in srgb, var(--color-primary) 9%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      90% 70% at 100% 100%,
+      color-mix(in srgb, var(--rose-600) 6%, transparent),
+      transparent 60%
+    ),
+    var(--bg-primary);
 }
 
 .login-container {
   width: 100%;
-  max-width: 420px;
-  padding: var(--spacing-lg);
+  max-width: 26rem;
 }
 
 .login-card {
-  padding: var(--spacing-2xl);
+  padding: var(--space-10) var(--space-8);
 }
 
 .login-header {
+  margin-bottom: var(--space-8);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border-hairline);
   text-align: center;
-  margin-bottom: var(--spacing-2xl);
+}
+
+.login-eyebrow {
+  margin-bottom: var(--space-3);
+  color: var(--text-disabled);
+  font-size: var(--fs-micro);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
 }
 
 .login-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
+  gap: var(--space-3);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
 }
 
 .login-subtitle {
+  margin-top: var(--space-2);
   color: var(--text-muted);
-  margin-top: var(--spacing-sm);
+  font-size: var(--fs-caption);
+  letter-spacing: var(--tracking-wide);
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--space-4);
 }
 
 .error-message {
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: rgba(179, 143, 143, 0.1);
-  border: 1px solid rgba(179, 143, 143, 0.2);
-  border-radius: var(--border-radius-sm);
+  padding: var(--space-3) var(--space-4);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 32%, transparent);
+  border-radius: var(--radius-sm);
   color: var(--color-danger);
-  font-size: 0.9rem;
+  font-size: var(--fs-caption);
+  line-height: var(--leading-snug);
 }
 
 .offline-notice {
-  margin-bottom: var(--spacing-md);
-  padding: var(--spacing-sm) var(--spacing-md);
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
   background: color-mix(in srgb, var(--color-warning) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-warning) 34%, transparent);
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--radius-sm);
   color: var(--color-warning);
-  font-size: 0.9rem;
+  font-size: var(--fs-caption);
+  line-height: var(--leading-snug);
 }
 
 .login-btn {
   width: 100%;
-  margin-top: var(--spacing-sm);
+  margin-top: var(--space-2);
 }
 
 .spinner-sm {
   display: inline-block;
   width: 20px;
   height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+  /* 用 currentColor 而不是白色：深色主题下 --on-primary 是深墨色，白环会跳出来 */
+  border: 2px solid color-mix(in srgb, currentColor 32%, transparent);
+  border-top-color: currentColor;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin var(--dur-spin) linear infinite;
 }
 
 .login-footer {
+  margin-top: var(--space-8);
   text-align: center;
-  margin-top: var(--spacing-xl);
 }
 
 .back-link {
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: var(--fs-caption);
+  transition: color var(--dur-fast) var(--ease-standard);
 }
 
 .back-link:hover {
-  color: var(--color-primary-light);
+  color: var(--color-primary-dark);
 }
 
 @media (max-width: 768px) {
   .login-page {
-    padding: 0 var(--spacing-md);
     align-items: flex-start;
-    padding-top: calc(var(--spacing-2xl) + env(safe-area-inset-top, 0px));
-  }
-
-  .login-container {
-    padding: 0;
+    padding: calc(var(--space-10) + var(--safe-top)) var(--space-4) var(--space-8);
   }
 
   .login-card {
-    padding: var(--spacing-xl) var(--spacing-lg);
+    padding: var(--space-8) var(--space-6);
   }
 
   .login-title {
-    font-size: 1.6rem;
+    font-size: var(--fs-xl);
   }
 
   .login-btn {
-    min-height: 48px;
+    min-height: 3rem;
   }
 }
 </style>

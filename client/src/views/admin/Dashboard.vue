@@ -1,9 +1,13 @@
 <template>
   <div class="dashboard">
+    <div class="page-header">
+      <h1 class="page-title">仪表盘</h1>
+    </div>
+
     <div class="stats-grid">
-      <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="0">
+      <div class="stat-card stat-card--lead glass-card" data-reveal="up">
         <div class="stat-icon">
-          <Icon name="article" :size="32" />
+          <Icon name="article" :size="28" />
         </div>
         <div class="stat-info">
           <div class="stat-value">{{ totalPosts }}</div>
@@ -11,9 +15,9 @@
         </div>
       </div>
 
-      <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="100">
+      <div class="stat-card glass-card" data-reveal="up">
         <div class="stat-icon">
-          <Icon name="category" :size="32" />
+          <Icon name="category" :size="24" />
         </div>
         <div class="stat-info">
           <div class="stat-value">{{ totalCategories }}</div>
@@ -21,9 +25,9 @@
         </div>
       </div>
 
-      <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="200">
+      <div class="stat-card glass-card" data-reveal="up">
         <div class="stat-icon">
-          <Icon name="views" :size="32" />
+          <Icon name="views" :size="24" />
         </div>
         <div class="stat-info">
           <div class="stat-value">{{ totalViews }}</div>
@@ -31,9 +35,9 @@
         </div>
       </div>
 
-      <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="300">
+      <div class="stat-card glass-card" data-reveal="up">
         <div class="stat-icon">
-          <Icon name="pinyes" :size="32" />
+          <Icon name="pinyes" :size="24" />
         </div>
         <div class="stat-info">
           <div class="stat-value">{{ topPosts }}</div>
@@ -43,7 +47,7 @@
     </div>
 
     <div class="content-grid">
-      <div class="recent-posts glass-card" data-aos="fade-up">
+      <div class="recent-posts glass-card" data-reveal="up">
         <h2 class="section-title">最近文章</h2>
         <div class="posts-list">
           <div v-for="post in recentPosts" :key="post.id" class="post-item">
@@ -69,7 +73,7 @@
         </div>
       </div>
 
-      <div class="quick-actions glass-card" data-aos="fade-up" data-aos-delay="100">
+      <div class="quick-actions glass-card" data-reveal="up">
         <h2 class="section-title">快捷操作</h2>
         <div class="actions-list">
           <router-link to="/admin/posts/create" class="action-item">
@@ -142,84 +146,103 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* ============================================================
+   仪表盘：先看见「体量」，再看见「要做什么」。
+   文章总数占满一整行作为当前第一眼，
+   其余三项退回次级卡片——避免四块等重的格子。
+   ============================================================ */
 .dashboard {
-  max-width: 1200px;
+  max-width: var(--max-width);
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-xl);
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: var(--space-5);
+  margin-bottom: var(--space-8);
 }
 
 .stat-card {
   display: flex;
   align-items: center;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-xl);
-  border-radius: 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-6);
+}
+
+.stat-card--lead {
+  --stat-icon-size: 3.25rem;
+  grid-column: 1 / -1;
+  background: linear-gradient(115deg, var(--tint-primary) 0%, transparent 60%);
+  border-color: var(--border-subtle);
 }
 
 .stat-icon {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  opacity: 0.7;
+  width: var(--stat-icon-size, 2.75rem);
+  height: var(--stat-icon-size, 2.75rem);
+  background: var(--tint-primary-weak);
+  border: 1px solid var(--border-subtle);
+  border-radius: 50%;
+  color: var(--color-primary-dark);
+}
+
+.stat-info {
+  min-width: 0;
 }
 
 .stat-value {
-  font-size: 2rem;
-  font-weight: 700;
   color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: var(--fs-stat);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-none);
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-card--lead .stat-value {
+  font-size: var(--fs-stat-lead);
 }
 
 .stat-label {
+  margin-top: var(--space-2);
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: var(--fs-caption);
+  letter-spacing: var(--tracking-wide);
 }
 
 .content-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: var(--spacing-lg);
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--space-5);
 }
 
-/* 最近文章卡片 */
-.recent-posts {
-  border-radius: 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  padding: var(--spacing-xl);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-}
-
-/* 快捷操作卡片 */
+.recent-posts,
 .quick-actions {
-  border-radius: 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  padding: var(--spacing-xl);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  min-width: 0;
+  padding: var(--space-6);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg);
 }
 
 .section-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid var(--border-color);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-hairline);
   color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
 }
 
-.posts-list {
+.posts-list,
+.actions-list {
   display: flex;
   flex-direction: column;
 }
@@ -228,30 +251,32 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: transparent;
-  transition: all 0.2s ease;
-  border-bottom: 1px solid rgba(163, 166, 156, 0.08);
-}
-
-.post-item:last-child {
-  border-bottom: none;
+  gap: var(--space-4);
+  margin-inline: calc(var(--space-3) * -1);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--dur-fast) var(--ease-standard);
 }
 
 .post-item:hover {
-  background: rgba(163, 166, 156, 0.06);
+  background: var(--tint-primary-weak);
 }
 
 .post-info {
   flex: 1;
+  min-width: 0;
 }
 
 .post-title {
-  color: var(--text-primary);
-  font-weight: 500;
-  margin-bottom: var(--spacing-xs);
   display: block;
-  transition: color 0.2s ease;
+  margin-bottom: var(--space-1);
+  color: var(--text-primary);
+  font-size: var(--fs-caption);
+  font-weight: var(--weight-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-standard);
 }
 
 .post-title:hover {
@@ -260,79 +285,75 @@ onMounted(async () => {
 
 .post-date {
   color: var(--text-disabled);
-  font-size: 0.8rem;
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+}
+
+.post-status {
+  flex: 0 0 auto;
 }
 
 .empty-state {
-  text-align: center;
-  padding: var(--spacing-xl);
+  padding: var(--space-10) var(--space-4);
   color: var(--text-muted);
-}
-
-.actions-list {
-  display: flex;
-  flex-direction: column;
+  font-size: var(--fs-caption);
+  text-align: center;
 }
 
 .action-item {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: transparent;
+  gap: var(--space-3);
+  margin-inline: calc(var(--space-3) * -1);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
   color: var(--text-primary);
-  transition: all 0.2s ease;
   text-decoration: none;
-  border-bottom: 1px solid rgba(163, 166, 156, 0.1);
-}
-
-.action-item:last-child {
-  border-bottom: none;
+  transition: background-color var(--dur-fast) var(--ease-standard);
 }
 
 .action-item:hover {
-  background: rgba(163, 166, 156, 0.06);
-  transform: translateX(4px);
+  background: var(--tint-primary-weak);
+}
+
+/* 悬停时只有图标向前挪半步，行本身不动 */
+.action-item :deep(.icon) {
+  color: var(--text-muted);
+  transition: transform var(--dur-normal) var(--ease-spring);
+}
+
+.action-item:hover :deep(.icon) {
+  color: var(--color-primary-dark);
+  transform: translateX(3px);
 }
 
 .action-text {
-  font-weight: 500;
-  font-size: 0.95rem;
+  font-size: var(--fs-caption);
+  font-weight: var(--weight-medium);
+}
+
+@media (max-width: 900px) {
+  .content-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 768px) {
-  .content-grid {
-    grid-template-columns: 1fr;
-  }
-
   .stats-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-sm);
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: var(--space-3);
   }
 
   .stat-card {
     flex-direction: column;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-md);
-    text-align: center;
-  }
-
-  .stat-icon {
-    width: 36px;
-    height: 36px;
-  }
-
-  .stat-value {
-    font-size: 1.5rem;
-  }
-
-  .stat-label {
-    font-size: 0.8rem;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-4);
   }
 
   .recent-posts,
   .quick-actions {
-    padding: var(--spacing-md);
+    padding: var(--space-4);
   }
 }
 </style>

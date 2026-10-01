@@ -1,13 +1,13 @@
 <template>
   <div class="admin-posts">
     <div class="page-header">
-      <h2>文章管理</h2>
+      <h1 class="page-title">文章管理</h1>
       <router-link to="/admin/posts/create" class="btn btn-primary">
         <Icon name="edit" :size="18" /> 写文章
       </router-link>
     </div>
 
-    <div class="filter-bar glass-card">
+    <div class="filter-bar">
       <div class="filter-left">
         <select
           v-model="filters.status"
@@ -36,7 +36,7 @@
 
     <p v-else-if="loadError" class="load-error" role="alert">文章列表加载失败，请稍后重试</p>
 
-    <div v-else class="posts-table glass-card">
+    <div v-else class="posts-table">
       <table>
         <thead>
           <tr>
@@ -103,8 +103,8 @@
                   <Icon :name="post.is_top ? 'pinyes' : 'pinno'" :size="18" />
                 </button>
               </td>
-              <td>{{ post.views }}</td>
-              <td>{{ formatDate(post.published_at || post.created_at) }}</td>
+              <td class="tabular-nums">{{ post.views }}</td>
+              <td class="tabular-nums">{{ formatDate(post.published_at || post.created_at) }}</td>
               <td>
                 <div class="actions">
                   <router-link
@@ -306,186 +306,207 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* ============================================================
+   文章管理：一张摊开的册页。
+   行与行之间只用发丝线分隔，去掉了灰色行块，
+   让阅读顺序（标题→状态→时间）自己站成一条线。
+   ============================================================ */
 .admin-posts {
-  max-width: 1200px;
+  max-width: var(--max-width);
 }
 
+/* ---------- 筛选条 ---------- */
 .filter-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-lg);
-  margin-bottom: var(--spacing-lg);
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 14px;
-  box-shadow: var(--shadow-sm);
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-6);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg);
 }
 
 .filter-left {
   display: flex;
-  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  gap: var(--space-3);
 }
 
 .filter-left .form-select,
 .filter-left .form-input {
   width: auto;
-  min-width: 150px;
-  background: var(--bg-card-hover);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
+  min-width: 12rem;
 }
 
+/* ---------- 册页 ---------- */
 .posts-table {
   overflow-x: auto;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 14px;
-  padding: var(--spacing-sm);
-  box-shadow: var(--shadow-sm);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg);
 }
 
 table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 2px;
+  border-collapse: collapse;
 }
 
-th {
-  padding: var(--spacing-md) var(--spacing-lg);
+thead th {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-disabled);
+  font-size: var(--fs-micro);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-widest);
   text-align: left;
-  font-weight: 600;
-  color: var(--text-muted);
-  font-size: 0.8rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
-td {
-  padding: var(--spacing-md) var(--spacing-lg);
-  text-align: left;
-  background: var(--bg-table-row);
+tbody td {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--border-hairline);
+  color: var(--text-secondary);
+  font-size: var(--fs-caption);
+  vertical-align: middle;
 }
 
-tr td:first-child {
-  border-radius: 8px 0 0 8px;
+tbody tr:last-child td {
+  border-bottom: none;
 }
 
-tr td:last-child {
-  border-radius: 0 8px 8px 0;
+/* 行高亮用一层极淡的墨色，而不是整块灰底 */
+tbody tr {
+  transition: background-color var(--dur-fast) var(--ease-standard);
 }
 
-tr:hover td {
-  background: var(--bg-table-row-hover);
+tbody tr:hover td {
+  background: var(--tint-primary-weak);
 }
 
 .post-title {
   color: var(--text-primary);
-  font-weight: 500;
-  transition: color 0.2s ease;
+  font-size: var(--fs-md);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-tight);
+  transition: color var(--dur-fast) var(--ease-standard);
 }
 
 .post-title:hover {
   color: var(--color-primary-dark);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
 .category-tag {
-  padding: 3px 12px;
-  background: var(--bg-table-row-hover);
-  border-radius: 20px;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem var(--space-3);
+  background: var(--tint-primary-weak);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  color: var(--text-muted);
+  font-size: var(--fs-micro);
+  white-space: nowrap;
 }
 
+/* ---------- 行内操作 ---------- */
 .top-btn {
-  font-size: 1.1rem;
-  padding: var(--spacing-xs);
-  opacity: 0.4;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.top-btn.active {
-  opacity: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-disabled);
+  opacity: 0.55;
+  transition:
+    opacity var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
 }
 
 .top-btn:hover {
-  opacity: 0.8;
-  transform: scale(1.1);
+  background: var(--tint-primary-weak);
+  opacity: 1;
+}
+
+.top-btn.active {
+  color: var(--color-primary);
+  opacity: 1;
 }
 
 .actions {
   display: flex;
-  gap: var(--spacing-sm);
+  gap: var(--space-2);
 }
 
-/* 拖拽相关样式 */
+/* ---------- 拖拽排序 ---------- */
 .drag-col {
-  width: 30px;
-  padding: 0 var(--spacing-sm) !important;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+  width: 3rem;
+  /* 单类选择器已胜过 tbody td（类 > 类型），不需要 !important */
+  padding: var(--space-2);
 }
 
 .drag-handle {
-  width: 32px;
-  min-height: 32px;
-  padding: var(--spacing-xs);
-  border: 1px solid transparent;
-  border-radius: var(--border-radius-sm);
-  cursor: grab;
-  background: transparent;
-  color: var(--text-disabled);
-  transition: color var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 2rem;
+  min-height: 2rem;
+  padding: var(--space-1);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-disabled);
+  cursor: grab;
+  transition:
+    color var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
 }
 
 .drag-handle:hover {
-  color: var(--text-muted);
-  background: var(--bg-table-row-hover);
+  background: var(--tint-primary-weak);
+  color: var(--text-primary);
 }
 
 .drag-handle:focus-visible {
-  color: var(--text-primary);
   border-color: var(--color-primary);
+  color: var(--text-primary);
 }
 
 .drag-handle:active {
   cursor: grabbing;
 }
 
+/* 拖拽中的占位行：一层墨色底 + 降透明度 */
 .ghost-row {
-  opacity: 0.5;
-  background: rgba(163, 166, 156, 0.1);
+  opacity: 0.55;
+}
+
+.ghost-row td {
+  background: var(--tint-primary);
 }
 
 @media (max-width: 768px) {
   .filter-bar {
     flex-direction: column;
-    gap: var(--spacing-md);
+    align-items: stretch;
+    gap: var(--space-3);
   }
 
   .filter-left {
-    width: 100%;
     flex-direction: column;
   }
 
   .filter-left .form-select,
   .filter-left .form-input {
     width: 100%;
+    min-width: 0;
   }
 
   /* 移动端隐藏次要列：分类、阅读、发布时间 */
@@ -498,18 +519,17 @@ tr:hover td {
     display: none;
   }
 
-  .posts-table th,
-  .posts-table td {
-    padding: var(--spacing-sm) var(--spacing-md);
+  thead th {
+    padding: var(--space-2) var(--space-3);
   }
 
-  .posts-table th {
-    font-size: 0.7rem;
+  tbody td {
+    padding: var(--space-3);
   }
 
   .actions {
     flex-direction: column;
-    gap: var(--spacing-xs);
+    gap: var(--space-2);
   }
 
   .actions .btn {

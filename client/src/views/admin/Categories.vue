@@ -1,7 +1,7 @@
 <template>
   <div class="categories-page">
     <div class="page-header">
-      <h2>分类管理</h2>
+      <h1 class="page-title">分类管理</h1>
       <button ref="createButtonRef" type="button" class="btn btn-primary" @click="openCreateModal">
         <Icon name="add" :size="18" /> 新建分类
       </button>
@@ -20,10 +20,10 @@
             v-for="category in categories"
             :key="category.id"
             class="category-card glass-card"
-            data-aos="fade-up"
+            data-reveal="up"
           >
             <div class="category-info">
-              <h3 class="category-name">{{ category.name }}</h3>
+              <h2 class="category-name">{{ category.name }}</h2>
               <p class="category-slug">{{ category.slug }}</p>
               <p v-if="category.description" class="category-desc">
                 {{ category.description }}
@@ -61,9 +61,9 @@
             aria-labelledby="category-modal-title"
           >
             <div class="modal-header">
-              <h3 id="category-modal-title">
+              <h2 id="category-modal-title">
                 {{ editingCategory ? '编辑分类' : '新建分类' }}
-              </h3>
+              </h2>
               <button
                 type="button"
                 class="close-btn"
@@ -317,84 +317,170 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* ============================================================
+   分类管理：与前台「一张纸」同源，
+   卡片只靠发丝线与留白分层，不加投影。
+   ============================================================ */
 .categories-page {
-  max-width: 1200px;
+  max-width: var(--max-width);
 }
 
 .categories-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: var(--spacing-lg);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+  gap: var(--space-5);
 }
 
 .category-card {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: var(--spacing-lg);
+  gap: var(--space-5);
+  padding: var(--space-6);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--dur-fast) var(--ease-standard);
+}
+
+.category-card:hover {
+  border-color: var(--border-hover);
+}
+
+.category-info {
+  min-width: 0;
 }
 
 .category-name {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: var(--spacing-xs);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  overflow-wrap: break-word;
 }
 
 .category-slug {
-  color: var(--text-muted);
-  font-size: 0.85rem;
+  margin-top: var(--space-1);
+  color: var(--text-disabled);
   font-family: var(--font-mono);
-  margin-bottom: var(--spacing-sm);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tracking-wide);
 }
 
 .category-desc {
+  margin-top: var(--space-3);
   color: var(--text-secondary);
-  font-size: 0.9rem;
-  margin-bottom: var(--spacing-md);
+  font-size: var(--fs-caption);
+  line-height: var(--leading-relaxed);
 }
 
 .category-meta {
-  margin-bottom: var(--spacing-md);
+  margin-top: var(--space-4);
 }
 
 .post-count {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem var(--space-3);
+  background: var(--tint-primary-weak);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
 }
 
 .category-actions {
   display: flex;
-  gap: var(--spacing-sm);
+  gap: var(--space-2);
+  margin-top: auto;
 }
 
-/* 模态框 */
+/* ---------- 模态框 ---------- */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+  z-index: var(--z-modal);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  padding: var(--spacing-lg);
+  padding: var(--space-6);
+  background: color-mix(in srgb, var(--ink-900) 52%, transparent);
+}
+
+/* 手机端不做背景模糊：成本高、收益低，与前台同一策略 */
+@media (min-width: 769px) {
+  .modal-overlay {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
 }
 
 .modal {
   width: 100%;
-  max-width: 500px;
+  max-width: 32rem;
   max-height: 90vh;
   overflow-y: auto;
-  animation: modalZoomIn 0.25s ease;
+  animation: modalZoomIn var(--dur-normal) var(--ease-out);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.modal-header h3 {
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+.close-btn {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  min-height: 2rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: var(--fs-lead);
+  line-height: 1;
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+.close-btn:hover:not(:disabled) {
+  background: var(--tint-primary-weak);
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: var(--space-6);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
 }
 
 /* 模态框遮罩淡入/淡出（退出过渡） */
 .modal-fade-enter-active {
-  transition: opacity 0.25s ease;
+  transition: opacity var(--dur-normal) var(--ease-standard);
 }
 
 .modal-fade-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity var(--dur-fast) var(--ease-standard);
 }
 
 .modal-fade-enter-from,
@@ -420,16 +506,16 @@ onUnmounted(() => {
 
   /* 移动端模态框：底部弹出式（Bottom Sheet） */
   .modal-overlay {
-    padding: 0;
     align-items: flex-end;
+    padding: 0;
   }
 
   .modal {
     max-width: 100%;
     max-height: 92vh;
-    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    animation: modalSlideUp 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding-bottom: var(--safe-bottom);
+    animation: modalSlideUp var(--dur-normal) var(--ease-out);
   }
 
   .modal-footer {
@@ -448,34 +534,5 @@ onUnmounted(() => {
   to {
     transform: translateY(0);
   }
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.close-btn {
-  font-size: 1.2rem;
-  color: var(--text-muted);
-  padding: var(--spacing-xs);
-}
-
-.close-btn:hover {
-  color: var(--text-primary);
-}
-
-.modal-body {
-  padding: var(--spacing-lg);
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--spacing-sm);
-  margin-top: var(--spacing-lg);
 }
 </style>

@@ -2,8 +2,8 @@
   <Teleport to="body">
     <Transition name="toast">
       <div v-if="visible" :class="['toast', `toast-${type}`]" role="status" aria-live="polite">
-        <Icon :name="iconName" :size="18" />
-        <span>{{ message }}</span>
+        <Icon :name="iconName" :size="18" class="toast-icon" />
+        <span class="toast-message">{{ message }}</span>
       </div>
     </Transition>
   </Teleport>
@@ -60,50 +60,84 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* 提示条：不铺满高饱和底色，改用「纸面 + 一道墨色侧栏」，
+   与站内其它纸面层级一致，也不至于在深色主题里刺眼。 */
 .toast {
   position: fixed;
-  top: calc(20px + env(safe-area-inset-top, 0px));
+  top: calc(var(--space-5) + var(--safe-top));
   left: 50%;
-  transform: translateX(-50%);
+  z-index: var(--z-toast);
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  z-index: 10000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  max-width: calc(100vw - 32px);
+  gap: var(--space-3);
+  max-width: min(30rem, calc(100vw - var(--space-8)));
+  padding: var(--space-3) var(--space-5) var(--space-3) var(--space-4);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--toast-accent, var(--color-primary));
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
+  font-size: var(--fs-caption);
+  line-height: var(--leading-snug);
+  transform: translateX(-50%);
+}
+
+.toast-icon {
+  flex: 0 0 auto;
+  color: var(--toast-accent, var(--color-primary));
+}
+
+.toast-message {
+  min-width: 0;
 }
 
 .toast-info {
-  background: var(--color-info);
-  color: white;
+  --toast-accent: var(--color-info);
 }
 
 .toast-success {
-  background: var(--color-success);
-  color: white;
+  --toast-accent: var(--color-success);
 }
 
 .toast-warning {
-  background: var(--color-warning);
-  color: white;
+  --toast-accent: var(--color-warning);
 }
 
 .toast-error {
-  background: var(--color-danger);
-  color: white;
+  --toast-accent: var(--color-danger);
 }
 
-.toast-enter-active,
+.toast-enter-active {
+  transition:
+    opacity var(--dur-normal) var(--ease-out),
+    transform var(--dur-normal) var(--ease-spring);
+}
+
 .toast-leave-active {
-  transition: all 0.3s ease;
+  transition:
+    opacity var(--dur-fast) var(--ease-in),
+    transform var(--dur-fast) var(--ease-in);
 }
 
 .toast-enter-from,
 .toast-leave-to {
   opacity: 0;
-  transform: translateX(-50%) translateY(-20px);
+  transform: translateX(-50%) translateY(calc(var(--space-3) * -1));
+}
+
+@media (max-width: 768px) {
+  .toast {
+    left: var(--space-4);
+    right: var(--space-4);
+    max-width: none;
+    transform: none;
+  }
+
+  .toast-enter-from,
+  .toast-leave-to {
+    opacity: 0;
+    transform: translateY(calc(var(--space-3) * -1));
+  }
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <div class="editor-page">
     <div class="page-header">
-      <h2>{{ isEdit ? '编辑文章' : '写文章' }}</h2>
+      <h1 class="page-title">{{ isEdit ? '编辑文章' : '写文章' }}</h1>
       <div class="header-actions">
         <button type="button" class="btn btn-secondary" @click="goBack">取消</button>
         <button type="button" class="btn btn-secondary" :disabled="saving" @click="handleSaveDraft">
@@ -36,8 +36,8 @@
         </div>
 
         <div class="editor-sidebar">
-          <div class="sidebar-card glass-card">
-            <h3 class="card-title">文章设置</h3>
+          <div class="sidebar-card">
+            <h2 class="card-title">文章设置</h2>
 
             <div class="form-group">
               <label for="post-category" class="form-label">分类</label>
@@ -397,21 +397,27 @@ function handleBeforeUnload(e) {
 </script>
 
 <style scoped>
+/* ============================================================
+   写文章：标题用衬线字直接写在纸面上（无框、只留一条底线），
+   让「写作」本身成为页面里最显眼的一件事。
+   ============================================================ */
 .editor-page {
-  max-width: 1400px;
+  max-width: var(--max-width-wide);
   min-width: 0;
 }
 
 .header-actions {
   display: flex;
-  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  gap: var(--space-2);
   min-width: 0;
 }
 
 .editor-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: var(--spacing-xl);
+  grid-template-columns: minmax(0, 1fr) 20rem;
+  gap: var(--space-6);
+  align-items: start;
 }
 
 .editor-main,
@@ -420,50 +426,102 @@ function handleBeforeUnload(e) {
   min-width: 0;
 }
 
+/* ---------- 标题：只有一条底线 ---------- */
 .title-input {
   width: 100%;
   min-width: 0;
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: var(--bg-glass);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
+  padding: var(--space-3) 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  border-radius: 0;
   color: var(--text-primary);
-  font-size: 1.5rem;
-  font-weight: 600;
-  transition: border-color var(--transition-fast);
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  transition: border-color var(--dur-normal) var(--ease-standard);
 }
 
 .title-input:focus {
-  border-color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
 }
 
 .title-input::placeholder {
-  color: var(--text-muted);
+  color: var(--text-disabled);
+  font-weight: var(--weight-regular);
 }
 
+/* ---------- 侧栏设置 ---------- */
 .sidebar-card {
-  padding: var(--spacing-lg);
   position: sticky;
-  top: calc(var(--header-height) + var(--spacing-xl));
+  top: calc(var(--header-height) + var(--space-6));
+  padding: var(--space-5);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg);
 }
 
 .card-title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-sm);
-  border-bottom: 1px solid var(--border-color);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-hairline);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+/* ---------- 封面上传 ---------- */
+.cover-tabs {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.tab-btn {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: var(--fs-micro);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+.tab-btn:hover {
+  background: var(--tint-primary-weak);
+  color: var(--text-primary);
+}
+
+.tab-btn.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--on-primary);
 }
 
 .cover-upload {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  border: 2px dashed var(--border-color);
-  border-radius: var(--border-radius-sm);
   overflow: hidden;
+  background: var(--bg-secondary);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: border-color var(--transition-fast);
+  transition: border-color var(--dur-fast) var(--ease-standard);
 }
 
 .cover-upload:hover {
@@ -477,14 +535,15 @@ function handleBeforeUnload(e) {
 }
 
 .cover-placeholder {
-  width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
-  color: var(--text-muted);
+  gap: var(--space-2);
+  width: 100%;
+  height: 100%;
+  color: var(--text-disabled);
+  font-size: var(--fs-micro);
 }
 
 .cover-input {
@@ -494,50 +553,16 @@ function handleBeforeUnload(e) {
   cursor: pointer;
 }
 
-.cover-tabs {
-  display: flex;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
-}
-
-.tab-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--bg-glass);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  flex: 1 1 0;
-  min-width: 0;
-  justify-content: center;
-}
-
-.tab-btn:hover {
-  background: rgba(163, 166, 156, 0.1);
-  color: var(--text-primary);
-}
-
-.tab-btn.active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: white;
-}
-
 .cover-link-input {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--space-4);
 }
 
 .cover-preview-link {
-  border-radius: var(--border-radius-sm);
   overflow: hidden;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
 }
 
 .cover-preview-link .cover-preview {
@@ -549,6 +574,7 @@ function handleBeforeUnload(e) {
 @media (max-width: 1024px) {
   .editor-layout {
     grid-template-columns: 1fr;
+    gap: var(--space-5);
   }
 
   .sidebar-card {
@@ -561,14 +587,14 @@ function handleBeforeUnload(e) {
     display: grid;
     width: 100%;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--spacing-sm);
+    gap: var(--space-2);
   }
 
   .editor-page .header-actions .btn {
     width: 100%;
-    padding: 10px 6px;
-    font-size: 0.9rem;
     min-width: 0;
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--fs-micro);
   }
 
   .editor-page .header-actions .btn:last-child {
@@ -576,8 +602,8 @@ function handleBeforeUnload(e) {
   }
 
   .editor-main .title-input {
-    font-size: 1.2rem;
-    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--fs-xl);
+    padding: var(--space-2) 0;
   }
 }
 </style>

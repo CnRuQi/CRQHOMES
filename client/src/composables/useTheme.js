@@ -14,14 +14,53 @@ export function useTheme() {
     document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
   }
 
-  // 用户显式切换：落盘后即代表「手动选择过」，优先级高于系统偏好
-  function setTheme(dark) {
-    applyTheme(dark)
-    localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light')
+  // 用户显式切换：落盘后即代表「手动选择过」，优先级高于系统偏好。
+  // 支持.View Transitions 的浏览器从点击处做圆形墨晕扩散；
+  // 其余环境与降低动态偏好时直接切换，行为与旧版一致。
+  function setTheme(dark, event) {
+    const doc = typeof document !== 'undefined' ? document : null
+    const reduced =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    if (!doc || !doc.startViewTransition || reduced || !event) {
+      applyTheme(dark)
+      localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light')
+      return
+    }
+
+    const x = typeof event.clientX === 'number' ? event.clientX : window.innerWidth / 2
+    const y = typeof event.clientY === 'number' ? event.clientY : window.innerHeight / 2
+    const radius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    )
+
+    const transition = doc.startViewTransition(() => {
+      applyTheme(dark)
+      localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light')
+    })
+
+    transition.ready.then(() => {
+      doc.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${radius.toFixed(0)}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 560,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+          pseudoElement: '::view-transition-new(root)',
+        }
+      )
+    })
   }
 
-  function toggle() {
-    setTheme(!isDark.value)
+  function toggle(event) {
+    setTheme(!isDark.value, event)
   }
 
   function initTheme() {

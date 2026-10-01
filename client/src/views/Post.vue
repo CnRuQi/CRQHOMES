@@ -1,5 +1,16 @@
 <template>
   <div class="post-detail">
+    <!-- 阅读进度：只在正文页出现的一条 2px 墨线，贴在页头下缘。
+         挂到 body 上，避免被路由过渡的 transform 变成「相对内容区固定」。 -->
+    <Teleport to="body">
+      <div
+        v-if="post"
+        class="read-progress"
+        aria-hidden="true"
+        :style="{ '--progress': progress }"
+      ></div>
+    </Teleport>
+
     <div class="view-content">
       <div class="container">
         <div v-if="loading" class="loading">
@@ -7,33 +18,35 @@
         </div>
 
         <template v-else-if="post">
-          <article class="article" data-aos="fade-up">
-            <!-- 文章头部 -->
-            <header class="article-header">
-              <div class="article-meta">
+          <article class="article">
+            <!-- 文章头部：居中做「扉页」，正文再收回单栏宽度 -->
+            <header class="article-header" data-reveal="up">
+              <p class="article-meta">
                 <span v-if="post.category_name" class="meta-category">
                   {{ post.category_name }}
                 </span>
+                <span v-if="post.category_name" class="meta-dot" aria-hidden="true"></span>
                 <span class="meta-date">{{
                   formatDate(post.published_at || post.created_at)
                 }}</span>
+                <span class="meta-dot" aria-hidden="true"></span>
                 <span class="meta-views">
-                  <Icon name="views" :size="16" />
+                  <Icon name="views" :size="15" />
                   {{ post.views }} 次阅读
                 </span>
-              </div>
+              </p>
 
-              <h1 class="article-title">{{ post.title }}</h1>
+              <h1 class="article-title" data-reveal="mask">{{ post.title }}</h1>
 
-              <div v-if="post.tags && post.tags.length" class="article-tags">
+              <div v-if="post.tags && post.tags.length" class="article-tags" data-reveal="fade">
                 <span v-for="tag in post.tags" :key="tag" class="tag">
                   {{ tag }}
                 </span>
               </div>
             </header>
 
-            <!-- 封面图 -->
-            <div v-if="post.cover_image" class="article-cover">
+            <!-- 封面：滚动离场时轻微上浮（scroll-driven，渐进增强） -->
+            <div v-if="post.cover_image" class="article-cover" data-reveal="blur">
               <img
                 v-if="!coverImageFailed"
                 :src="post.cover_image"
@@ -41,40 +54,42 @@
                 @error="handleCoverError"
               />
               <div v-else class="image-fallback" role="img" aria-label="封面图片加载失败">
-                <Icon name="camera" :size="32" />
+                <Icon name="camera" :size="28" />
                 <span>封面图片加载失败</span>
               </div>
             </div>
 
+            <!-- 正文：.prose 排版系统由 main.css 统一提供，
+                 通过 class 透传到 MarkdownContent 的根节点，
+                 对其直接子元素（章节标题）生效 -->
             <div class="article-content">
-              <MarkdownContent :source="post.content" />
+              <MarkdownContent class="prose" :source="post.content" />
             </div>
 
             <!-- 文章底部 -->
             <footer class="article-footer">
-              <div class="article-info">
-                <p>最后更新于 {{ formatDate(post.updated_at) }}</p>
-              </div>
+              <p class="article-info">最后更新于 {{ formatDate(post.updated_at) }}</p>
 
-              <div class="article-actions">
-                <button class="btn btn-secondary" @click="goBack">← 返回</button>
-              </div>
+              <button type="button" class="btn btn-secondary" @click="goBack">← 返回</button>
             </footer>
           </article>
         </template>
 
-        <div v-else class="empty">
-          <div class="empty-icon">😕</div>
-          <p>文章不存在</p>
-          <router-link to="/" class="btn btn-primary mt-md"> 返回首页 </router-link>
-        </div>
+        <EmptyState
+          v-else
+          icon="alert"
+          text="文章不存在"
+          hint="链接可能已经失效，或这篇文章已被删除"
+        >
+          <router-link to="/" class="btn btn-primary">返回首页</router-link>
+        </EmptyState>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePostStore } from '@/stores/post'
 import { useSeo } from '@/composables/useSeo'
@@ -82,6 +97,7 @@ import { useToast } from '@/composables/useToast'
 import { formatDate } from '@/assets/js/utils'
 import Icon from '@/components/Icon.vue'
 import MarkdownContent from '@/components/MarkdownContent.vue'
+import EmptyState from '@/components/EmptyState.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -92,6 +108,36 @@ const toast = useToast()
 const loading = ref(true)
 const post = ref(null)
 const coverImageFailed = ref(false)
+
+// 阅读进度：0–1 的比值写进 CSS 变量，由 transform 绘制（不触发重排）。
+// 滚动事件用 rAF 合并，一帧最多写一次变量。
+const progress = ref(0)
+let progressTicking = false
+
+function updateProgress() {
+  const root = document.documentElement
+  const max = root.scrollHeight - root.clientHeight
+  progress.value = max > 0 ? Math.min(1, Math.max(0, root.scrollTop / max)) : 0
+}
+
+function handleScroll() {
+  if (progressTicking) return
+  progressTicking = true
+  requestAnimationFrame(() => {
+    progressTicking = false
+    updateProgress()
+  })
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll, { passive: true })
+  window.addEventListener('resize', handleScroll)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('resize', handleScroll)
+})
 
 // setup 顶层调用：随数据响应式更新，组件卸载时自动清理 SEO meta
 useSeo({
@@ -123,6 +169,8 @@ onMounted(async () => {
     toast.error('加载文章失败')
   } finally {
     loading.value = false
+    // 正文渲染完成后高度才确定，重新量一次进度
+    handleScroll()
   }
 })
 
@@ -132,234 +180,202 @@ function handleCoverError() {
 </script>
 
 <style scoped>
+/* ============================================================
+   文章页：一纸长卷
+   头部居中如扉页，正文收回 40rem 的阅读栏宽；
+   不做圆角卡片＋投影（那是通用模板的样子），
+   层级交给字号、行高与发丝线。
+   ============================================================ */
 .post-detail {
-  min-height: 100vh;
+  min-height: 60vh;
 }
 
-.view-content {
-  padding-bottom: var(--spacing-2xl);
+/* 阅读进度：页头下缘的一条墨线，长度即读到的位置。
+   用 transform 而不是 width，滚动时只走合成层；纸上不印。 */
+.read-progress {
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  z-index: calc(var(--z-header) - 1);
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    var(--color-primary),
+    color-mix(in srgb, var(--color-primary) 45%, transparent)
+  );
+  transform: scaleX(var(--progress, 0));
+  transform-origin: left center;
+  pointer-events: none;
 }
 
 .article {
-  max-width: 800px;
+  max-width: var(--max-width-narrow);
   margin: 0 auto;
-  background: var(--bg-card);
-  border-radius: 20px;
-  padding: var(--spacing-2xl);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-md);
 }
 
+/* ---------- 扉页 ---------- */
 .article-header {
-  margin-bottom: var(--spacing-2xl);
+  margin-bottom: var(--space-10);
+  text-align: center;
 }
 
 .article-meta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
+  justify-content: center;
+  gap: var(--space-3);
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: var(--fs-caption);
 }
 
 .meta-category {
-  padding: 4px 14px;
-  background: var(--bg-table-row-hover);
-  border-radius: 20px;
-  color: var(--text-primary);
-  font-weight: 500;
+  padding: 0.2rem var(--space-3);
+  background: var(--tint-primary-weak);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  color: var(--color-primary-dark);
+  font-size: var(--fs-micro);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-wide);
+}
+
+.meta-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--border-strong);
 }
 
 .meta-date,
 .meta-views {
-  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.meta-views :deep(.icon) {
+  opacity: 0.72;
 }
 
 .article-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  line-height: 1.3;
-  margin-bottom: var(--spacing-lg);
+  margin: var(--space-5) auto;
+  max-width: 22ch;
   color: var(--text-primary);
   font-family: var(--font-display);
+  font-size: var(--fs-article);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+  overflow-wrap: break-word;
 }
 
 .article-tags {
   display: flex;
-  gap: var(--spacing-sm);
   flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
 }
 
+/* ---------- 封面 ---------- */
 .article-cover {
-  margin-bottom: var(--spacing-2xl);
-  border-radius: var(--border-radius-lg);
+  margin-bottom: var(--space-12);
+  /* 加载中/失败时不再塌成一条白边：纸面渐变先撑住场子，
+     图片就位后自然接管（与卡片封面同一种语言） */
+  min-height: 12rem;
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow-md);
 }
 
 .article-cover img {
   width: 100%;
   height: auto;
-  display: block;
+}
+
+/* 封面滚动视差：滚动离场时图以 1.06 的比例缓慢下移，
+   制造「图比纸慢半拍」的深度。scroll-driven 动画零 JS，
+   不支持的浏览器自动静态显示。 */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .article-cover img {
+      animation: coverParallax linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 100%;
+    }
+  }
+}
+
+@keyframes coverParallax {
+  from {
+    transform: scale(1.06) translateY(0);
+  }
+  to {
+    transform: scale(1.06) translateY(-4%);
+  }
 }
 
 .image-fallback {
-  min-height: 220px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
-  background: var(--bg-tertiary);
-  color: var(--text-muted);
+  gap: var(--space-3);
+  min-height: 12rem;
+  color: var(--text-disabled);
+  font-size: var(--fs-caption);
+  /* 与卡片无封面占位同一种纸面语言，不是一块突兀的白 */
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
 }
 
+/* ---------- 正文 ---------- */
 .article-content {
-  font-size: 1.05rem;
-  line-height: 1.9;
-  color: var(--text-secondary);
+  max-width: var(--measure);
+  margin-inline: auto;
 }
 
-.article-content :deep(h1),
-.article-content :deep(h2),
-.article-content :deep(h3),
-.article-content :deep(h4) {
-  margin-top: 2em;
-  margin-bottom: 1em;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.article-content :deep(h2) {
-  font-size: 1.5rem;
-  padding-bottom: 0.5em;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.article-content :deep(h3) {
-  font-size: 1.25rem;
-}
-
-.article-content :deep(p) {
-  margin-bottom: 1.5em;
-}
-
-.article-content :deep(a) {
-  color: var(--color-primary-dark);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.article-content :deep(img) {
-  max-width: 100%;
-  border-radius: var(--border-radius);
-  margin: 1.5em 0;
-  box-shadow: var(--shadow-sm);
-}
-
-.article-content :deep(blockquote) {
-  padding: 1em 1.5em;
-  border-left: 4px solid var(--color-primary);
-  background: var(--bg-tertiary);
-  border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
-  margin: 1.5em 0;
-  color: var(--text-secondary);
-}
-
-.article-content :deep(code) {
-  padding: 2px 8px;
-  background: var(--bg-tertiary);
-  border-radius: 4px;
-  font-size: 0.9em;
-  font-family: var(--font-mono);
-  color: var(--text-primary);
-}
-
-.article-content :deep(pre) {
-  margin: 1.5em 0;
-  padding: 1.5em;
-  background: var(--bg-secondary);
-  border-radius: var(--border-radius);
-  border: 1px solid var(--border-color);
-  overflow-x: auto;
-}
-
-.article-content :deep(pre code) {
-  padding: 0;
-  background: none;
-  font-size: 0.9rem;
-  color: var(--text-primary);
-}
-
-.article-content :deep(ul),
-.article-content :deep(ol) {
-  padding-left: 2em;
-  margin-bottom: 1.5em;
-}
-
-.article-content :deep(li) {
-  margin-bottom: 0.5em;
-}
-
-.article-content :deep(hr) {
-  border: none;
-  border-top: 1px solid var(--border-color);
-  margin: 2em 0;
-}
-
+/* ---------- 尾注 ---------- */
 .article-footer {
-  margin-top: var(--spacing-2xl);
-  padding-top: var(--spacing-xl);
-  border-top: 1px solid var(--border-color);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-4);
+  max-width: var(--measure);
+  margin: var(--space-12) auto 0;
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border-hairline);
 }
 
 .article-info {
-  color: var(--text-muted);
-  font-size: 0.9rem;
+  color: var(--text-disabled);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
 }
 
 @media (max-width: 768px) {
-  .article {
-    padding: var(--spacing-lg);
-    border-radius: 16px;
+  .article-header {
+    margin-bottom: var(--space-8);
   }
 
   .article-title {
-    font-size: 1.5rem;
+    max-width: none;
   }
 
-  .article-meta {
-    flex-wrap: wrap;
-    gap: var(--spacing-sm);
+  .article-cover {
+    margin-bottom: var(--space-8);
+    border-radius: var(--radius-md);
   }
 
   .article-footer {
+    margin-top: var(--space-10);
     flex-direction: column;
-    gap: var(--spacing-md);
-  }
-}
-
-@media (max-width: 480px) {
-  .article {
-    padding: var(--spacing-md);
-    border-radius: 12px;
-    margin: 0 var(--spacing-xs);
-  }
-
-  .article-title {
-    font-size: 1.3rem;
-  }
-
-  .article-meta {
-    font-size: 0.8rem;
-  }
-
-  .article-content {
-    font-size: 0.95rem;
+    align-items: stretch;
+    text-align: center;
   }
 }
 </style>

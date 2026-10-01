@@ -1,119 +1,171 @@
-/* 玻璃拟态样式 - 枯木冷茶（响应式模糊） */
+/* ============================================================
+   glass.css — 纸面系统（Surfaces）
+   ------------------------------------------------------------
+   名称沿用历史的 .glass-*，但语义已从「毛玻璃」改为「纸面」：
+     · 面上的层次靠 1px 发丝边 + 极浅阴影建立，而非靠模糊
+     · 毛玻璃只在 >=768px 且确有内容穿透需求处启用（顶栏、浮层）
+   全局层一律 :where() 包裹，特异性压到 0，组件样式可稳定覆盖。
+   ============================================================ */
 
-/* 移动端默认：纯半透明，无模糊（性能优先） */
-.glass {
+/* ---------------- 纸面 ---------------- */
+:where(.glass) {
   background: var(--bg-glass);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
 }
 
-.glass-card {
+/* 卡片：全站主要容器 */
+:where(.glass-card) {
+  position: relative;
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-normal);
 }
 
-.glass-card:hover {
+/* 可交互的卡片：hover 时「抬起 + 描边转深」，
+   抬升量刻意只有 2px —— 再多就成了廉价的弹跳 */
+:where(.glass-card.is-interactive, .glass-card.glass-hover) {
+  transition:
+    transform var(--dur-normal) var(--ease-out),
+    box-shadow var(--dur-normal) var(--ease-out),
+    border-color var(--dur-normal) var(--ease-standard),
+    background-color var(--dur-normal) var(--ease-standard);
+}
+
+:where(.glass-card.is-interactive, .glass-card.glass-hover):hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--border-hover);
-}
-
-.glass-header {
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.glass-sidebar {
-  background: var(--bg-secondary);
-  border-right: 1px solid var(--border-color);
-}
-
-.glass-input {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
-  transition: all var(--transition-fast);
-}
-
-.glass-input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(163, 166, 156, 0.15);
   background: var(--bg-card-hover);
-}
-
-.glass-btn {
-  background: var(--bg-glass);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
-  color: var(--text-secondary);
-  transition: all var(--transition-fast);
-}
-
-.glass-btn:hover {
-  background: rgba(163, 166, 156, 0.12);
   border-color: var(--border-hover);
-  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
 }
 
-/* 渐变玻璃效果 */
-.glass-gradient {
-  background: linear-gradient(135deg, rgba(163, 166, 156, 0.12), rgba(222, 223, 217, 0.12));
-  border: 1px solid rgba(120, 122, 116, 0.18);
-  border-radius: var(--border-radius-lg);
+/* 顶栏纸面：滚动后由 JS 加 .is-stuck，逐渐「落定」到页面上 */
+:where(.glass-header) {
+  background: color-mix(in srgb, var(--bg-primary) 82%, transparent);
+  border-bottom: 1px solid var(--border-hairline);
+  transition:
+    background-color var(--dur-normal) var(--ease-standard),
+    box-shadow var(--dur-normal) var(--ease-standard),
+    border-color var(--dur-normal) var(--ease-standard);
 }
 
-/* 发光效果 - 改为实体投影 */
-.glass-glow {
+:where(.glass-header.is-stuck) {
+  background: color-mix(in srgb, var(--bg-primary) 94%, transparent);
+  border-bottom-color: var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+:where(.glass-sidebar) {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-hairline);
+}
+
+:where(.glass-input) {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard);
+}
+
+:where(.glass-input):focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-ring-soft);
+}
+
+:where(.glass-btn) {
+  background: transparent;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-sm);
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+
+:where(.glass-btn):hover {
+  background: var(--tint-primary-weak);
+  border-color: var(--border-hover);
+}
+
+/* 墨晕：取代原本的「玻璃渐变」，用极低饱和的苔色斜向渗透，
+   只在需要暗示「这是被强调的一块」时使用（如 404、空态） */
+:where(.glass-gradient) {
+  background:
+    radial-gradient(120% 100% at 0% 0%, var(--tint-primary-weak) 0%, transparent 60%),
+    radial-gradient(100% 100% at 100% 100%, var(--tint-neutral) 0%, transparent 55%),
+    var(--bg-card);
+  border: 1px solid var(--border-hairline);
+}
+
+:where(.glass-glow) {
   position: relative;
 }
 
-.glass-glow:hover {
-  box-shadow: var(--shadow-md);
+:where(.glass-glow)::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(60% 60% at 50% 0%, var(--tint-primary) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease-standard);
 }
 
-/* 桌面端：启用模糊效果 */
+:where(.glass-glow):hover::after {
+  opacity: 1;
+}
+
+/* ---------------- 毛玻璃能力 ----------------
+   移动端一律关闭：移动 GPU 上 backdrop-filter 代价高，
+   而且小屏上「透出的内容」只会降低文字可读性。 */
 @media (min-width: 769px) {
-  .glass {
-    background: color-mix(in srgb, var(--bg-glass) 86%, transparent);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+  :where(.glass-header) {
+    backdrop-filter: blur(var(--blur-md)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--blur-md)) saturate(140%);
   }
 
-  .glass-card {
-    background: color-mix(in srgb, var(--bg-card) 92%, transparent);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+  :where(.glass-header.is-stuck) {
+    backdrop-filter: blur(var(--blur-lg)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--blur-lg)) saturate(150%);
   }
 
-  .glass-header {
-    background: color-mix(in srgb, var(--bg-secondary) 95%, transparent);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+  :where(.glass-card) {
+    backdrop-filter: blur(var(--blur-sm));
+    -webkit-backdrop-filter: blur(var(--blur-sm));
   }
 
-  .glass-sidebar {
-    background: color-mix(in srgb, var(--bg-secondary) 95%, transparent);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+  :where(.glass-sidebar) {
+    backdrop-filter: blur(var(--blur-sm));
+    -webkit-backdrop-filter: blur(var(--blur-sm));
   }
+}
 
-  .glass-input {
-    background: color-mix(in srgb, var(--bg-card) 94%, transparent);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+/* 用户明确要求「减少透明度」时，全部退回不透明的纸 */
+@media (prefers-reduced-transparency: reduce) {
+  :where(.glass, .glass-card, .glass-header, .glass-sidebar) {
+    background: var(--bg-elevated);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
+}
 
-  .glass-btn {
-    background: color-mix(in srgb, var(--bg-glass) 90%, transparent);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-  }
-
-  .glass-gradient {
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+/* ============================================================
+   纸纹：整幅页面覆一层极淡的噪点，模拟宣纸的纤维感。
+   2% 的不透明度——只在「看得出质感、说不出为什么」的区间。
+   桌面端才加载：移动端省一次全屏合成。
+   ============================================================ */
+@media (hover: hover) and (min-width: 768px) {
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-toast);
+    pointer-events: none;
+    opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
   }
 }

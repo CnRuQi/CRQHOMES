@@ -16,7 +16,7 @@
 | [architecture.md](architecture.md)         | 系统边界、依赖方向、数据库和安全架构约束。当前 controllers 通过 `server/db/index.js` 执行参数化 SQL，独立数据访问层仍是后续整理目标。 |
 | [conventions.md](conventions.md)           | Vue、Express、API、命名、Git 和格式化规范                                                                                             |
 | [core-beliefs.md](core-beliefs.md)         | 安全、分层、可测试性和错误处理等长期开发原则                                                                                          |
-| [design.md](design.md)                     | 颜色、字体、纹理、按钮和响应式设计规范                                                                                                |
+| [design.md](design.md)                     | 令牌体系（纸/墨/苔色阶、语义层、双主题）、排版、间距、动效、微交互、响应式、无障碍与打印规范                                          |
 | [agent-lint-rules.md](agent-lint-rules.md) | 自定义 ESLint 规则的错误含义、修复方向和参考文件                                                                                      |
 
 ## 任务指引
@@ -36,6 +36,7 @@
 - [2026-08-29 第一轮代码审查](audits/code-review-2026-08-29.md)
 - [2026-08-31 第二轮代码审查](audits/code-review-2026-08-31-round2.md)
 - [2026-09-13 浏览器与工程回归基线](audits/browser-baseline-2026-09-13.md)
+- [2026-10-01 设计八维度审计](audits/design-audit-2026-10-01.md)
 
 ## 发布说明
 

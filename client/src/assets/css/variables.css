@@ -1,131 +1,409 @@
+/* ============================================================
+   variables.css — 设计令牌（Design Tokens）
+   ------------------------------------------------------------
+   三层结构：
+     1. 原始层 Primitives   —— 纸/墨/苔色阶，只按材质命名，不含语义
+     2. 语义层 Semantic     —— 组件只允许消费语义层
+     3. 别名层 Aliases      —— 兼容历史命名（--spacing-* / --bg-* 等）
+   同名令牌在 [data-theme='dark'] 中覆写，实现「一令牌双主题」。
+   ============================================================ */
+
 :root {
-  /* 主色调 - 枯木冷茶 */
-  --color-primary: #687064;
-  --color-primary-light: #9aa692;
-  --color-primary-dark: #4d574a;
-  --color-accent: #dce4d5;
+  /* ==========================================================
+     1. 原始层 — 纸（Paper）
+     宣纸色阶：偏暖的中性灰，避免纯白的冷硬与刺眼
+     ========================================================== */
+  --paper-50: #fbfbf9;
+  --paper-100: #f5f5f3;
+  --paper-200: #ebebe8;
+  --paper-300: #e0e0dd;
+  --paper-400: #cfd0ca;
+  --paper-500: #b8b9b2;
+
+  /* 原始层 — 墨（Ink） */
+  --ink-900: #22231f;
+  --ink-800: #2d2e2b;
+  --ink-700: #3d3f3a;
+  --ink-600: #4a4c48;
+  --ink-500: #575a54;
+  --ink-400: #73766f;
+  /* 4.5:1 是正文可读的底线：#73766f 在宣纸白上只有 4.23:1，
+     而 --text-disabled 承载的并不都是「禁用控件」（页脚备案、时间戳、
+     提示语都在用它），所以补一档刚好过 AA 的墨色，4.82:1。 */
+  --ink-350: #6a6d66;
+  --ink-300: #8f9289;
+
+  /* 原始层 — 苔（Sage）：主色，
+     取「枯木冷茶」的冷绿，饱和度刻意压低以维持文人调性 */
+  --sage-900: #3a4237;
+  --sage-800: #4d574a;
+  --sage-700: #5c6659;
+  --sage-600: #687064;
+  --sage-500: #7d8a76;
+  --sage-400: #9aa692;
+  --sage-300: #b8c2b0;
+  --sage-200: #dce4d5;
+  --sage-100: #eef2ea;
+
+  /* 原始层 — 点缀色：用于「花」的一点点暖意，仅作强调，不承载信息 */
+  --rose-600: #a46b6b;
+  --rose-100: #f2e6e4;
+  --gold-600: #8f7238;
+  --gold-100: #f3ecdc;
+
+  /* 原始层 — 功能色（可通过对比度的深色调） */
+  --green-600: #4f7957;
+  --amber-700: #8b641a;
+  --red-700: #813636;
+  --blue-700: #426a86;
+  --green-300: #a8d6ad;
+  --amber-300: #f0c979;
+  --red-300: #e49a9a;
+  --blue-300: #9bc2df;
+
+  /* ==========================================================
+     2. 语义层 — 色彩（Color）
+     ========================================================== */
+  --color-primary: var(--sage-600);
+  --color-primary-light: var(--sage-400);
+  --color-primary-dark: var(--sage-800);
+  --color-primary-soft: var(--sage-100);
+  --color-accent: var(--sage-200);
+  --color-accent-warm: var(--rose-600);
   --on-primary: #ffffff;
 
-  /* 功能色 - 同步降噪处理 */
-  --color-success: #4f7957;
-  --color-warning: #8b641a;
-  --color-danger: #813636;
-  --color-info: #426a86;
+  --color-success: var(--green-600);
+  --color-warning: var(--amber-700);
+  --color-danger: var(--red-700);
+  --color-info: var(--blue-700);
 
-  /* 状态标签：文本和底色成对定义，保证两种主题下都有足够对比度 */
+  /* 焦点环：可读、可见、不刺眼 */
+  --color-ring: color-mix(in srgb, var(--sage-700) 55%, transparent);
+  --color-ring-soft: color-mix(in srgb, var(--sage-600) 16%, transparent);
+
+  /* 中性底色 */
+  --bg-primary: var(--paper-100);
+  --bg-secondary: var(--paper-200);
+  --bg-tertiary: var(--paper-300);
+  --bg-elevated: #ffffff;
+  --bg-sunken: var(--paper-200);
+
+  /* 卡片／玻璃面 —— 统一由「纸」混合而来，不再散落硬编码 rgba */
+  --bg-card: rgba(255, 255, 255, 0.72);
+  --bg-card-hover: rgba(255, 255, 255, 0.92);
+  --bg-glass: rgba(255, 255, 255, 0.6);
+  --bg-glass-hover: rgba(245, 245, 243, 0.86);
+  --bg-table-row: var(--paper-200);
+  --bg-table-row-hover: #e9ebe6;
+
+  /* 主色淡染：所有 hover/激活态底色统一走这里 */
+  --tint-primary-weak: color-mix(in srgb, var(--sage-600) 6%, transparent);
+  --tint-primary: color-mix(in srgb, var(--sage-600) 11%, transparent);
+  --tint-primary-strong: color-mix(in srgb, var(--sage-600) 18%, transparent);
+  --tint-neutral: color-mix(in srgb, var(--ink-800) 5%, transparent);
+
+  /* 文字 */
+  --text-primary: var(--ink-800);
+  --text-secondary: var(--ink-600);
+  --text-muted: var(--ink-500);
+  --text-disabled: var(--ink-350);
+  --text-inverse: #ffffff;
+  --text-on-tint: var(--ink-800);
+
+  /* 描边：全部由墨色混出，保持同一色相家族 */
+  --border-color: rgba(58, 66, 55, 0.2);
+  --border-hover: rgba(58, 66, 55, 0.4);
+  --border-active: rgba(58, 66, 55, 0.62);
+  --border-hairline: rgba(58, 66, 55, 0.14);
+  --border-subtle: rgba(58, 66, 55, 0.09);
+  --border-strong: var(--sage-700);
+
+  /* 状态标签 */
   --status-published-text: #35633e;
   --status-published-bg: #e6efe7;
   --status-draft-text: #74520c;
   --status-draft-bg: #f5ecd9;
 
-  /* 背景色 - 宣纸/洗砚 */
-  --bg-primary: #f5f5f3;
-  --bg-secondary: #ebebe8;
-  --bg-tertiary: #e0e0dd;
-  --bg-card: rgba(255, 255, 255, 0.85);
-  --bg-card-hover: rgba(255, 255, 255, 0.95);
-  --bg-glass: rgba(255, 255, 255, 0.75);
-  --bg-glass-hover: rgba(245, 245, 243, 0.9);
-  --bg-table-row: #f1f1ee;
-  --bg-table-row-hover: #e9ebe6;
+  /* ==========================================================
+     语义层 — 排版（Typography）
+     流体字号：320px 视口到 1280px 视口之间连续插值，
+     彻底消除断点处的「字号跳变」
+     ========================================================== */
+  --fs-2xs: clamp(0.6875rem, 0.671rem + 0.083vw, 0.75rem); /* 11 → 12 */
+  --fs-xs: clamp(0.75rem, 0.734rem + 0.083vw, 0.8125rem); /* 12 → 13 */
+  --fs-sm: clamp(0.8125rem, 0.787rem + 0.13vw, 0.875rem); /* 13 → 14 */
+  --fs-base: clamp(0.9375rem, 0.911rem + 0.13vw, 1rem); /* 15 → 16 */
+  --fs-md: clamp(1rem, 0.967rem + 0.167vw, 1.0625rem); /* 16 → 17 */
+  --fs-lg: clamp(1.0625rem, 1.016rem + 0.23vw, 1.1875rem); /* 17 → 19 */
+  --fs-xl: clamp(1.25rem, 1.152rem + 0.49vw, 1.5rem); /* 20 → 24 */
+  --fs-2xl: clamp(1.5rem, 1.304rem + 0.98vw, 2rem); /* 24 → 32 */
+  --fs-3xl: clamp(1.75rem, 1.424rem + 1.63vw, 2.583rem); /* 28 → 41 */
+  --fs-4xl: clamp(2.125rem, 1.565rem + 2.8vw, 3.25rem); /* 34 → 52 */
+  --fs-5xl: clamp(2.75rem, 1.685rem + 5.33vw, 5rem); /* 44 → 80 */
+  --fs-6xl: clamp(3.5rem, 1.652rem + 9.24vw, 8rem); /* 56 → 128 */
 
-  /* 文字颜色 - 加深对比度 */
-  --text-primary: #2d2e2b;
-  --text-secondary: #4a4c48;
-  --text-muted: #575a54;
-  --text-disabled: #73766f;
+  /* 语义字号：页面里只写语义名，不写具体档位 */
+  --fs-display: var(--fs-6xl);
+  --fs-hero: var(--fs-5xl);
+  --fs-h1: var(--fs-4xl);
+  --fs-h2: var(--fs-3xl);
+  --fs-h3: var(--fs-2xl);
+  --fs-h4: var(--fs-xl);
+  --fs-lead: var(--fs-lg);
+  --fs-body: var(--fs-base);
+  --fs-caption: var(--fs-sm);
+  --fs-micro: var(--fs-xs);
 
-  /* 边框 - 增强可见度 */
-  --border-color: rgba(77, 87, 74, 0.24);
-  --border-hover: rgba(77, 87, 74, 0.46);
-  --border-active: rgba(77, 87, 74, 0.68);
-  --border-radius: 12px;
-  --border-radius-lg: 16px;
-  --border-radius-sm: 8px;
+  /* 两处展示性字号：文章标题、后台数据大数字。
+     它们不进 h1–h4 的语义阶梯，但同样只在这里定义，组件一律引用，
+     免得每个组件各写一个 clamp。 */
+  --fs-article: clamp(1.75rem, 4vw + 1rem, 3rem);
+  --fs-stat: clamp(1.5rem, 1.2rem + 1vw, 2.25rem);
+  --fs-stat-lead: clamp(2rem, 1.4rem + 1.8vw, 3rem);
 
-  /* 阴影 - 增强层次感 */
-  --shadow-sm: 0 1px 3px rgba(45, 46, 43, 0.08);
-  --shadow-md: 0 4px 12px rgba(45, 46, 43, 0.1);
-  --shadow-lg: 0 8px 24px rgba(45, 46, 43, 0.12);
-  --shadow-btn: 0 2px 0 rgba(130, 133, 124, 0.25);
+  /* 行高：中文正文需要比拉丁文更松弛的行距 */
+  --leading-none: 1;
+  --leading-tight: 1.14;
+  --leading-snug: 1.3;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.72;
+  --leading-loose: 1.9;
 
-  /* 间距 */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  --spacing-2xl: 48px;
+  /* 字距 */
+  --tracking-tighter: -0.022em;
+  --tracking-tight: -0.012em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.024em;
+  --tracking-wider: 0.07em;
+  --tracking-widest: 0.16em;
 
-  /* 字体 - 宋体 + 黑体组合 */
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
   --font-sans:
-    'Source Sans 3', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC',
-    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-  --font-display: 'Playfair Display', 'Noto Serif SC', 'Songti SC', Georgia, serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    'Source Sans 3', 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display:
+    'Playfair Display', 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, serif;
+  --font-serif: 'Noto Serif SC', 'Songti SC', 'STSong', Georgia, serif;
+  --font-mono:
+    'JetBrains Mono', ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono',
+    monospace;
 
-  /* 布局 */
-  --max-width: 1200px;
+  /* ==========================================================
+     语义层 — 间距（Space）
+     4px 基准的等比节奏；组件一律使用这一套，禁止裸写 px
+     ========================================================== */
+  --space-1: 0.25rem; /* 4 */
+  --space-2: 0.5rem; /* 8 */
+  --space-3: 0.75rem; /* 12 */
+  --space-4: 1rem; /* 16 */
+  --space-5: 1.25rem; /* 20 */
+  --space-6: 1.5rem; /* 24 */
+  --space-8: 2rem; /* 32 */
+  --space-10: 2.5rem; /* 40 */
+  --space-12: 3rem; /* 48 */
+  --space-16: 4rem; /* 64 */
+  --space-20: 5rem; /* 80 */
+  --space-24: 6rem; /* 96 */
+  --space-32: 8rem; /* 128 */
+
+  /* 流体节奏：区块之间的大留白随视口呼吸，而非在断点处突跳 */
+  --space-gutter: clamp(1.25rem, 0.93rem + 1.6vw, 2.5rem);
+  --space-section: clamp(3rem, 1.85rem + 5.75vw, 7.5rem);
+  --space-section-sm: clamp(2rem, 1.43rem + 2.87vw, 4.5rem);
+  --space-block: clamp(1.5rem, 1.2rem + 1.5vw, 2.75rem);
+
+  /* ==========================================================
+     语义层 — 布局（Layout）
+     ========================================================== */
+  --max-width: 1280px;
+  --max-width-wide: 1440px;
+  --max-width-narrow: 800px;
+  --measure: 40rem; /* 阅读行宽：中文约 34–38 字，最佳可读区间 */
   --header-height: calc(64px + env(safe-area-inset-top, 0px));
+  --header-height-compact: calc(56px + env(safe-area-inset-top, 0px));
   --sidebar-width: 240px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
 
-  /* 安全区域 */
-  --safe-area-top: env(safe-area-inset-top, 0px);
-  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-area-left: env(safe-area-inset-left, 0px);
-  --safe-area-right: env(safe-area-inset-right, 0px);
+  /* 12 栅格：布局原语共用同一套列宽与槽宽 */
+  --grid-columns: 12;
+  --grid-gap: var(--space-gutter);
 
-  /* 过渡 */
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.25s ease;
-  --transition-slow: 0.4s ease;
+  /* ==========================================================
+     语义层 — 圆角 / 阴影 / 层级
+     阴影统一带色（从墨色混出），避免纯黑阴影的脏与灰
+     ========================================================== */
+  --radius-xs: 3px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 999px;
+
+  --shadow-xs: 0 1px 2px rgba(34, 35, 31, 0.04);
+  --shadow-sm:
+    0 1px 2px rgba(34, 35, 31, 0.05), 0 2px 6px -1px rgba(34, 35, 31, 0.05);
+  --shadow-md:
+    0 2px 4px rgba(34, 35, 31, 0.04), 0 8px 20px -4px rgba(34, 35, 31, 0.08);
+  --shadow-lg:
+    0 4px 8px rgba(34, 35, 31, 0.05), 0 18px 40px -8px rgba(34, 35, 31, 0.12);
+  --shadow-xl:
+    0 8px 16px rgba(34, 35, 31, 0.06), 0 32px 64px -12px rgba(34, 35, 31, 0.16);
+  --shadow-btn:
+    0 1px 2px rgba(34, 35, 31, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  --shadow-btn-active: inset 0 2px 4px rgba(34, 35, 31, 0.2);
+  --shadow-inset-top: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 100;
+  --z-header: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-toast: 10000;
+
+  /* 毛玻璃：移动端不启用（性能与可读性都更差） */
+  --blur-sm: 8px;
+  --blur-md: 16px;
+  --blur-lg: 28px;
+
+  /* ==========================================================
+     语义层 — 动效（Motion）
+     时长与缓动各有语义：进入用 ease-out，退出用 ease-in，
+     强调用 emphasis，按压用 spring。禁止裸写「ease」。
+     ========================================================== */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.64, 0, 0.78, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-emphasis: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.46, 0.64, 1);
+
+  --dur-instant: 90ms;
+  --dur-fast: 150ms;
+  --dur-normal: 260ms;
+  --dur-slow: 420ms;
+  --dur-slower: 640ms;
+  --dur-reveal: 880ms;
+  /* 转圈是持续状态而不是过渡，单独给一个令牌，
+     否则主 spinner 与小 spinner 会各写一个裸值、转速对不上 */
+  --dur-spin: 800ms;
+
+  /* ==========================================================
+     3. 别名层 — 兼容既有命名（勿在新代码中使用）
+     ========================================================== */
+  --border-radius-sm: var(--radius-sm);
+  --border-radius: var(--radius-md);
+  --border-radius-lg: var(--radius-lg);
+
+  --spacing-xs: var(--space-1);
+  --spacing-sm: var(--space-2);
+  --spacing-md: var(--space-4);
+  --spacing-lg: var(--space-6);
+  --spacing-xl: var(--space-8);
+  --spacing-2xl: var(--space-12);
+  --spacing-3xl: var(--space-16);
+  --spacing-4xl: var(--space-24);
+
+  --transition-fast: var(--dur-fast) var(--ease-standard);
+  --transition-normal: var(--dur-normal) var(--ease-standard);
+  --transition-slow: var(--dur-slow) var(--ease-standard);
+
+  /* 纸面肌理强度（暗色下略降，避免噪点显脏） */
+  --grain-opacity: 0.022;
+
+  color-scheme: light;
 }
 
-/* 暗色模式 */
+/* ============================================================
+   暗色主题 —— 同样是「纸与墨」，只是把纸换成夜，把墨换成霜
+   刻意使用偏暖的墨黑（#141513），而非中性 #1a1a1a：
+   中性灰在绿调品牌色旁边会显脏，暖墨则与苔色同源。
+   ============================================================ */
 [data-theme='dark'] {
-  /* 主色调 - 枯木冷茶（暗色版） */
-  --color-primary: #667462;
-  --color-primary-light: #aeb9a4;
-  --color-primary-dark: #aeb9a4;
-  --color-accent: #3d483c;
-  --on-primary: #ffffff;
+  --color-primary: #8fa389;
+  --color-primary-light: #99ab93;
+  --color-primary-dark: #b6c4ae;
+  --color-primary-soft: #232a21;
+  --color-accent: #2f3a2d;
+  --on-primary: #12140f;
 
-  /* 功能色 */
-  --color-success: #8fbe93;
-  --color-warning: #e0b558;
-  --color-danger: #e49a9a;
-  --color-info: #9bc2df;
+  --color-success: var(--green-300);
+  --color-warning: var(--amber-300);
+  --color-danger: var(--red-300);
+  --color-info: var(--blue-300);
 
-  --status-published-text: #a8d6ad;
+  --color-ring: color-mix(in srgb, var(--sage-400) 60%, transparent);
+  --color-ring-soft: color-mix(in srgb, var(--sage-400) 18%, transparent);
+
+  --bg-primary: #141513;
+  --bg-secondary: #1b1c1a;
+  --bg-tertiary: #232420;
+  --bg-elevated: #1e1f1c;
+  --bg-sunken: #101110;
+
+  --bg-card: rgba(30, 31, 28, 0.72);
+  --bg-card-hover: rgba(38, 39, 35, 0.9);
+  --bg-glass: rgba(26, 27, 24, 0.62);
+  --bg-glass-hover: rgba(38, 39, 35, 0.86);
+  --bg-table-row: #1f201d;
+  --bg-table-row-hover: #262a24;
+
+  --tint-primary-weak: color-mix(in srgb, var(--sage-400) 8%, transparent);
+  --tint-primary: color-mix(in srgb, var(--sage-400) 14%, transparent);
+  --tint-primary-strong: color-mix(in srgb, var(--sage-400) 22%, transparent);
+  --tint-neutral: color-mix(in srgb, #ffffff 6%, transparent);
+
+  --text-primary: #e8e9e4;
+  --text-secondary: #bcbfb6;
+  --text-muted: #9aa095;
+  --text-disabled: #7d8377;
+  --text-inverse: #141513;
+  --text-on-tint: #e8e9e4;
+
+  --border-color: rgba(200, 210, 198, 0.2);
+  --border-hover: rgba(200, 210, 198, 0.4);
+  --border-active: rgba(200, 210, 198, 0.6);
+  --border-hairline: rgba(200, 210, 198, 0.14);
+  --border-subtle: rgba(200, 210, 198, 0.09);
+  --border-strong: var(--sage-400);
+
+  --status-published-text: var(--green-300);
   --status-published-bg: #304638;
-  --status-draft-text: #f0c979;
+  --status-draft-text: var(--amber-300);
   --status-draft-bg: #4b3d1f;
 
-  /* 背景色 - 夜空/墨石 */
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #242424;
-  --bg-tertiary: #2d2d2d;
-  --bg-card: rgba(45, 45, 45, 0.85);
-  --bg-card-hover: rgba(55, 55, 55, 0.95);
-  --bg-glass: rgba(35, 35, 35, 0.75);
-  --bg-glass-hover: rgba(45, 45, 45, 0.9);
-  --bg-table-row: #333333;
-  --bg-table-row-hover: #3b403b;
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.34), 0 2px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.3), 0 8px 20px -4px rgba(0, 0, 0, 0.42);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.32), 0 18px 40px -8px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.34), 0 32px 64px -12px rgba(0, 0, 0, 0.6);
+  --shadow-btn: 0 1px 2px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --shadow-inset-top: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 
-  /* 文字颜色 */
-  --text-primary: #e0e0e0;
-  --text-secondary: #c1c5bd;
-  --text-muted: #aeb4a9;
-  --text-disabled: #8e958b;
+  --grain-opacity: 0.016;
 
-  /* 边框 */
-  --border-color: rgba(200, 210, 198, 0.22);
-  --border-hover: rgba(200, 210, 198, 0.42);
-  --border-active: rgba(200, 210, 198, 0.62);
+  color-scheme: dark;
+}
 
-  /* 阴影 */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.3);
-  --shadow-btn: 0 2px 0 rgba(0, 0, 0, 0.3);
+/* 高对比度偏好：加粗描边、取消毛玻璃，把信息从「面」交还给「线」 */
+@media (prefers-contrast: more) {
+  :root {
+    --border-color: rgba(58, 66, 55, 0.45);
+    --border-hairline: rgba(58, 66, 55, 0.32);
+    --text-muted: var(--ink-600);
+  }
+
+  [data-theme='dark'] {
+    --border-color: rgba(200, 210, 198, 0.45);
+    --border-hairline: rgba(200, 210, 198, 0.32);
+    --text-muted: #c6c9c0;
+  }
 }

@@ -1,25 +1,33 @@
 <template>
   <div class="search-page">
     <div class="view-content">
-      <div class="container">
-        <section class="search-header" data-aos="fade-down">
+      <div class="container search-container">
+        <header class="search-header section-head">
+          <p class="section-eyebrow">Search</p>
           <h1 class="page-title">搜索</h1>
-          <div class="search-box">
-            <Icon name="search" :size="20" />
+          <div class="search-box" role="search">
+            <Icon name="search" :size="20" class="search-icon" />
             <input
               v-model="keyword"
               type="text"
               class="search-input"
               placeholder="输入关键词搜索文章..."
               aria-label="搜索文章"
+              enterkeyhint="search"
               autofocus
               @input="handleSearchInput"
             />
-            <button v-if="keyword" class="clear-btn" aria-label="清除搜索" @click="clearSearch">
+            <button
+              v-if="keyword"
+              type="button"
+              class="clear-btn"
+              aria-label="清除搜索"
+              @click="clearSearch"
+            >
               ✕
             </button>
           </div>
-        </section>
+        </header>
 
         <div v-if="loading" class="posts-grid">
           <SkeletonCard v-for="i in 3" :key="i" />
@@ -35,25 +43,23 @@
             hint="试试其他关键词？"
           />
 
-          <div v-else-if="posts.length" class="search-results" data-aos="fade-up">
-            <p class="results-count">找到 {{ total }} 篇相关文章</p>
+          <div v-else-if="posts.length" class="search-results search-results-enter">
+            <p class="results-count">
+              <span class="results-number">{{ total }}</span>
+              篇相关文章
+            </p>
             <div class="posts-grid">
-              <PostCard
-                v-for="(post, index) in posts"
-                :key="post.id"
-                :post="post"
-                :index="index"
-                :keyword="keyword"
-              />
+              <PostCard v-for="post in posts" :key="post.id" :post="post" :keyword="keyword" />
             </div>
 
             <!-- 分页 -->
             <Pagination :pagination="pagination" @change="changePage" />
           </div>
 
-          <div v-else class="search-hint" data-aos="fade-up">
-            <Icon name="search" :size="48" class="hint-icon" />
-            <p>输入关键词开始搜索</p>
+          <div v-else class="search-hint">
+            <Icon name="search" :size="40" class="hint-icon" />
+            <p class="hint-text">输入关键词开始搜索</p>
+            <p class="hint-sub">标题与摘要都会被检索</p>
           </div>
         </template>
       </div>
@@ -219,127 +225,180 @@ watch(
 </script>
 
 <style scoped>
-.search-page {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.view-content {
-  flex: 1;
-  padding-bottom: var(--spacing-2xl);
-}
-
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 0 var(--spacing-lg);
+/* 搜索页收窄到阅读行宽：输入框与结果都在一条视线上 */
+.search-container {
+  max-width: calc(var(--max-width-narrow) + var(--space-gutter) * 2);
 }
 
 .search-header {
-  text-align: center;
-  margin-bottom: var(--spacing-2xl);
+  margin-bottom: var(--space-12);
 }
 
-.page-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-lg);
-  font-family: var(--font-display);
+.search-header .page-title {
+  margin-bottom: var(--space-6);
 }
 
+/* 输入框做成一条「纸上的搜物线」：静息只有发丝边，
+   聚焦时边线变实、浮出一圈柔光，反馈明确但不刺眼。 */
 .search-box {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: var(--bg-card);
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--bg-elevated);
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  transition: all var(--transition-fast);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  transition:
+    border-color var(--dur-normal) var(--ease-standard),
+    box-shadow var(--dur-normal) var(--ease-standard),
+    background-color var(--dur-normal) var(--ease-standard);
+}
+
+.search-box:hover {
+  border-color: var(--border-hover);
 }
 
 .search-box:focus-within {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(163, 166, 156, 0.1);
+  box-shadow: 0 0 0 3px var(--color-ring-soft);
 }
 
-.search-box svg {
+.search-icon {
+  flex: 0 0 auto;
   color: var(--text-muted);
-  flex-shrink: 0;
+  transition: color var(--dur-normal) var(--ease-standard);
+}
+
+.search-box:focus-within .search-icon {
+  color: var(--color-primary);
 }
 
 .search-input {
   flex: 1;
+  min-width: 0;
   border: none;
   background: none;
-  font-size: 1.1rem;
   color: var(--text-primary);
-  min-width: 0;
+  font-size: var(--fs-md);
+  line-height: var(--leading-normal);
+}
+
+/* 焦点指示由外层容器的 :focus-within 承担（苔绿边 + 光晕），
+   input 自身不再画一圈 outline——两层描边叠在一起显乱。
+   焦点可见性并未丢失，只是换了载体。 */
+.search-input:focus-visible {
   outline: none;
 }
 
 .search-input::placeholder {
-  color: var(--text-muted);
+  color: var(--text-disabled);
 }
 
 .clear-btn {
-  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1.75rem;
+  height: 1.75rem;
   color: var(--text-muted);
-  font-size: 0.9rem;
-  border-radius: 4px;
-  transition: all var(--transition-fast);
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs);
+  transition:
+    color var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard);
 }
 
 .clear-btn:hover {
   color: var(--text-primary);
-  background: var(--bg-glass-hover);
+  background: var(--tint-neutral);
 }
 
+.clear-btn:active {
+  transform: scale(0.92);
+}
+
+/* ---------- 结果 ---------- */
+.search-results-enter {
+  animation: resultsIn var(--dur-slow) var(--ease-out) both;
+}
+
+@keyframes resultsIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.5rem, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 计数用大号衬线数字压住「篇」这个量词，形成一处视觉锚点 */
 .results-count {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-bottom: var(--space-8);
   color: var(--text-muted);
-  font-size: 0.9rem;
-  margin-bottom: var(--spacing-lg);
+  font-size: var(--fs-caption);
+  letter-spacing: var(--tracking-wide);
+}
+
+.results-number {
+  color: var(--color-primary-dark);
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .posts-grid {
   display: grid;
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-2xl);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: var(--space-8);
+  margin-bottom: var(--space-12);
 }
 
 .search-hint {
+  padding: var(--space-section-sm) 0;
   text-align: center;
-  padding: var(--spacing-2xl);
   color: var(--text-muted);
 }
 
 .hint-icon {
-  margin-bottom: var(--spacing-md);
-  opacity: 0.5;
+  margin-bottom: var(--space-5);
+  color: var(--color-primary);
+  opacity: 0.4;
+}
+
+.hint-text {
+  color: var(--text-secondary);
+  font-size: var(--fs-md);
+}
+
+.hint-sub {
+  margin-top: var(--space-2);
+  color: var(--text-disabled);
+  font-size: var(--fs-micro);
+  letter-spacing: var(--tracking-wide);
 }
 
 @media (max-width: 768px) {
-  .page-title {
-    font-size: 1.5rem;
-  }
-
-  .search-input {
-    font-size: 1rem;
+  .search-header {
+    margin-bottom: var(--space-8);
   }
 
   .search-box {
-    padding: var(--spacing-sm) var(--spacing-md);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
   }
 
-  .clear-btn {
-    min-width: 32px;
-    min-height: 32px;
-  }
-
-  .search-header {
-    margin-bottom: var(--spacing-xl);
+  .posts-grid {
+    gap: var(--space-6);
+    margin-bottom: var(--space-8);
   }
 }
 </style>

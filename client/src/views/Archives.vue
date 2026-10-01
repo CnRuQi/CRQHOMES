@@ -2,11 +2,17 @@
   <div class="archives">
     <div class="view-content">
       <div class="container">
-        <h1 class="page-title" data-aos="fade-down">归档</h1>
+        <header class="archives-header section-head">
+          <p class="section-eyebrow">Archives</p>
+          <h1 class="page-title">归档</h1>
+          <p v-if="!loading && !loadError && postCount" class="page-subtitle">
+            共 {{ postCount }} 篇文章，依年月编次
+          </p>
+        </header>
 
         <div v-if="loading" class="archives-skeleton">
           <div v-for="i in 3" :key="i" class="skeleton-group">
-            <div class="skeleton-group-title skeleton-pulse"></div>
+            <div class="skeleton-title skeleton-pulse"></div>
             <div class="skeleton-items">
               <div v-for="j in 4" :key="j" class="skeleton-item skeleton-pulse"></div>
             </div>
@@ -18,37 +24,40 @@
 
           <template v-else>
             <div v-if="archives.length" class="archives-list">
-              <div
-                v-for="archive in archives"
-                :key="`${archive.year}-${archive.month}`"
-                class="archive-group"
-                data-aos="fade-up"
-              >
-                <h2 class="archive-title">
-                  {{ archive.year }}年{{ archive.month }}月
-                  <span class="archive-count">({{ archive.posts.length }})</span>
-                </h2>
+              <article v-for="group in groupedByYear" :key="group.year" class="year-group">
+                <h2 class="year-title">{{ group.year }}</h2>
 
-                <div class="archive-posts">
-                  <router-link
-                    v-for="post in archive.posts"
-                    :key="post.id"
-                    :to="`/post/${post.slug || post.id}`"
-                    class="archive-item"
+                <div class="year-body">
+                  <section
+                    v-for="archive in group.months"
+                    :key="`${archive.year}-${archive.month}`"
+                    class="month-group"
+                    data-reveal="up"
                   >
-                    <span class="item-date">{{
-                      formatDate(post.published_at || post.created_at, 'MM-DD')
-                    }}</span>
-                    <span class="item-title">{{ post.title }}</span>
-                  </router-link>
+                    <h3 class="month-title">
+                      {{ pad2(archive.month) }}月
+                      <span class="archive-count">{{ archive.posts.length }}</span>
+                    </h3>
+
+                    <ul class="archive-posts">
+                      <li v-for="post in archive.posts" :key="post.id">
+                        <router-link :to="`/post/${post.slug || post.id}`" class="archive-item">
+                          <time
+                            class="item-date"
+                            :datetime="post.published_at || post.created_at || undefined"
+                          >
+                            {{ formatDate(post.published_at || post.created_at, 'DD') }}
+                          </time>
+                          <span class="item-title">{{ post.title }}</span>
+                        </router-link>
+                      </li>
+                    </ul>
+                  </section>
                 </div>
-              </div>
+              </article>
             </div>
 
-            <div v-else class="empty">
-              <div class="empty-icon">📚</div>
-              <p>暂无文章</p>
-            </div>
+            <EmptyState v-else icon="article" text="暂无文章" hint="第一篇文章写完就会出现在这里" />
 
             <nav v-if="pagination.totalPages > 1" class="archives-pagination" aria-label="归档分页">
               <button
@@ -79,11 +88,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getArchives } from '@/api/post'
 import { formatDate, restoreListScroll } from '@/assets/js/utils'
 import { useToast } from '@/composables/useToast'
+import EmptyState from '@/components/EmptyState.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -96,6 +106,31 @@ const pagination = ref({ total: 0, page: 1, pageSize: archivePageSize, totalPage
 
 const initialPage = Number(route.query.page)
 const page = ref(Number.isSafeInteger(initialPage) && initialPage > 0 ? initialPage : 1)
+
+// 接口按「年-月」分桶返回，这里再按年聚合一层，
+// 让年份成为可吸附的索引列，月份成为其下的次级标目。
+const groupedByYear = computed(() => {
+  const groups = []
+  const index = new Map()
+  for (const archive of archives.value) {
+    let group = index.get(archive.year)
+    if (!group) {
+      group = { year: archive.year, months: [] }
+      index.set(archive.year, group)
+      groups.push(group)
+    }
+    group.months.push(archive)
+  }
+  return groups
+})
+
+const postCount = computed(() =>
+  archives.value.reduce((sum, archive) => sum + (archive.posts?.length || 0), 0)
+)
+
+function pad2(value) {
+  return String(value).padStart(2, '0')
+}
 
 async function fetchArchives() {
   loading.value = true
@@ -142,154 +177,242 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.archives {
-  min-height: 100vh;
+/* ============================================================
+   归档：一页「编年索引」
+   年份是吸附在左栏的索引号，月份是次级标目，
+   文章退到一条细线上，日期用等宽数字对齐成一条垂直线。
+   ============================================================ */
+.archives-header {
+  margin-bottom: var(--space-12);
 }
 
-.view-content {
-  padding-bottom: var(--spacing-2xl);
+.archives-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
 }
 
-.page-title {
-  font-size: 2rem;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: var(--spacing-2xl);
+.year-group {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  gap: var(--space-8);
+  align-items: start;
 }
 
-.archive-group {
-  margin-bottom: var(--spacing-2xl);
+.year-title {
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-6));
+  color: var(--color-primary-dark);
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums;
 }
 
-.archive-title {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-md);
-  padding-bottom: var(--spacing-sm);
-  border-bottom: 2px solid var(--color-primary);
-  display: inline-block;
+.year-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  min-width: 0;
+}
+
+.month-group {
+  min-width: 0;
+}
+
+.month-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+  color: var(--text-secondary);
+  font-size: var(--fs-caption);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-wider);
+}
+
+/* 标目右侧延出一条发丝线，像印刷目录的引导线 */
+.month-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-hairline);
 }
 
 .archive-count {
-  color: var(--text-muted);
-  font-weight: 400;
-  font-size: 1rem;
+  color: var(--text-disabled);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  font-variant-numeric: tabular-nums;
 }
 
 .archive-posts {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
 }
 
 .archive-item {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: var(--bg-glass);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
+  align-items: baseline;
+  gap: var(--space-5);
+  margin-inline: calc(var(--space-3) * -1);
+  padding: var(--space-3);
   color: var(--text-primary);
-  transition: all var(--transition-fast);
+  border-radius: var(--radius-sm);
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
 }
 
 .archive-item:hover {
-  background: var(--bg-glass-hover);
-  border-color: var(--border-hover);
-  transform: translateX(8px);
+  background: var(--tint-primary-weak);
 }
 
 .item-date {
-  color: var(--text-muted);
+  flex: 0 0 auto;
+  min-width: 2ch;
+  color: var(--text-disabled);
   font-family: var(--font-mono);
-  font-size: 0.9rem;
-  min-width: 50px;
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  transition: color var(--dur-fast) var(--ease-standard);
 }
 
 .item-title {
-  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-md);
+  line-height: var(--leading-snug);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-standard);
 }
 
+/* 悬停只做两件事：行底泛出一层极淡的墨，日期转为主色。
+   位移交给「条目本身」，不做整行横移——索引需要稳。 */
+.archive-item:hover .item-title {
+  color: var(--color-primary-dark);
+}
+
+.archive-item:hover .item-date {
+  color: var(--color-primary);
+}
+
+.archive-item:active {
+  background: var(--tint-primary);
+}
+
+/* ---------- 分页 ---------- */
 .archives-pagination {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-2xl);
+  gap: var(--space-4);
+  margin-top: var(--space-16);
 }
 
 .pagination-btn {
-  min-width: 84px;
-  padding: var(--spacing-sm) var(--spacing-md);
+  min-width: 5.5rem;
+  min-height: 2.5rem;
+  padding: var(--space-2) var(--space-4);
+  background: var(--bg-elevated);
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
-  background: var(--bg-glass);
-  color: var(--text-primary);
-  cursor: pointer;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: var(--fs-caption);
+  letter-spacing: var(--tracking-wide);
   transition:
-    background-color var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast);
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard),
+    transform var(--dur-instant) var(--ease-standard);
 }
 
 .pagination-btn:hover:not(:disabled) {
   border-color: var(--color-primary);
-  color: var(--color-primary);
+  color: var(--color-primary-dark);
+  background: var(--tint-primary-weak);
+}
+
+.pagination-btn:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .pagination-btn:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.45;
 }
 
 .pagination-status {
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: var(--fs-caption);
+  font-variant-numeric: tabular-nums;
 }
 
-.skeleton-pulse {
-  background: var(--bg-tertiary);
-  background-size: 200% 100%;
-  animation: pulse 1.5s ease-in-out infinite;
-  border-radius: 4px;
-}
-
-@keyframes pulse {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+/* ---------- 骨架屏 ---------- */
+.archives-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
 }
 
 .skeleton-group {
-  margin-bottom: var(--spacing-2xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }
 
-.skeleton-group-title {
-  height: 28px;
-  width: 150px;
-  margin-bottom: var(--spacing-md);
-  border-radius: var(--border-radius-sm);
+.skeleton-title {
+  width: 4rem;
+  height: 2rem;
 }
 
 .skeleton-items {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: var(--space-2);
 }
 
 .skeleton-item {
-  height: 48px;
-  border-radius: var(--border-radius-sm);
+  height: 2.75rem;
 }
 
 @media (max-width: 768px) {
-  .archive-item {
-    padding: var(--spacing-sm) var(--spacing-md);
+  .archives-header {
+    margin-bottom: var(--space-8);
+  }
+
+  .archives-list {
+    gap: var(--space-12);
+  }
+
+  .year-group {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+
+  /* 窄屏无法吸附，年份退回一条横向标目 */
+  .year-title {
+    position: static;
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--border-hairline);
+    font-size: var(--fs-xl);
+  }
+
+  .year-body {
+    gap: var(--space-8);
+  }
+
+  .item-title {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .archives-pagination {
+    margin-top: var(--space-12);
   }
 }
 </style>

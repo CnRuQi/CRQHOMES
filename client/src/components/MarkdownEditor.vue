@@ -85,14 +85,17 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* ============================================================
+   Markdown 编辑器：md-editor-v3 自带一套亮色皮肤，
+   这里把它整体「翻译」成站点的纸与墨，而不是覆盖几个零散颜色。
+   ============================================================ */
 .markdown-editor {
-  min-width: 0;
   max-width: 100%;
-  border-radius: 16px;
+  min-width: 0;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-lg);
 }
 
 /* 覆盖 md-editor-v3 的默认 CSS 变量 */
@@ -101,21 +104,21 @@ onMounted(() => {
   --md-color: var(--text-secondary) !important;
   --md-bk-color-outstand: var(--bg-secondary) !important;
   --md-color-selected: var(--color-primary) !important;
-  --md-border-color: var(--border-color) !important;
+  --md-border-color: var(--border-hairline) !important;
 
-  background-color: transparent !important;
-  color: var(--text-secondary) !important;
-  border: none !important;
   width: 100% !important;
   max-width: 100%;
   min-width: 0;
+  background-color: transparent !important;
+  color: var(--text-secondary) !important;
+  border: none !important;
 }
 
-/* 工具栏 - 宣纸色背景 */
+/* 工具栏 */
 .markdown-editor :deep(.md-editor-toolbar) {
-  background-color: var(--bg-secondary) !important;
-  border-bottom: 1px solid var(--border-color) !important;
   min-width: max-content;
+  background-color: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--border-hairline) !important;
 }
 
 .markdown-editor :deep(.md-editor-toolbar-wrapper) {
@@ -132,22 +135,22 @@ onMounted(() => {
 
 /* 工具栏图标 - 使用 color 属性 */
 .markdown-editor :deep(.md-editor-toolbar-item) {
-  color: var(--text-secondary) !important;
   flex: 0 0 auto;
+  color: var(--text-secondary) !important;
+  border-radius: var(--radius-xs);
   transition:
-    background-color var(--transition-fast),
-    color var(--transition-fast);
+    background-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
 }
 
 .markdown-editor :deep(.md-editor-toolbar-item:hover) {
-  color: var(--text-muted) !important;
-  background-color: rgba(163, 166, 156, 0.1) !important;
-  border-radius: 6px;
+  background-color: var(--tint-primary-weak) !important;
+  color: var(--color-primary-dark) !important;
 }
 
 .markdown-editor :deep(.md-editor-toolbar-item.active) {
-  color: var(--text-muted) !important;
-  background-color: rgba(163, 166, 156, 0.15) !important;
+  background-color: var(--tint-primary) !important;
+  color: var(--color-primary-dark) !important;
 }
 
 /* 修复分割线颜色 */
@@ -157,9 +160,9 @@ onMounted(() => {
 
 /* 内容区域 */
 .markdown-editor :deep(.md-editor-content) {
-  background-color: transparent !important;
   width: 100%;
   min-width: 0;
+  background-color: transparent !important;
 }
 
 .markdown-editor :deep(.md-editor-content-wrapper),
@@ -170,19 +173,20 @@ onMounted(() => {
 
 /* 编辑区 */
 .markdown-editor :deep(.md-editor-input) {
-  color: var(--text-primary) !important;
   background-color: transparent !important;
+  color: var(--text-primary) !important;
   font-family: var(--font-sans);
 }
 
 /* 预览区 */
 .markdown-editor :deep(.md-editor-preview-wrapper) {
-  border-left: 1px solid var(--border-color) !important;
-  background: var(--bg-glass) !important;
+  background: var(--bg-elevated) !important;
+  border-left: 1px solid var(--border-hairline) !important;
 }
 
 .markdown-editor :deep(.md-editor-preview) {
   color: var(--text-secondary) !important;
+  font-family: var(--font-sans);
 }
 
 .markdown-editor :deep(.md-editor-preview h1),
@@ -196,19 +200,19 @@ onMounted(() => {
 }
 
 .markdown-editor :deep(.md-editor-preview a) {
-  color: var(--text-muted) !important;
+  color: var(--color-primary-dark) !important;
 }
 
 .markdown-editor :deep(.md-editor-preview code) {
-  background-color: color-mix(in srgb, var(--color-accent) 65%, transparent) !important;
+  background-color: var(--bg-secondary) !important;
   color: var(--text-secondary) !important;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
 }
 
 .markdown-editor :deep(.md-editor-preview pre) {
-  background-color: var(--bg-tertiary) !important;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
+  background-color: var(--bg-secondary) !important;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-sm);
 }
 
 .markdown-editor :deep(.md-editor-preview pre code) {
@@ -216,8 +220,8 @@ onMounted(() => {
 }
 
 .markdown-editor :deep(.md-editor-preview blockquote) {
+  background-color: var(--bg-secondary) !important;
   border-left-color: var(--color-primary) !important;
-  background-color: var(--bg-tertiary) !important;
   color: var(--text-secondary) !important;
 }
 
@@ -227,12 +231,12 @@ onMounted(() => {
 }
 
 .markdown-editor :deep(.md-editor-preview table td) {
-  border-color: var(--border-color) !important;
+  border-color: var(--border-hairline) !important;
 }
 
 .markdown-editor :deep(.md-editor-preview img) {
-  border-radius: 8px;
   max-width: 100%;
+  border-radius: var(--radius-sm);
 }
 
 .markdown-editor :deep(.md-editor-preview hr) {
@@ -248,8 +252,13 @@ onMounted(() => {
 
 .markdown-editor :deep(.md-editor-input::-webkit-scrollbar-thumb),
 .markdown-editor :deep(.md-editor-preview-wrapper::-webkit-scrollbar-thumb) {
-  background: rgba(163, 166, 156, 0.25);
-  border-radius: 3px;
+  background: color-mix(in srgb, var(--text-disabled) 45%, transparent);
+  border-radius: var(--radius-xs);
+}
+
+.markdown-editor :deep(.md-editor-input::-webkit-scrollbar-track),
+.markdown-editor :deep(.md-editor-preview-wrapper::-webkit-scrollbar-track) {
+  background: transparent;
 }
 
 @media (max-width: 768px) {
@@ -264,13 +273,8 @@ onMounted(() => {
   }
 
   .markdown-editor :deep(.md-editor-preview-wrapper) {
-    border-top: 1px solid var(--border-color) !important;
+    border-top: 1px solid var(--border-hairline) !important;
     border-left: none !important;
   }
-}
-
-.markdown-editor :deep(.md-editor-input::-webkit-scrollbar-track),
-.markdown-editor :deep(.md-editor-preview-wrapper::-webkit-scrollbar-track) {
-  background: transparent;
 }
 </style>

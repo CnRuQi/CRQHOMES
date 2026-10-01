@@ -19,43 +19,26 @@
 
 <script setup>
 import { onMounted, onUnmounted } from 'vue'
-import AOS from 'aos'
-import 'aos/dist/aos.css'
 import Toast from '@/components/Toast.vue'
 import { useToast } from '@/composables/useToast'
 import { useTheme } from '@/composables/useTheme'
+import { initReveal, disposeReveal } from '@/assets/js/reveal'
 
 const { toastState } = useToast()
 const { initTheme, watchSystemTheme, stopWatchSystemTheme } = useTheme()
 
-const reduceMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-
-function initAos() {
-  AOS.init({
-    duration: 500,
-    easing: 'ease-out',
-    once: true,
-    offset: 50,
-    // 用户偏好减少动态效果时禁用滚动动画
-    disable: reduceMotionQuery.matches,
-  })
-}
-
 onMounted(() => {
   initTheme()
   watchSystemTheme()
-  initAos()
-  // 会话中切换系统「减少动态效果」时即时生效
-  if (reduceMotionQuery.addEventListener) {
-    reduceMotionQuery.addEventListener('change', initAos)
-  }
+  // 入场揭示：单例 IntersectionObserver + MutationObserver，
+  // 覆盖首屏与异步渲染的列表。替代了原先的 AOS——
+  // 少一个运行时依赖，也少一套不属于本站的默认观感。
+  initReveal()
 })
 
 onUnmounted(() => {
   stopWatchSystemTheme()
-  if (reduceMotionQuery.removeEventListener) {
-    reduceMotionQuery.removeEventListener('change', initAos)
-  }
+  disposeReveal()
 })
 </script>
 
@@ -63,25 +46,8 @@ onUnmounted(() => {
 .app-wrapper {
   position: relative;
   min-height: 100vh;
+  /* 移动端浏览器地址栏会算进 100vh，用 dvh 修正；不支持的浏览器保留上一行 */
+  min-height: 100dvh;
   background: var(--bg-primary);
-}
-
-/* 页面过渡动画 - 克制平缓 */
-.page-enter-active {
-  transition: all 0.35s ease-out;
-}
-
-.page-leave-active {
-  transition: all 0.25s ease-in;
-}
-
-.page-enter-from {
-  opacity: 0;
-  transform: translateY(12px);
-}
-
-.page-leave-to {
-  opacity: 0;
-  transform: translateY(-8px);
 }
 </style>

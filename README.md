@@ -4,9 +4,9 @@
 
 一个现代化的个人博客系统，采用「枯木冷茶」(Zen Wood) 配色方案，支持文章管理、暗色模式、动画效果和响应式布局，前后端分离，安全优先。
 
-**当前版本：v2.0.1**
+**当前版本：v2.1.0**
 
-> 说明：v2.0.1 修复了安全审查发现的 CSRF、资源边界、前端异步竞态和发布配置问题。详细变更及部署包校验值见 [`docs/releases/v2.0.1.md`](docs/releases/v2.0.1.md)；v2.0.0 全面审计的历史证据见 [`docs/releases/v2.0.0.md`](docs/releases/v2.0.0.md) 和 [`docs/audits/browser-baseline-2026-09-13.md`](docs/audits/browser-baseline-2026-09-13.md)。
+> 说明：v2.1.0 完成前台获奖级设计迭代（落雪、墨点光标、磁性交互、主题墨晕扩散），并修复全站按钮着色失效、文章页标题永久隐藏、封面加载态布局跳动三个系统性 CSS 缺陷，触控目标补齐 44px 标准。详细变更见 [`docs/releases/v2.1.0.md`](docs/releases/v2.1.0.md)；v2.0.1 安全修复见 [`docs/releases/v2.0.1.md`](docs/releases/v2.0.1.md)。
 
 ## 当前审计进度
 
